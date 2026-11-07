@@ -2477,6 +2477,7 @@
   "assignedUserIdDescription": "If set, only this user can claim the tag. If empty, the first authenticated scanner will claim it.",
   "assignedUserIdHint": "Leave empty for first-scan claim",
   "authCurrentSession": "Current Session",
+  "authCurrentShort": "現在",
   "authTrusted": "信頼できる",
   "authWebBrowsers": "Web ブラウザ",
   "authDevicesTab": "Devices",

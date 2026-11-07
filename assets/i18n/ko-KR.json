@@ -2773,6 +2773,7 @@
   "assignedUserIdDescription": "If set, only this user can claim the tag. If empty, the first authenticated scanner will claim it.",
   "assignedUserIdHint": "Leave empty for first-scan claim",
   "authCurrentSession": "현재 세션",
+  "authCurrentShort": "현재",
   "authTrusted": "신뢰할 수 있음",
   "authWebBrowsers": "Web 브라우저",
   "authDevicesTab": "Devices",

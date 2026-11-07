@@ -605,6 +605,7 @@
   "attitudeNeutral": "中立",
   "attitudePositive": "正面",
   "authCurrentSession": "当前会话",
+  "authCurrentShort": "当前",
   "authTrusted": "受信任",
   "authWebBrowsers": "Web 浏览器",
   "authDeviceChallenges": "设备活动",

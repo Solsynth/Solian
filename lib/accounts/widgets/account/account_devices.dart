@@ -12,15 +12,14 @@ import 'package:island/core/services/udid.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/empty_state.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
+import 'package:island/shared/hooks/material_hooks.dart';
 import 'package:island/shared/widgets/response.dart';
-import 'package:island/shared/widgets/info_row.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:latlong2/latlong.dart' as latlong;
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:solar_network_foundation/solar_network_foundation.dart';
-import 'package:styled_widget/styled_widget.dart';
 
 part 'account_devices.g.dart';
 
@@ -111,28 +110,359 @@ class ExpandedSessions extends _$ExpandedSessions {
   bool isExpanded(String sessionId) => state.contains(sessionId);
 }
 
-class _OnlineBadge extends StatelessWidget {
-  const _OnlineBadge();
+// ---------------------------------------------------------------------------
+// Shared visual grammar
+//
+// Every credential surface in this file speaks the same sentence:
+//
+//     <glyph>  <name>                        <status>   <affordance>
+//              <meta · meta · meta>
+//
+// Counts live in the meta line, not in pills; timestamps and addresses are one
+// tap away instead of being printed on every row. A grouped surface holds the
+// rows and hairlines separate them, so one screen holds many times the
+// credentials the old per-item cards did without turning into a wall.
+// ---------------------------------------------------------------------------
+
+const double _kRowGutter = 16;
+const double _kGroupMaxWidth = 720;
+
+/// Status green that survives both themes.
+///
+/// The dark scheme sits on a near-black surface where `green.shade800` is
+/// invisible, so the ink flips with the brightness while the hue stays put.
+Color _liveColor(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF6FD39A)
+        : const Color(0xFF2E7D48);
+
+EdgeInsets _pageGutter(BuildContext context, {double vertical = 0}) {
+  final width = MediaQuery.sizeOf(context).width;
+  final gutter = width > _kGroupMaxWidth + 40
+      ? (width - _kGroupMaxWidth) / 2
+      : _kRowGutter;
+  return EdgeInsets.symmetric(horizontal: gutter, vertical: vertical);
+}
+
+IconData _platformIcon(int platform) {
+  return switch (platform) {
+    1 => Symbols.web,
+    2 => Symbols.phone_iphone,
+    3 => Symbols.phone_android,
+    4 => Symbols.laptop_mac,
+    5 => Symbols.window,
+    6 => Symbols.computer,
+    _ => Symbols.device_unknown,
+  };
+}
+
+String _platformLabel(int platform) {
+  return switch (platform) {
+    1 => 'Web',
+    2 => 'iOS',
+    3 => 'Android',
+    4 => 'macOS',
+    5 => 'Windows',
+    6 => 'Linux',
+    _ => 'Unknown',
+  };
+}
+
+IconData _sessionTypeIcon(int type) {
+  return switch (type) {
+    1 => Symbols.link, // OAuth
+    2 => Symbols.account_circle, // OIDC
+    _ => Symbols.key, // Login
+  };
+}
+
+/// One segment of a meta line. Emphasis is a token, not a different size:
+/// the line keeps its rhythm and only the ink changes.
+class _Meta {
+  final String text;
+  final bool emphasized;
+
+  const _Meta(this.text, {this.emphasized = false});
+}
+
+/// `macOS · 3 sessions · active 2h ago` — one quiet line per row.
+///
+/// Separators are drawn as text so the line can be laid out and ellipsised as
+/// a single run; a narrow sheet trims the tail instead of wrapping.
+class _MetaLine extends StatelessWidget {
+  final List<_Meta> parts;
+
+  const _MetaLine(this.parts);
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final base = Theme.of(context).textTheme.bodySmall?.copyWith(
+      color: colorScheme.onSurfaceVariant,
+      height: 1.35,
+    );
+    final strong = base?.copyWith(
+      color: colorScheme.primary,
+      fontWeight: FontWeight.w600,
+    );
+    final separator = '  ·  ';
+
+    final spans = <TextSpan>[];
+    for (var i = 0; i < parts.length; i++) {
+      if (i > 0) spans.add(TextSpan(text: separator, style: base));
+      spans.add(
+        TextSpan(
+          text: parts[i].text,
+          style: parts[i].emphasized ? strong : base,
+        ),
+      );
+    }
+
+    return Text.rich(
+      TextSpan(children: spans),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+}
+
+/// A rounded surface that holds a run of rows, separated by hairlines that
+/// start where the row text starts rather than at the card edge.
+class _GroupBox extends StatelessWidget {
+  final List<Widget> children;
+
+  const _GroupBox({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final last = children.length - 1;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.green.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(SolRadius.pill),
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(SolRadius.card),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
         children: [
-          const Icon(Icons.circle, size: 8, color: Colors.green),
-          const Gap(4),
-          Text(
-            'online'.tr(),
-            style: TextStyle(
-              color: Colors.green.shade800,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+          for (var i = 0; i < children.length; i++) ...[
+            children[i],
+            if (i != last)
+              Divider(
+                height: 1,
+                thickness: 1,
+                indent: 68,
+                endIndent: 12,
+                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// A labelled section heading inside a scrolling sheet.
+class _SectionLabel extends StatelessWidget {
+  final String label;
+  final String? trailing;
+
+  const _SectionLabel({required this.label, this.trailing});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: textTheme.labelLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ),
+          if (trailing != null)
+            Text(
+              trailing!,
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.outline,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveDot extends StatelessWidget {
+  const _LiveDot();
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _liveColor(context);
+    return Tooltip(
+      message: 'online'.tr(),
+      child: Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(color: color.withValues(alpha: 0.35), blurRadius: 4),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The signature of this page: one dot per credential the device holds.
+///
+/// Reading order is "alive first": online credentials lead, the current one
+/// is a filled primary dot with a ring, trusted ones are hollow, and expired
+/// or idle ones are the quietest ink. Anything past [max] collapses into
+/// `+N`, so a device with forty browser sessions still prints one glyph.
+class _SessionDots extends StatelessWidget {
+  /// How many dots a row is willing to show before it starts counting.
+  static const int _max = 4;
+
+  final List<SnAuthSession> sessions;
+
+  const _SessionDots({required this.sessions});
+
+  @override
+  Widget build(BuildContext context) {
+    if (sessions.isEmpty) return const SizedBox.shrink();
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final idle = colorScheme.outline.withValues(alpha: 0.5);
+
+    int rank(SnAuthSession s) => s.isCurrent ? 0 : (s.isOnline ? 1 : 2);
+    final ordered = [...sessions]..sort((a, b) => rank(a).compareTo(rank(b)));
+    final shown = ordered.take(_max).toList();
+    final overflow = ordered.length - shown.length;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final session in shown)
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: _SessionDot(session: session, idle: idle),
+          ),
+        if (overflow > 0)
+          Padding(
+            padding: const EdgeInsets.only(left: 6),
+            child: Text(
+              '+$overflow',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// A single credential, in ring-plus-fill rather than four different hues:
+/// filled = live, hollow = trusted but idle, faint = idle and untrusted.
+class _SessionDot extends StatelessWidget {
+  final SnAuthSession session;
+  final Color idle;
+
+  const _SessionDot({required this.session, required this.idle});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    if (session.trusted && !session.isCurrent) {
+      return Container(
+        width: 9,
+        height: 9,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: colorScheme.tertiary, width: 1.6),
+        ),
+      );
+    }
+
+    return Container(
+      width: 9,
+      height: 9,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: session.isCurrent
+            ? colorScheme.primary
+            : session.isOnline
+            ? colorScheme.primary.withValues(alpha: 0.45)
+            : idle,
+        boxShadow: session.isCurrent
+            ? [
+                BoxShadow(
+                  color: colorScheme.primary.withValues(alpha: 0.35),
+                  blurRadius: 5,
+                ),
+              ]
+            : null,
+      ),
+    );
+  }
+}
+
+/// Field row used inside an expanded credential: label, value, no icon plate.
+class _FieldLine extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _FieldLine({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 14, color: colorScheme.outline),
+          const Gap(8),
+          SizedBox(
+            width: 96,
+            child: Text(
+              label,
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurface,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ),
         ],
@@ -141,208 +471,379 @@ class _OnlineBadge extends StatelessWidget {
   }
 }
 
-class _DeviceCard extends StatelessWidget {
+/// A device as one row: identity, one meta line, one dot cluster.
+class _DeviceRow extends StatelessWidget {
   final SnAuthDeviceWithSession device;
   final VoidCallback onTap;
 
-  const _DeviceCard({required this.device, required this.onTap});
+  const _DeviceRow({required this.device, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final isCurrent = device.isCurrent;
+    final name = device.deviceLabel ?? device.deviceName;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: isCurrent
-            ? colorScheme.primaryContainer.withValues(alpha: 0.35)
-            : colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(SolRadius.card),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(SolRadius.card),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+    final lastGranted = device.sessions.isEmpty
+        ? null
+        : device.sessions
+              .map((s) => s.lastGrantedAt)
+              .reduce((a, b) => a.isAfter(b) ? a : b);
+
+    // The dots below already count the credentials, and the glyph says which
+    // platform this is, so the caption spends its slots on what neither can:
+    // whether this is the device you are holding, and when it was last used.
+    final meta = <_Meta>[
+      if (isCurrent) _Meta('authCurrentShort'.tr(), emphasized: true),
+      if (lastGranted != null) _Meta(lastGranted.formatRelative(context)),
+    ];
+
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(_kRowGutter, 14, 8, 14),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isCurrent
+                    ? colorScheme.primaryContainer
+                    : colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(SolRadius.sm),
+              ),
+              child: Icon(
+                _platformIcon(device.platform),
+                size: 20,
+                color: isCurrent
+                    ? colorScheme.onPrimaryContainer
+                    : colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const Gap(12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: isCurrent
-                          ? colorScheme.primaryContainer
-                          : colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(SolRadius.md),
-                    ),
-                    child: Icon(
-                      switch (device.platform) {
-                        0 => Icons.device_unknown,
-                        1 => Icons.web,
-                        2 => Icons.phone_iphone,
-                        3 => Icons.phone_android,
-                        4 => Icons.laptop_mac,
-                        5 => Icons.window,
-                        6 => Icons.computer,
-                        _ => Icons.device_unknown,
-                      },
-                      color: isCurrent
-                          ? colorScheme.onPrimaryContainer
-                          : colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const Gap(12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                device.deviceLabel ?? device.deviceName,
-                                style: Theme.of(context).textTheme.titleMedium,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            if (isCurrent) ...[
-                              const Gap(8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.primary.withValues(
-                                    alpha: 0.15,
-                                  ),
-                                  borderRadius: BorderRadius.circular(
-                                    SolRadius.pill,
-                                  ),
-                                ),
-                                child: Text(
-                                  'authDeviceCurrent'.tr(),
-                                  style: TextStyle(
-                                    color: colorScheme.primary,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                            if (device.isOnline) ...[
-                              const Gap(8),
-                              const _OnlineBadge(),
-                            ],
-                            if (device.trusted) ...[
-                              const Gap(8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.tertiaryContainer,
-                                  borderRadius: BorderRadius.circular(
-                                    SolRadius.pill,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.verified,
-                                      size: 12,
-                                      color: colorScheme.onTertiaryContainer,
-                                    ),
-                                    const Gap(4),
-                                    Text(
-                                      'authTrusted'.tr(),
-                                      style: TextStyle(
-                                        color: colorScheme.onTertiaryContainer,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                            if (device.sessions.isNotEmpty) ...[
-                              const Gap(8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.secondaryContainer,
-                                  borderRadius: BorderRadius.circular(
-                                    SolRadius.pill,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Symbols.key,
-                                      size: 12,
-                                      color: colorScheme.onSecondaryContainer,
-                                    ),
-                                    const Gap(4),
-                                    Text(
-                                      '${device.sessions.length}',
-                                      style: TextStyle(
-                                        color: colorScheme.onSecondaryContainer,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ],
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          name,
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.1,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        if (device.deviceLabel != null) ...[
-                          const Gap(2),
-                          Text(
-                            device.deviceName,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                        if (device.sessions.isNotEmpty)
-                          Text(
-                            'lastActiveAt'.tr(
-                              args: [
-                                device.sessions.first.createdAt.formatSystem(),
-                              ],
-                            ),
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
+                      ),
+                      if (device.trusted) ...[
+                        const Gap(6),
+                        Icon(
+                          Symbols.verified,
+                          size: 14,
+                          color: colorScheme.tertiary,
+                        ),
                       ],
-                    ),
+                      if (device.isOnline) ...[
+                        const Gap(6),
+                        const _LiveDot(),
+                      ],
+                    ],
                   ),
-                  const Gap(8),
-                  Icon(
-                    Icons.chevron_right,
-                    color: colorScheme.onSurfaceVariant,
+                  const Gap(3),
+                  Row(
+                    children: [
+                      Expanded(child: _MetaLine(meta)),
+                      if (device.sessions.isNotEmpty) ...[
+                        const Gap(8),
+                        _SessionDots(sessions: device.sessions),
+                      ],
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+            const Gap(4),
+            Icon(
+              Symbols.chevron_right,
+              size: 20,
+              color: colorScheme.outline.withValues(alpha: 0.8),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-/// Device detail sheet with map and session list
+/// One credential. Collapsed it is three lines of information; expanded it
+/// adds the provenance fields and the action that kills it.
+class _SessionTile extends HookConsumerWidget {
+  final SnAuthSession session;
+  final void Function(String) logoutSession;
+  final int depth;
+
+  /// Whether this credential can expand into child credentials.
+  final bool allowChildren;
+
+  const _SessionTile({
+    required this.session,
+    required this.logoutSession,
+    this.depth = 0,
+    this.allowChildren = true,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+
+    final childrenExpanded = allowChildren
+        ? ref.watch(expandedSessionsProvider).contains(session.id)
+        : false;
+    final hasChildren = allowChildren && (session.childrenCount ?? 0) > 0;
+    final childrenAsync = hasChildren && childrenExpanded
+        ? ref.watch(sessionChildrenProvider(session.id))
+        : null;
+
+    final detailsExpanded = useState(false);
+    final isCurrent = session.isCurrent;
+    final location = session.location?.city;
+
+    final title = session.label ?? session.userAgent ?? 'unknown'.tr();
+    final chevronTurns = detailsExpanded.value ? 0.5 : 0.0;
+    final childTurns = childrenExpanded ? 0.5 : 0.0;
+
+    final meta = <_Meta>[
+      if (isCurrent) _Meta('authCurrentSession'.tr(), emphasized: true),
+      // Place before recency: where a credential came from is what you scan
+      // for when hunting an unknown sign-in; the time is supporting detail.
+      if (location != null && location.isNotEmpty) _Meta(location),
+      _Meta(session.lastGrantedAt.toLocal().formatRelative(context)),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        InkWell(
+          onTap: () => detailsExpanded.value = !detailsExpanded.value,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              _kRowGutter + depth * 16,
+              12,
+              8,
+              12,
+            ),
+            child: Row(
+              children: [
+                if (hasChildren)
+                  InkWell(
+                    onTap: () => ref
+                        .read(expandedSessionsProvider.notifier)
+                        .toggle(session.id),
+                    borderRadius: BorderRadius.circular(SolRadius.pill),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: AnimatedRotation(
+                        turns: childTurns,
+                        duration: reduceMotion
+                            ? Duration.zero
+                            : const Duration(milliseconds: 180),
+                        child: Icon(
+                          Symbols.expand_more,
+                          size: 18,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  const SizedBox(width: 2),
+                const Gap(10),
+                Icon(
+                  _sessionTypeIcon(session.type),
+                  size: 16,
+                  color: isCurrent
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                ),
+                const Gap(12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              title,
+                              style: textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -0.1,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (session.trusted) ...[
+                            const Gap(6),
+                            Icon(
+                              Symbols.verified,
+                              size: 14,
+                              color: colorScheme.tertiary,
+                            ),
+                          ],
+                          if (session.isOnline) ...[
+                            const Gap(6),
+                            const _LiveDot(),
+                          ],
+                        ],
+                      ),
+                      const Gap(3),
+                      _MetaLine(meta),
+                    ],
+                  ),
+                ),
+                const Gap(8),
+                AnimatedRotation(
+                  turns: chevronTurns,
+                  duration: reduceMotion
+                      ? Duration.zero
+                      : const Duration(milliseconds: 180),
+                  child: Icon(
+                    Symbols.expand_more,
+                    size: 20,
+                    color: colorScheme.outline.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedSize(
+          duration: reduceMotion
+              ? Duration.zero
+              : const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          child: detailsExpanded.value
+              ? Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    _kRowGutter + depth * 16 + 28,
+                    0,
+                    _kRowGutter,
+                    12,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _FieldLine(
+                        icon: Symbols.join,
+                        label: 'createdAt'.tr(args: ['']).trim(),
+                        value: session.createdAt.toLocal().formatSystem(),
+                      ),
+                      _FieldLine(
+                        icon: Symbols.pin_drop,
+                        label: 'location'.tr(),
+                        value: (location == null || location.isEmpty)
+                            ? 'unknown'.tr()
+                            : location,
+                      ),
+                      _FieldLine(
+                        icon: Symbols.dns,
+                        label: 'ipAddress'.tr(),
+                        value: session.ipAddress ?? 'unknown'.tr(),
+                      ),
+                      if (session.expiredAt != null)
+                        _FieldLine(
+                          icon: Symbols.schedule,
+                          label: 'expiresAt'.tr(),
+                          value: session.expiredAt!.toLocal().formatSystem(),
+                        ),
+                      if (!isCurrent) ...[
+                        const Gap(8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            onPressed: () => logoutSession(session.id),
+                            icon: const Icon(Symbols.logout, size: 18),
+                            label: Text('authSessionLogout'.tr()),
+                            style: TextButton.styleFrom(
+                              foregroundColor: colorScheme.error,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                )
+              : const SizedBox(width: double.infinity),
+        ),
+        if (hasChildren && childrenExpanded && childrenAsync != null)
+          childrenAsync.when(
+            // Children stay flat inside the parent's group: an indent rail
+            // says "issued by this credential" without nesting another card.
+            data: (children) => Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  left: BorderSide(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.7),
+                    width: 2,
+                  ),
+                ),
+              ),
+              margin: EdgeInsets.only(
+                left: _kRowGutter + depth * 16 + 20,
+                right: 12,
+                bottom: 4,
+              ),
+              child: Column(
+                children: [
+                  for (final child in children)
+                    _SessionTile(
+                      session: child,
+                      logoutSession: logoutSession,
+                      depth: depth + 1,
+                      allowChildren: false,
+                    ),
+                ],
+              ),
+            ),
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Center(
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            ),
+            error: (err, _) => Padding(
+              padding: const EdgeInsets.fromLTRB(28, 4, 16, 12),
+              child: Text(
+                'Error loading children',
+                style: TextStyle(color: colorScheme.error, fontSize: 12),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Device detail sheet: identity first, then the places it signed in from,
+/// then the credentials themselves.
 class _DeviceDetailSheet extends HookConsumerWidget {
   final SnAuthDeviceWithSession device;
 
@@ -350,22 +851,16 @@ class _DeviceDetailSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final mapController = useMemoized(() => MapController());
 
-    // Get sessions with location data
     final sessionsWithLocation = device.sessions
         .where(
           (s) => s.location?.latitude != null && s.location?.longitude != null,
         )
         .toList();
 
-    // Calculate map center
     final center = useMemoized(() {
-      if (sessionsWithLocation.isEmpty) {
-        return latlong.LatLng(0, 0);
-      }
+      if (sessionsWithLocation.isEmpty) return latlong.LatLng(0, 0);
       final latitudes = sessionsWithLocation.map((s) => s.location!.latitude!);
       final longitudes = sessionsWithLocation.map(
         (s) => s.location!.longitude!,
@@ -376,7 +871,8 @@ class _DeviceDetailSheet extends HookConsumerWidget {
       );
     }, [sessionsWithLocation]);
 
-    void logoutSession(String sessionId) async {
+
+    Future<void> logoutSession(String sessionId) async {
       final confirm = await showConfirmAlert(
         'authSessionLogoutHint'.tr(),
         'authSessionLogout'.tr(),
@@ -390,18 +886,15 @@ class _DeviceDetailSheet extends HookConsumerWidget {
           ref,
           () => stargateApi.revokeSession(sessionId),
         );
-        // Invalidate providers to refresh data
         ref.invalidate(authDevicesProvider);
         ref.invalidate(authSessionsProvider);
-        if (context.mounted) {
-          Navigator.pop(context);
-        }
+        if (context.mounted) Navigator.pop(context);
       } catch (err) {
         showErrorAlert(err);
       }
     }
 
-    void logoutDevice() async {
+    Future<void> logoutDevice() async {
       final confirm = await showConfirmAlert(
         'authDeviceLogoutHint'.tr(),
         'authDeviceLogout'.tr(),
@@ -416,15 +909,13 @@ class _DeviceDetailSheet extends HookConsumerWidget {
           () => stargateApi.revokeDevice(device.deviceId),
         );
         ref.invalidate(authDevicesProvider);
-        if (context.mounted) {
-          Navigator.pop(context);
-        }
+        if (context.mounted) Navigator.pop(context);
       } catch (err) {
         showErrorAlert(err);
       }
     }
 
-    void updateDeviceLabel() async {
+    Future<void> updateDeviceLabel() async {
       final controller = TextEditingController(text: device.deviceLabel);
       final label = await showDialog<String>(
         context: context,
@@ -455,232 +946,317 @@ class _DeviceDetailSheet extends HookConsumerWidget {
         final stargateApi = ref.read(solarNetworkClientProvider).stargate;
         await stargateApi.updateDeviceLabel(device.deviceId, label);
         ref.invalidate(authDevicesProvider);
-        if (context.mounted) {
-          Navigator.pop(context, true);
-        }
+        if (context.mounted) Navigator.pop(context, true);
       } catch (err) {
         showErrorAlert(err);
       }
     }
 
+    final gutter = _pageGutter(context);
+
     return SheetScaffold(
       titleText: device.deviceLabel ?? device.deviceName,
       actions: [
         IconButton(
-          icon: const Icon(Icons.edit),
+          icon: const Icon(Symbols.edit),
           tooltip: 'authDeviceEditLabel'.tr(),
           onPressed: updateDeviceLabel,
         ),
         if (!device.isCurrent)
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Symbols.logout),
             tooltip: 'authDeviceLogout'.tr(),
             onPressed: logoutDevice,
           ),
       ],
       child: CustomScrollView(
         slivers: [
-          // Map section
-          if (sessionsWithLocation.isNotEmpty)
-            SliverToBoxAdapter(
-              child: SizedBox(
-                height: 240,
-                child: Stack(
-                  children: [
-                    FlutterMap(
-                      mapController: mapController,
-                      options: MapOptions(
-                        initialCenter: center,
-                        initialZoom: 3,
-                        interactionOptions: const InteractionOptions(
-                          flags:
-                              InteractiveFlag.drag | InteractiveFlag.pinchZoom,
-                        ),
-                      ),
+          SliverPadding(
+            padding: gutter.copyWith(top: 4),
+            sliver: SliverToBoxAdapter(child: _DeviceHeader(device: device)),
+          ),
+
+          // Where this device signed in from. A band, not a hero: the map
+          // answers one question and then gets out of the way.
+          SliverPadding(
+            padding: gutter.copyWith(top: 16),
+            sliver: SliverToBoxAdapter(
+              child: _LocationBand(
+                sessions: sessionsWithLocation,
+                mapController: mapController,
+                center: center,
+              ),
+            ),
+          ),
+
+          SliverPadding(
+            padding: gutter.copyWith(top: 20),
+            sliver: SliverToBoxAdapter(
+              child: _SectionLabel(
+                label: 'authSessions'.tr(),
+                trailing: 'authSessionsCount'.plural(device.sessions.length),
+              ),
+            ),
+          ),
+
+          SliverPadding(
+            padding: gutter.copyWith(bottom: 24),
+            sliver: SliverToBoxAdapter(
+              child: device.sessions.isEmpty
+                  ? EmptyState(
+                      icon: Symbols.key_off,
+                      title: 'dataEmpty'.tr(),
+                      compact: true,
+                    )
+                  : _GroupBox(
                       children: [
-                        TileLayer(
-                          retinaMode: true,
-                          urlTemplate:
-                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          userAgentPackageName:
-                              'Solian/1.0 (+https://solian.app, contact: lily@solsynth.dev)',
-                        ),
-                        RichAttributionWidget(
-                          popupInitialDisplayDuration: const Duration(
-                            seconds: 0,
+                        for (final session in device.sessions)
+                          _SessionTile(
+                            session: session,
+                            logoutSession: logoutSession,
+                            allowChildren: false,
                           ),
-                          animationConfig: const ScaleRAWA(),
-                          showFlutterMapAttribution: false,
-                          attributions: [
-                            TextSourceAttribution(
-                              'OpenStreetMap contributors',
-                              onTap: () {},
-                            ),
-                          ],
-                        ),
-                        MarkerLayer(
-                          markers: sessionsWithLocation.map((session) {
-                            final loc = session.location!;
-                            return Marker(
-                              point: latlong.LatLng(
-                                loc.latitude!,
-                                loc.longitude!,
-                              ),
-                              width: 48,
-                              height: 48,
-                              child: _SessionMapPin(
-                                session: session,
-                                isCurrent: session.isCurrent,
-                              ),
-                            );
-                          }).toList(),
-                        ),
                       ],
                     ),
-                    // Zoom controls
-                    Positioned(
-                      right: 12,
-                      bottom: 12,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          FloatingActionButton.small(
-                            heroTag: 'device_zoom_in',
-                            onPressed: () => mapController.move(
-                              mapController.camera.center,
-                              mapController.camera.zoom + 1,
-                            ),
-                            child: const Icon(Symbols.add),
-                          ),
-                          const Gap(8),
-                          FloatingActionButton.small(
-                            heroTag: 'device_zoom_out',
-                            onPressed: () => mapController.move(
-                              mapController.camera.center,
-                              mapController.camera.zoom - 1,
-                            ),
-                            child: const Icon(Symbols.remove),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Session count badge
-                    Positioned(
-                      left: 12,
-                      top: 12,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surface.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 8,
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Symbols.location_on,
-                              size: 16,
-                              color: colorScheme.primary,
-                            ),
-                            const Gap(6),
-                            Text(
-                              '${sessionsWithLocation.length} ${sessionsWithLocation.length == 1 ? 'location'.tr() : 'locations'.tr()}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            SliverToBoxAdapter(
-              child: Container(
-                height: 120,
-                margin: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Symbols.location_off,
-                        size: 40,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const Gap(8),
-                      Text(
-                        'noLocationData'.tr(),
-                        style: TextStyle(color: colorScheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-          SliverGap(16),
-
-          // Device info section (now scrollable)
-          SliverToBoxAdapter(child: _DeviceInfoCard(device: device)),
-
-          // Session list header
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            sliver: SliverToBoxAdapter(
-              child: Row(
-                spacing: 8,
-                children: [
-                  const Icon(Symbols.key, size: 18),
-                  Text(
-                    'authSessions'.tr(),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ).padding(horizontal: 8),
             ),
           ),
-
-          // Session list
-          SliverList.builder(
-            itemCount: device.sessions.length,
-            itemBuilder: (context, index) {
-              final session = device.sessions[index];
-              return _SessionListItem(
-                session: session,
-                onLogout: () => logoutSession(session.id),
-              );
-            },
-          ),
-
-          // Bottom padding
-          const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
         ],
       ),
     );
   }
 }
 
-/// Map pin widget for a session
+/// Identity block of the detail sheet: what this device is, and how many
+/// credentials it is holding right now.
+class _DeviceHeader extends StatelessWidget {
+  final SnAuthDeviceWithSession device;
+
+  const _DeviceHeader({required this.device});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final isCurrent = device.isCurrent;
+
+    return Row(
+      children: [
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: isCurrent
+                ? colorScheme.primaryContainer
+                : colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(SolRadius.md),
+          ),
+          child: Icon(
+            _platformIcon(device.platform),
+            size: 26,
+            color: isCurrent
+                ? colorScheme.onPrimaryContainer
+                : colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const Gap(14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      device.deviceName,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (device.trusted) ...[
+                    const Gap(6),
+                    Tooltip(
+                      message: 'authTrusted'.tr(),
+                      child: Icon(
+                        Symbols.verified,
+                        size: 16,
+                        color: colorScheme.tertiary,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const Gap(4),
+              _MetaLine([
+                if (isCurrent)
+                  _Meta('authDeviceCurrent'.tr(), emphasized: true),
+                _Meta(_platformLabel(device.platform)),
+                _Meta('authSessionsCount'.plural(device.sessions.length)),
+              ]),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Recent sign-in locations as a compact map band.
+class _LocationBand extends StatelessWidget {
+  final List<SnAuthSession> sessions;
+  final MapController mapController;
+  final latlong.LatLng center;
+
+  const _LocationBand({
+    required this.sessions,
+    required this.mapController,
+    required this.center,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
+    if (sessions.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(SolRadius.card),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Symbols.location_off,
+              size: 20,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            const Gap(12),
+            Expanded(
+              child: Text(
+                'noLocationData'.tr(),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(SolRadius.card),
+      child: SizedBox(
+        height: 160,
+        child: Stack(
+          children: [
+            FlutterMap(
+              mapController: mapController,
+              options: MapOptions(
+                initialCenter: center,
+                initialZoom: 3,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.drag | InteractiveFlag.pinchZoom,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  retinaMode: true,
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName:
+                      'Solian/1.0 (+https://solian.app, contact: lily@solsynth.dev)',
+                ),
+                RichAttributionWidget(
+                  popupInitialDisplayDuration: const Duration(seconds: 0),
+                  animationConfig: const ScaleRAWA(),
+                  showFlutterMapAttribution: false,
+                  attributions: [
+                    TextSourceAttribution(
+                      'OpenStreetMap contributors',
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+                MarkerLayer(
+                  markers: sessions.map((session) {
+                    final loc = session.location!;
+                    return Marker(
+                      point: latlong.LatLng(loc.latitude!, loc.longitude!),
+                      width: 96,
+                      height: 54,
+                      alignment: Alignment.topCenter,
+                      child: _SessionMapPin(
+                        session: session,
+                        isCurrent: session.isCurrent,
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+            Positioned(
+              right: 10,
+              bottom: 10,
+              child: Row(
+                children: [
+                  _MapButton(
+                    icon: Symbols.add,
+                    onPressed: () => mapController.move(
+                      mapController.camera.center,
+                      mapController.camera.zoom + 1,
+                    ),
+                  ),
+                  const Gap(6),
+                  _MapButton(
+                    icon: Symbols.remove,
+                    onPressed: () => mapController.move(
+                      mapController.camera.center,
+                      mapController.camera.zoom - 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MapButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _MapButton({required this.icon, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Material(
+      color: colorScheme.surface.withValues(alpha: 0.92),
+      borderRadius: BorderRadius.circular(SolRadius.pill),
+      elevation: 1,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(SolRadius.pill),
+        child: SizedBox(
+          width: 34,
+          height: 34,
+          child: Icon(icon, size: 18, color: colorScheme.onSurface),
+        ),
+      ),
+    );
+  }
+}
+
+/// Map pin for a session
 class _SessionMapPin extends StatelessWidget {
   final SnAuthSession session;
   final bool isCurrent;
@@ -689,746 +1265,44 @@ class _SessionMapPin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    // Use high contrast colors
+    final colorScheme = Theme.of(context).colorScheme;
     final color = isCurrent ? colorScheme.primary : colorScheme.tertiary;
     final onColor = isCurrent ? colorScheme.onPrimary : colorScheme.onTertiary;
 
-    return SizedBox(
-      width: 80,
-      height: 80,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Label with high contrast background
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.75),
-              borderRadius: BorderRadius.circular(SolRadius.xs),
-            ),
-            child: Text(
-              session.location?.city ?? 'Unknown',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                height: 1.0,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const Gap(3),
-          // Pin marker with shadow for depth
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color,
-              border: Border.all(color: Colors.white, width: 3),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.35),
-                  blurRadius: 6,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Icon(
-              _getSessionTypeIcon(session.type),
-              color: onColor,
-              size: 20,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  IconData _getSessionTypeIcon(int type) {
-    return switch (type) {
-      0 => Symbols.key, // Login
-      1 => Symbols.link, // OAuth
-      2 => Symbols.account_circle, // OIDC
-      _ => Symbols.key,
-    };
-  }
-}
-
-/// Device info card showing detailed device information
-class _DeviceInfoCard extends StatelessWidget {
-  final SnAuthDeviceWithSession device;
-
-  const _DeviceInfoCard({required this.device});
-
-  String _getPlatformLabel(int platform) {
-    return switch (platform) {
-      0 => 'Unknown',
-      1 => 'Web',
-      2 => 'iOS',
-      3 => 'Android',
-      4 => 'macOS',
-      5 => 'Windows',
-      6 => 'Linux',
-      _ => 'Unknown',
-    };
-  }
-
-  IconData _getPlatformIcon(int platform) {
-    return switch (platform) {
-      0 => Symbols.device_unknown,
-      1 => Symbols.web,
-      2 => Symbols.phone_iphone,
-      3 => Symbols.phone_android,
-      4 => Symbols.laptop_mac,
-      5 => Symbols.window,
-      6 => Symbols.computer,
-      _ => Symbols.device_unknown,
-    };
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Card.filled(
-      color: colorScheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(SolRadius.card),
-      ),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Platform and device name header
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(SolRadius.md),
-                  ),
-                  child: Icon(
-                    _getPlatformIcon(device.platform),
-                    color: colorScheme.onPrimaryContainer,
-                    size: 24,
-                  ),
-                ),
-                const Gap(12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        device.deviceName,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const Gap(2),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          _getPlatformLabel(device.platform),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: colorScheme.onSecondaryContainer,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const Gap(16),
-            // Device details grid
-            Row(
-              children: [
-                Expanded(
-                  child: _InfoTile(
-                    icon: Symbols.devices,
-                    label: 'deviceId'.tr(),
-                    value: device.deviceId.substring(
-                      0,
-                      device.deviceId.length > 12 ? 12 : device.deviceId.length,
-                    ),
-                    valueTooltip: device.deviceId,
-                  ),
-                ),
-                const Gap(12),
-                Expanded(
-                  child: _InfoTile(
-                    icon: Symbols.key,
-                    label: 'activeSessions'.tr(),
-                    value: '${device.sessions.length}',
-                  ),
-                ),
-              ],
-            ),
-            const Gap(12),
-            Row(
-              children: [
-                Expanded(
-                  child: _InfoTile(
-                    icon: Symbols.calendar_today,
-                    label: 'firstSeen'.tr(),
-                    value: device.sessions.isNotEmpty
-                        ? device.sessions.first.createdAt.formatSystem()
-                        : '-',
-                  ),
-                ),
-                const Gap(12),
-                Expanded(
-                  child: _InfoTile(
-                    icon: Symbols.update,
-                    label: 'lastActive'.tr(),
-                    value: device.sessions.isNotEmpty
-                        ? device.sessions
-                              .map((s) => s.lastGrantedAt)
-                              .reduce((a, b) => a.isAfter(b) ? a : b)
-                              .formatSystem()
-                        : '-',
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Info tile for device info card - Material Design 3
-class _InfoTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final String? valueTooltip;
-
-  const _InfoTile({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.valueTooltip,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Card.filled(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
-                const Gap(8),
-                Text(
-                  label,
-                  style: textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            const Gap(4),
-            Tooltip(
-              message: valueTooltip ?? value,
-              child: Text(
-                value,
-                style: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Session list item for device detail sheet
-class _SessionListItem extends StatelessWidget {
-  final SnAuthSession session;
-  final VoidCallback onLogout;
-
-  const _SessionListItem({required this.session, required this.onLogout});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Card.filled(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: session.isCurrent
-                        ? colorScheme.primaryContainer
-                        : colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    _getSessionTypeIcon(session.type),
-                    color: session.isCurrent
-                        ? colorScheme.onPrimaryContainer
-                        : colorScheme.onSurfaceVariant,
-                    size: 18,
-                  ),
-                ),
-                Gap(12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              session.label ??
-                                  session.userAgent ??
-                                  'unknown'.tr(),
-                              style: Theme.of(context).textTheme.titleMedium,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (session.isCurrent) ...[
-                            Gap(8),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: colorScheme.primary,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                'authCurrentSession'.tr(),
-                                style: TextStyle(
-                                  color: colorScheme.onPrimary,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                          if (session.isOnline) ...[
-                            const Gap(8),
-                            const _OnlineBadge(),
-                          ],
-                          if (session.trusted) ...[
-                            Gap(8),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: colorScheme.tertiaryContainer,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.verified,
-                                    size: 12,
-                                    color: colorScheme.onTertiaryContainer,
-                                  ),
-                                  Gap(4),
-                                  Text(
-                                    'authTrusted'.tr(),
-                                    style: TextStyle(
-                                      color: colorScheme.onTertiaryContainer,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                          if ((session.childrenCount ?? 0) > 0) ...[
-                            Gap(8),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: colorScheme.secondaryContainer,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                '${session.childrenCount}',
-                                style: TextStyle(
-                                  color: colorScheme.onSecondaryContainer,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      Text(
-                        'lastActiveAt'.tr(
-                          args: [
-                            session.lastGrantedAt.toLocal().formatSystem(),
-                          ],
-                        ),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (!session.isCurrent)
-                  IconButton(
-                    icon: Icon(Icons.logout),
-                    tooltip: 'authSessionLogout'.tr(),
-                    onPressed: onLogout,
-                  ),
-              ],
-            ),
-            Gap(12),
-            InfoRow(
-              label: 'createdAt'.tr(
-                args: [session.createdAt.toLocal().formatSystem()],
-              ),
-              icon: Symbols.join,
-            ),
-            Gap(4),
-            InfoRow(
-              label:
-                  '${'location'.tr()} ${session.location?.city ?? 'unknown'.tr()}',
-              icon: Symbols.pin_drop,
-            ),
-            Gap(4),
-            InfoRow(
-              label:
-                  '${'ipAddress'.tr()} ${session.ipAddress ?? 'unknown'.tr()}',
-              icon: Symbols.dns,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  IconData _getSessionTypeIcon(int type) {
-    return switch (type) {
-      0 => Symbols.key, // Login
-      1 => Symbols.link, // OAuth
-      2 => Symbols.account_circle, // OIDC
-      _ => Symbols.key,
-    };
-  }
-}
-
-/// Widget to display a session with expandable children
-class _SessionTreeTile extends HookConsumerWidget {
-  final SnAuthSession session;
-  final Function(String) logoutSession;
-  final int depth;
-
-  const _SessionTreeTile({
-    required this.session,
-    required this.logoutSession,
-    this.depth = 0,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isExpanded = ref.watch(expandedSessionsProvider).contains(session.id);
-    final hasChildren = (session.childrenCount ?? 0) > 0;
-    final childrenAsync = hasChildren && isExpanded
-        ? ref.watch(sessionChildrenProvider(session.id))
-        : null;
-
-    final isCurrent = session.isCurrent;
-
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          margin: EdgeInsets.only(
-            left: 16 + (depth * 20),
-            right: 16,
-            top: 6,
-            bottom: 6,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
-            color: isCurrent
-                ? colorScheme.primaryContainer.withValues(alpha: 0.35)
-                : (depth > 0
-                    ? colorScheme.surfaceContainer
-                    : colorScheme.surfaceContainerLow),
-            borderRadius: BorderRadius.circular(depth > 0 ? SolRadius.md : SolRadius.card),
+            color: colorScheme.inverseSurface.withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(SolRadius.xs),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    if (hasChildren)
-                      GestureDetector(
-                        onTap: () => ref
-                            .read(expandedSessionsProvider.notifier)
-                            .toggle(session.id),
-                        child: AnimatedRotation(
-                          turns: isExpanded ? 0.5 : 0,
-                          duration: Duration(milliseconds: 200),
-                          child: Icon(
-                            Icons.keyboard_arrow_down,
-                            color: colorScheme.onSurfaceVariant,
-                            size: 20,
-                          ),
-                        ),
-                      )
-                    else
-                      SizedBox(width: 20),
-                    Gap(8),
-                    Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: session.isCurrent
-                            ? colorScheme.primaryContainer
-                            : colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        _getSessionTypeIcon(session.type),
-                        color: session.isCurrent
-                            ? colorScheme.onPrimaryContainer
-                            : colorScheme.onSurfaceVariant,
-                        size: 18,
-                      ),
-                    ),
-                    Gap(12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  session.label ??
-                                      session.userAgent ??
-                                      'unknown'.tr(),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (session.isCurrent) ...[
-                                Gap(8),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.primary,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    'authCurrentSession'.tr(),
-                                    style: TextStyle(
-                                      color: colorScheme.onPrimary,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              if (session.isOnline) ...[
-                                const Gap(8),
-                                const _OnlineBadge(),
-                              ],
-                              if (session.trusted) ...[
-                                Gap(8),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.tertiaryContainer,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.verified,
-                                        size: 12,
-                                        color: colorScheme.onTertiaryContainer,
-                                      ),
-                                      Gap(4),
-                                      Text(
-                                        'authTrusted'.tr(),
-                                        style: TextStyle(
-                                          color:
-                                              colorScheme.onTertiaryContainer,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                              if (hasChildren) ...[
-                                Gap(8),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.secondaryContainer,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    '${session.childrenCount}',
-                                    style: TextStyle(
-                                      color: colorScheme.onSecondaryContainer,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                          Text(
-                            'lastActiveAt'.tr(
-                              args: [
-                                session.lastGrantedAt.toLocal().formatSystem(),
-                              ],
-                            ),
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (!session.isCurrent)
-                      IconButton(
-                        icon: Icon(Icons.logout),
-                        tooltip: 'authSessionLogout'.tr(),
-                        onPressed: () => logoutSession(session.id),
-                      ),
-                  ],
-                ),
-                Gap(12),
-                InfoRow(
-                  label: 'createdAt'.tr(
-                    args: [session.createdAt.toLocal().formatSystem()],
-                  ),
-                  icon: Symbols.join,
-                ),
-                Gap(4),
-                InfoRow(
-                  label:
-                      '${'location'.tr()} ${session.location?.city ?? 'unknown'.tr()}',
-                  icon: Symbols.pin_drop,
-                ),
-                Gap(4),
-                InfoRow(
-                  label:
-                      '${'ipAddress'.tr()} ${session.ipAddress ?? 'unknown'.tr()}',
-                  icon: Symbols.dns,
-                ),
-              ],
+          child: Text(
+            session.location?.city ?? 'unknown'.tr(),
+            style: TextStyle(
+              color: colorScheme.onInverseSurface,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              height: 1.2,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        // Child sessions
-        if (hasChildren && isExpanded && childrenAsync != null)
-          childrenAsync.when(
-            data: (children) => Column(
-              children: children
-                  .map(
-                    (child) => _SessionTreeTile(
-                      session: child,
-                      logoutSession: logoutSession,
-                      depth: depth + 1,
-                    ),
-                  )
-                  .toList(),
-            ),
-            loading: () => Padding(
-              padding: EdgeInsets.only(left: 16 + (depth * 24) + 48),
-              child: SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-            error: (err, _) => Padding(
-              padding: EdgeInsets.only(left: 16 + (depth * 24) + 48),
-              child: Text(
-                'Error loading children',
-                style: TextStyle(color: colorScheme.error, fontSize: 12),
-              ),
-            ),
+        const Gap(3),
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+            border: Border.all(color: colorScheme.surface, width: 2.5),
           ),
+          child: Icon(_sessionTypeIcon(session.type), color: onColor, size: 17),
+        ),
       ],
     );
-  }
-
-  IconData _getSessionTypeIcon(int type) {
-    return switch (type) {
-      0 => Symbols.key, // Login
-      1 => Symbols.link, // OAuth
-      2 => Symbols.account_circle, // OIDC
-      _ => Symbols.key,
-    };
   }
 }
 
@@ -1443,27 +1317,7 @@ class AccountSessionSheet extends HookConsumerWidget {
     final sessionType = ref.watch(sessionTypeFilterProvider);
     final authSessions = ref.watch(authSessionsProvider(type: sessionType));
 
-    void logoutDevice(String deviceId) async {
-      final confirm = await showConfirmAlert(
-        'authDeviceLogoutHint'.tr(),
-        'authDeviceLogout'.tr(),
-        isDanger: true,
-      );
-      if (!confirm || !context.mounted) return;
-      try {
-        final stargateApi = ref.read(solarNetworkClientProvider).stargate;
-        await withSudoRetry(
-          context,
-          ref,
-          () => stargateApi.revokeDevice(deviceId),
-        );
-        ref.invalidate(authDevicesProvider);
-      } catch (err) {
-        showErrorAlert(err);
-      }
-    }
-
-    void logoutSession(String sessionId) async {
+    Future<void> logoutSession(String sessionId) async {
       final confirm = await showConfirmAlert(
         'authSessionLogoutHint'.tr(),
         'authSessionLogout'.tr(),
@@ -1482,15 +1336,13 @@ class AccountSessionSheet extends HookConsumerWidget {
         ref.invalidate(authDevicesProvider);
         // Also invalidate expanded session children
         ref.invalidate(sessionChildrenProvider(sessionId));
-        if (context.mounted) {
-          Navigator.pop(context);
-        }
+        if (context.mounted) Navigator.pop(context);
       } catch (err) {
         showErrorAlert(err);
       }
     }
 
-    void logoutAllOtherSessions() async {
+    Future<void> logoutAllOtherSessions() async {
       final confirm = await showConfirmAlert(
         'authLogoutAllOtherSessionsHint'.tr(),
         'authLogoutAllOtherSessions'.tr(),
@@ -1504,15 +1356,13 @@ class AccountSessionSheet extends HookConsumerWidget {
         ref.invalidate(authSessionsProvider);
         ref.invalidate(authDevicesProvider);
         ref.invalidate(expandedSessionsProvider);
-        if (context.mounted) {
-          Navigator.pop(context);
-        }
+        if (context.mounted) Navigator.pop(context);
       } catch (err) {
         showErrorAlert(err);
       }
     }
 
-    void updateDeviceLabel(String deviceId) async {
+    Future<void> updateDeviceLabel(String deviceId) async {
       final controller = TextEditingController();
       final label = await showDialog<String>(
         context: context,
@@ -1562,66 +1412,73 @@ class AccountSessionSheet extends HookConsumerWidget {
     }
 
     final wideScreen = isWideScreen(context);
+    final tabController = useMaterialTabController(
+      initialIndex: initialIndex,
+      initialLength: 2,
+    );
 
     return SheetScaffold(
       titleText: 'authSessions'.tr(),
-      child: DefaultTabController(
-        length: 2,
-        initialIndex: initialIndex,
-        child: Column(
-          children: [
-            TabBar(
+      child: Column(
+        children: [
+          Padding(
+            padding: _pageGutter(context),
+            child: TabBar(
+              controller: tabController,
               dividerColor: Colors.transparent,
+              labelPadding: EdgeInsets.zero,
               tabs: [
                 Tab(
+                  height: 40,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Symbols.devices, size: 18),
-                      const Gap(8),
+                      const Icon(Symbols.devices, size: 17),
+                      const Gap(7),
                       Text('authDevicesTab'.tr()),
                     ],
                   ),
                 ),
                 Tab(
+                  height: 40,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Symbols.key, size: 18),
-                      const Gap(8),
+                      const Icon(Symbols.key, size: 17),
+                      const Gap(7),
                       Text('authSessionsTab'.tr()),
                     ],
                   ),
                 ),
               ],
             ),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  _DevicesTab(
-                    authDevices: authDevices,
-                    wideScreen: wideScreen,
-                    logoutDevice: logoutDevice,
-                    updateDeviceLabel: updateDeviceLabel,
-                    logoutSession: logoutSession,
-                    onDeviceTap: showDeviceDetail,
-                    ref: ref,
-                  ),
-                  _SessionsTab(
-                    authSessions: authSessions,
-                    logoutSession: logoutSession,
-                    logoutAllOtherSessions: logoutAllOtherSessions,
-                    ref: ref,
-                    selectedType: sessionType,
-                    onTypeChanged: (type) => ref
-                        .read(sessionTypeFilterProvider.notifier)
-                        .setType(type),
-                  ),
-                ],
-              ),
+          ),
+          const Gap(4),
+          Expanded(
+            child: TabBarView(
+              controller: tabController,
+              children: [
+                _DevicesTab(
+                  authDevices: authDevices,
+                  wideScreen: wideScreen,
+                  updateDeviceLabel: updateDeviceLabel,
+                  logoutSession: logoutSession,
+                  onDeviceTap: showDeviceDetail,
+                  ref: ref,
+                ),
+                _SessionsTab(
+                  authSessions: authSessions,
+                  logoutSession: logoutSession,
+                  logoutAllOtherSessions: logoutAllOtherSessions,
+                  ref: ref,
+                  selectedType: sessionType,
+                  onTypeChanged: (type) =>
+                      ref.read(sessionTypeFilterProvider.notifier).setType(type),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1630,7 +1487,6 @@ class AccountSessionSheet extends HookConsumerWidget {
 class _DevicesTab extends StatefulWidget {
   final AsyncValue<PaginationState<SnAuthDeviceWithSession>> authDevices;
   final bool wideScreen;
-  final Function(String) logoutDevice;
   final Function(String) updateDeviceLabel;
   final Function(String) logoutSession;
   final Function(SnAuthDeviceWithSession) onDeviceTap;
@@ -1639,7 +1495,6 @@ class _DevicesTab extends StatefulWidget {
   const _DevicesTab({
     required this.authDevices,
     required this.wideScreen,
-    required this.logoutDevice,
     required this.updateDeviceLabel,
     required this.logoutSession,
     required this.onDeviceTap,
@@ -1657,71 +1512,69 @@ class _DevicesTabState extends State<_DevicesTab> {
     BuildContext context,
     SnAuthDeviceWithSession device,
   ) {
-    if (!widget.wideScreen) {
-      return Dismissible(
-        key: Key('device-${device.id}'),
-        direction: device.isCurrent
-            ? DismissDirection.none
-            : DismissDirection.horizontal,
-        background: Container(
-          color: Theme.of(context).colorScheme.primaryContainer,
-          alignment: Alignment.centerLeft,
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Icon(
-            Icons.edit,
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
-          ),
+    final row = _DeviceRow(
+      device: device,
+      onTap: () => widget.onDeviceTap(device),
+    );
+
+    if (widget.wideScreen) return row;
+
+    return Dismissible(
+      key: Key('device-${device.id}'),
+      direction: device.isCurrent
+          ? DismissDirection.none
+          : DismissDirection.horizontal,
+      background: Container(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Icon(
+          Symbols.edit,
+          color: Theme.of(context).colorScheme.onPrimaryContainer,
         ),
-        secondaryBackground: Container(
-          color: Theme.of(context).colorScheme.errorContainer,
-          alignment: Alignment.centerRight,
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Icon(
-            Icons.logout,
-            color: Theme.of(context).colorScheme.onErrorContainer,
-          ),
+      ),
+      secondaryBackground: Container(
+        color: Theme.of(context).colorScheme.errorContainer,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Icon(
+          Symbols.logout,
+          color: Theme.of(context).colorScheme.onErrorContainer,
         ),
-        confirmDismiss: (direction) async {
-          if (direction == DismissDirection.startToEnd) {
-            widget.updateDeviceLabel(device.deviceId);
-            return false;
-          } else {
-            final confirm = await showConfirmAlert(
-              'authDeviceLogoutHint'.tr(),
-              'authDeviceLogout'.tr(),
-              isDanger: true,
+      ),
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          widget.updateDeviceLabel(device.deviceId);
+          return false;
+        }
+        final confirm = await showConfirmAlert(
+          'authDeviceLogoutHint'.tr(),
+          'authDeviceLogout'.tr(),
+          isDanger: true,
+        );
+        if (confirm && context.mounted) {
+          try {
+            showLoadingModal(context);
+            final stargateApi = widget.ref
+                .read(solarNetworkClientProvider)
+                .stargate;
+            await withSudoRetry(
+              context,
+              widget.ref,
+              () => stargateApi.revokeDevice(device.deviceId),
+              onBeforePrompt: () => hideLoadingModal(context),
             );
-            if (confirm && context.mounted) {
-              try {
-                showLoadingModal(context);
-                final stargateApi = widget.ref
-                    .read(solarNetworkClientProvider)
-                    .stargate;
-                await withSudoRetry(
-                  context,
-                  widget.ref,
-                  () => stargateApi.revokeDevice(device.deviceId),
-                  onBeforePrompt: () => hideLoadingModal(context),
-                );
-                widget.ref.invalidate(authDevicesProvider);
-              } catch (err) {
-                showErrorAlert(err);
-              } finally {
-                if (context.mounted) {
-                  hideLoadingModal(context);
-                }
-              }
-            }
-            return confirm;
+            widget.ref.invalidate(authDevicesProvider);
+          } catch (err) {
+            showErrorAlert(err);
+          } finally {
+            if (context.mounted) hideLoadingModal(context);
           }
-        },
-        child: _DeviceCard(
-          device: device,
-          onTap: () => widget.onDeviceTap(device),
-        ),
-      );
-    }
-    return _DeviceCard(device: device, onTap: () => widget.onDeviceTap(device));
+        }
+        return confirm;
+      },
+      child: row,
+    );
   }
 
   @override
@@ -1735,8 +1588,9 @@ class _DevicesTabState extends State<_DevicesTab> {
             onRefresh: () =>
                 Future.sync(() => widget.ref.invalidate(authDevicesProvider)),
             child: EmptyState(
-              icon: Icons.devices_other,
+              icon: Symbols.devices_other,
               title: 'dataEmpty'.tr(),
+              description: 'authSessionsDescription'.tr(),
               compact: true,
             ),
           );
@@ -1745,65 +1599,100 @@ class _DevicesTabState extends State<_DevicesTab> {
         final nativeDevices = data.items.where((d) => d.platform != 1).toList();
         final webDevices = data.items.where((d) => d.platform == 1).toList();
         final isLoadingMore = data.isLoading && data.items.isNotEmpty;
+        final gutter = _pageGutter(context);
 
         return ExtendedRefreshIndicator(
           onRefresh: () =>
               Future.sync(() => widget.ref.invalidate(authDevicesProvider)),
           child: ListView(
-            padding: EdgeInsets.only(bottom: 16, top: 8),
+            padding: EdgeInsets.only(top: 4, bottom: 24),
             children: [
-              // Native devices
-              for (final device in nativeDevices)
-                _buildDeviceItem(context, device),
+              if (nativeDevices.isNotEmpty)
+                Padding(
+                  padding: gutter,
+                  child: _GroupBox(
+                    children: [
+                      for (final device in nativeDevices)
+                        _buildDeviceItem(context, device),
+                    ],
+                  ),
+                ),
 
-              // Web browsers — collapsible
               if (webDevices.isNotEmpty) ...[
-                InkWell(
-                  onTap: () => setState(() => _webExpanded = !_webExpanded),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.language,
-                          size: 18,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        Gap(8),
-                        Expanded(
-                          child: Text(
-                            'authWebBrowsers'.tr(),
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                Padding(
+                  padding: gutter.copyWith(top: 20, bottom: 8),
+                  child: InkWell(
+                    onTap: () => setState(() => _webExpanded = !_webExpanded),
+                    borderRadius: BorderRadius.circular(SolRadius.sm),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 4,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Symbols.public,
+                            size: 16,
+                            color: colorScheme.onSurfaceVariant,
                           ),
-                        ),
-                        Text(
-                          '${webDevices.length}',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: colorScheme.outline),
-                        ),
-                        Gap(4),
-                        Icon(
-                          _webExpanded ? Icons.expand_less : Icons.expand_more,
-                          color: colorScheme.onSurfaceVariant,
-                          size: 20,
-                        ),
-                      ],
+                          const Gap(8),
+                          Expanded(
+                            child: Text(
+                              'authWebBrowsers'.tr(),
+                              style: Theme.of(context).textTheme.labelLarge
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.2,
+                                  ),
+                            ),
+                          ),
+                          Text(
+                            '${webDevices.length}',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: colorScheme.outline,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
+                          ),
+                          const Gap(4),
+                          AnimatedRotation(
+                            turns: _webExpanded ? 0.5 : 0,
+                            duration: MediaQuery.disableAnimationsOf(context)
+                                ? Duration.zero
+                                : const Duration(milliseconds: 180),
+                            child: Icon(
+                              Symbols.expand_more,
+                              size: 20,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 if (_webExpanded)
-                  for (final device in webDevices)
-                    _buildDeviceItem(context, device),
+                  Padding(
+                    padding: gutter,
+                    child: _GroupBox(
+                      children: [
+                        for (final device in webDevices)
+                          _buildDeviceItem(context, device),
+                      ],
+                    ),
+                  ),
               ],
 
-              // Load more
               if (data.hasMore)
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: gutter.copyWith(top: 12),
                   child: Center(
                     child: isLoadingMore
-                        ? SizedBox(
+                        ? const SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
@@ -1848,82 +1737,25 @@ class _SessionsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gutter = _pageGutter(context);
+
     return authSessions.when(
       data: (data) => Column(
         children: [
-          // Filter chips and logout all button in the same row
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Wrap(
-                      spacing: 8,
-                      children: [
-                        FilterChip(
-                          side: BorderSide.none,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(SolRadius.pill),
-                          ),
-                          label: Text('all'.tr()),
-                          selected: selectedType == null,
-                          onSelected: (_) => onTypeChanged(null),
-                        ),
-                        FilterChip(
-                          side: BorderSide.none,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(SolRadius.pill),
-                          ),
-                          label: Text('sessionTypeLogin'.tr()),
-                          selected: selectedType == 0,
-                          onSelected: (_) => onTypeChanged(0),
-                        ),
-                        FilterChip(
-                          side: BorderSide.none,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(SolRadius.pill),
-                          ),
-                          label: Text('sessionTypeOAuth'.tr()),
-                          selected: selectedType == 1,
-                          onSelected: (_) => onTypeChanged(1),
-                        ),
-                        FilterChip(
-                          side: BorderSide.none,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(SolRadius.pill),
-                          ),
-                          label: Text('sessionTypeOidc'.tr()),
-                          selected: selectedType == 2,
-                          onSelected: (_) => onTypeChanged(2),
-                        ),
-                        FilterChip(
-                          side: BorderSide.none,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(SolRadius.pill),
-                          ),
-                          label: Text('sessionTypeApiKey'.tr()),
-                          selected: selectedType == 3,
-                          onSelected: (_) => onTypeChanged(3),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (data.items.where((s) => !s.isCurrent).isNotEmpty) ...[
-                  const Gap(12),
-                  FilledButton.tonalIcon(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                      foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
-                    ),
-                    onPressed: logoutAllOtherSessions,
-                    icon: const Icon(Icons.logout),
-                    label: Text('authLogoutAllOtherSessions'.tr()),
-                  ),
+            padding: gutter.copyWith(top: 4),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                spacing: 8,
+                children: [
+                  _filterChip(context, 'all'.tr(), null),
+                  _filterChip(context, 'sessionTypeLogin'.tr(), 0),
+                  _filterChip(context, 'sessionTypeOAuth'.tr(), 1),
+                  _filterChip(context, 'sessionTypeOidc'.tr(), 2),
+                  _filterChip(context, 'sessionTypeApiKey'.tr(), 3),
                 ],
-              ],
+              ),
             ),
           ),
           Expanded(
@@ -1932,7 +1764,7 @@ class _SessionsTab extends StatelessWidget {
                   Future.sync(() => ref.invalidate(authSessionsProvider)),
               child: data.items.isEmpty
                   ? EmptyState(
-                      icon: Icons.key_off,
+                      icon: Symbols.key_off,
                       title: 'dataEmpty'.tr(),
                       compact: true,
                     )
@@ -1949,51 +1781,106 @@ class _SessionsTab extends StatelessWidget {
     );
   }
 
+  Widget _filterChip(BuildContext context, String label, int? type) {
+    return FilterChip(
+      side: BorderSide.none,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SolRadius.pill),
+      ),
+      label: Text(label),
+      selected: selectedType == type,
+      onSelected: (_) => onTypeChanged(type),
+    );
+  }
+
   Widget _buildGroupedSessionList(
     BuildContext context,
     List<SnAuthSession> sessions,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
+    final gutter = _pageGutter(context);
     final browserSessions = sessions
         .where((s) => s.category == 'browser')
         .toList();
     final deviceSessions = sessions
         .where((s) => s.category != 'browser')
         .toList();
+    final others = sessions.where((s) => !s.isCurrent).length;
+    final online = sessions.where((s) => s.isOnline).length;
 
     return ListView(
-      padding: EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.only(bottom: 24),
       children: [
-        // Device sessions
-        ...deviceSessions.map(
-          (session) =>
-              _SessionTreeTile(session: session, logoutSession: logoutSession),
-        ),
-        // Browser sessions with header
-        if (browserSessions.isNotEmpty) ...[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Row(
-              children: [
-                Icon(Icons.web, size: 18, color: colorScheme.onSurfaceVariant),
-                Gap(8),
-                Text(
-                  'authWebBrowsers'.tr(),
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+        Padding(
+          padding: gutter.copyWith(top: 12, bottom: 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  [
+                    'authSessionsCount'.plural(sessions.length),
+                    if (online > 0)
+                      'friendsOnlineCount'.tr(args: ['$online']),
+                  ].join('  ·  '),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
+              ),
+            ],
+          ),
+        ),
+        if (deviceSessions.isNotEmpty)
+          Padding(
+            padding: gutter,
+            child: _GroupBox(
+              children: [
+                for (final session in deviceSessions)
+                  _SessionTile(
+                    session: session,
+                    logoutSession: logoutSession,
+                  ),
               ],
             ),
           ),
-          ...browserSessions.map(
-            (session) => _SessionTreeTile(
-              session: session,
-              logoutSession: logoutSession,
+
+        if (browserSessions.isNotEmpty) ...[
+          Padding(
+            padding: gutter.copyWith(top: 20, bottom: 8),
+            child: _SectionLabel(
+              label: 'authWebBrowsers'.tr(),
+              trailing: 'authSessionsCount'.plural(browserSessions.length),
+            ),
+          ),
+          Padding(
+            padding: gutter,
+            child: _GroupBox(
+              children: [
+                for (final session in browserSessions)
+                  _SessionTile(
+                    session: session,
+                    logoutSession: logoutSession,
+                  ),
+              ],
             ),
           ),
         ],
+
+        if (others > 0)
+          Padding(
+            padding: gutter.copyWith(top: 20),
+            child: Center(
+              child: TextButton.icon(
+                onPressed: logoutAllOtherSessions,
+                icon: const Icon(Symbols.logout, size: 18),
+                label: Text('authLogoutAllOtherSessions'.tr()),
+                style: TextButton.styleFrom(
+                  foregroundColor: colorScheme.error,
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }

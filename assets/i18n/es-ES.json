@@ -2451,6 +2451,7 @@
   "assignedUserIdDescription": "If set, only this user can claim the tag. If empty, the first authenticated scanner will claim it.",
   "assignedUserIdHint": "Leave empty for first-scan claim",
   "authCurrentSession": "Sesión actual",
+  "authCurrentShort": "Actual",
   "authTrusted": "Confiable",
   "authWebBrowsers": "Navegadores web",
   "authDevicesTab": "Devices",

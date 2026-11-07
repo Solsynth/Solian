@@ -2453,6 +2453,7 @@
   "assignedUserIdDescription": "If set, only this user can claim the tag. If empty, the first authenticated scanner will claim it.",
   "assignedUserIdHint": "Leave empty for first-scan claim",
   "authCurrentSession": "当前会话",
+  "authCurrentShort": "當下",
   "authTrusted": "受信任",
   "authWebBrowsers": "Web 浏览器",
   "authDevicesTab": "Devices",

@@ -606,6 +606,7 @@
   "attitudeNeutral": "Neutral",
   "attitudePositive": "Positive",
   "authCurrentSession": "Current Session",
+  "authCurrentShort": "Current",
   "authDeviceChallenges": "Device Usage",
   "authTrusted": "Trusted",
   "authWebBrowsers": "Web Browsers",
