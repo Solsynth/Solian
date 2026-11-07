@@ -41,6 +41,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:relative_time/relative_time.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -1498,8 +1499,17 @@ class _QrLoginApprovalSheet extends HookConsumerWidget {
       error.value = null;
       try {
         final client = ref.read(solarNetworkClientProvider);
-        await client.dio.post(
-          '/stargate/auth/qr/$qrChallengeId/${approve ? 'approve' : 'decline'}',
+        // Approving someone else's sign-in is a gated action: the session
+        // approving *from* must hold a live elevation first. The shared flow
+        // raises that prompt on AUTH_SUDO_REQUIRED and replays the request
+        // once; the approval itself grants no elevation.
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.dio.post(
+            '/stargate/auth/qr/$qrChallengeId/${approve ? 'approve' : 'decline'}',
+          ),
+          onBeforePrompt: () => isBusy.value = false,
         );
         settled.value = true;
         decidedElsewhere.value = false;
@@ -1823,6 +1833,9 @@ AuthConsentOutcome? _deviceAuthOutcome(String status, bool expiredByClock) {
 
 String _deviceAuthErrorMessage(Object err) {
   if (err is DioException) {
+    // A declined elevation is surfaced as "not completed", never as the raw
+    // 403 the server still reports for the un-elevated retry.
+    if (isSudoRequired(err)) return 'sudoNotCompleted'.tr();
     final statusCode = err.response?.statusCode;
     if (statusCode == 404) return 'accountQrDeviceAuthInvalidCode'.tr();
     if (statusCode == 400) return 'accountQrDeviceAuthNoLongerPending'.tr();
@@ -2096,9 +2109,16 @@ class _DeviceAuthApprovalSheet extends HookConsumerWidget {
       error.value = null;
       try {
         final client = ref.read(solarNetworkClientProvider);
-        await client.dio.post(
-          '/stargate/auth/open/device/code/${Uri.encodeComponent(request.userCode)}'
-          '/${approve ? 'approve' : 'decline'}',
+        // Binding a device code to this session is elevation-gated like any
+        // other approval; the shared flow prompts and replays once.
+        await withSudoRetry(
+          context,
+          ref,
+          () => client.dio.post(
+            '/stargate/auth/open/device/code/${Uri.encodeComponent(request.userCode)}'
+            '/${approve ? 'approve' : 'decline'}',
+          ),
+          onBeforePrompt: () => isBusy.value = false,
         );
         settled.value = true;
         decidedElsewhere.value = false;

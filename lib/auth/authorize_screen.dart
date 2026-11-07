@@ -15,6 +15,7 @@ import 'package:island/core/services/responsive.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 @RoutePage()
@@ -134,8 +135,18 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
       final dio = ref.read(stargateApiClientProvider);
       if (_isDeviceCode) {
         final action = authorize ? 'approve' : 'decline';
-        await dio.post(
-          '/auth/open/device/code/${Uri.encodeComponent(widget.userCode!)}/$action',
+        // Approving a device binds it to this session, so Stargate demands an
+        // elevation grant first. The shared flow prompts on
+        // AUTH_SUDO_REQUIRED and replays the decision exactly once.
+        await withSudoRetry(
+          context,
+          ref,
+          () => dio.post(
+            '/auth/open/device/code/${Uri.encodeComponent(widget.userCode!)}/$action',
+          ),
+          onBeforePrompt: () {
+            if (mounted) setState(() => _submitting = false);
+          },
         );
         if (mounted) Navigator.of(context).pop();
       } else {
@@ -161,7 +172,11 @@ class _AuthorizeScreenState extends ConsumerState<AuthorizeScreen> {
       }
     } on DioException catch (e) {
       setState(() {
-        _error = e.response?.data?.toString() ?? e.message ?? 'Failed';
+        // Backing out of the elevation prompt rethrows the original refusal;
+        // say the decision was cancelled instead of quoting the 403 body.
+        _error = isSudoRequired(e)
+            ? 'sudoNotCompleted'.tr()
+            : e.response?.data?.toString() ?? e.message ?? 'Failed';
         _submitting = false;
       });
     } catch (e) {
