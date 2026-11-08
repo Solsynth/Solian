@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1498D2341E8E89220040F4C2 /* Runner/GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* Runner/GeneratedPluginRegistrant.m */; };
+		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		194D7D2FB3BC13F8D33D6075 /* Pods_SolianNotificationService.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DD21906BA8E1F3018AB602EA /* Pods_SolianNotificationService.framework */; };
 		1C5B3220B511A315F18329FB /* Pods_SolianShareExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6052E8533761A848CA9DE751 /* Pods_SolianShareExtension.framework */; };
 		331C808B294A63AB00263BE5 /* SolianTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* SolianTests.swift */; };
@@ -125,8 +125,8 @@
 		064541D5AECA7F2F3A7F10A3 /* Pods_SolianWatchApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SolianWatchApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0C2F47FBE86BAE8B7FD24330 /* Pods-SolianWatchApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SolianWatchApp.debug.xcconfig"; path = "Target Support Files/Pods-SolianWatchApp/Pods-SolianWatchApp.debug.xcconfig"; sourceTree = "<group>"; };
 		103EA2362B9E9F127016A1F1 /* Pods-WatchRunner Watch App.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WatchRunner Watch App.profile.xcconfig"; path = "Target Support Files/Pods-WatchRunner Watch App/Pods-WatchRunner Watch App.profile.xcconfig"; sourceTree = "<group>"; };
-		1498D2321E8E86230040F4C2 /* Runner/GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Runner/GeneratedPluginRegistrant.h; sourceTree = SOURCE_ROOT; };
-		1498D2331E8E89220040F4C2 /* Runner/GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Runner/GeneratedPluginRegistrant.m; sourceTree = SOURCE_ROOT; };
+		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Runner/GeneratedPluginRegistrant.h; sourceTree = SOURCE_ROOT; };
+		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Runner/GeneratedPluginRegistrant.m; sourceTree = SOURCE_ROOT; };
 		192FDACE67D7CB6AED15C634 /* Pods-NotificationService.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationService.debug.xcconfig"; path = "Target Support Files/Pods-NotificationService/Pods-NotificationService.debug.xcconfig"; sourceTree = "<group>"; };
 		1C14F71D23E4371602065522 /* Pods-Solian.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Solian.debug.xcconfig"; path = "Target Support Files/Pods-Solian/Pods-Solian.debug.xcconfig"; sourceTree = "<group>"; };
 		1FDC2F0EB25364336E156D25 /* Pods-SolianTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SolianTests.debug.xcconfig"; path = "Target Support Files/Pods-SolianTests/Pods-SolianTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -246,6 +246,8 @@
 		};
 		7310A7D52EB10962002C0FD3 /* SolianWatchApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = SolianWatchApp;
 			sourceTree = "<group>";
 		};
@@ -461,8 +463,8 @@
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
 				97C147021CF9000F007C117D /* Info.plist */,
-				1498D2321E8E86230040F4C2 /* Runner/GeneratedPluginRegistrant.h */,
-				1498D2331E8E89220040F4C2 /* Runner/GeneratedPluginRegistrant.m */,
+				1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */,
+				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				74858FAD1ED2DC5600515810 /* Solian-Bridging-Header.h */,
 				73D4264A2DEB815D006C0AAE /* NotifyDelegate.swift */,
@@ -685,7 +687,7 @@
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
-				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */,
+				781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 97C146EF1CF9000F007C117D /* Products */;
@@ -815,13 +817,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Solian/Pods-Solian-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Solian/Pods-Solian-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -858,13 +856,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Solian/Pods-Solian-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Solian/Pods-Solian-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -916,13 +910,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-SolianWatchApp/Pods-SolianWatchApp-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-SolianWatchApp/Pods-SolianWatchApp-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1024,7 +1014,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
-				1498D2341E8E89220040F4C2 /* Runner/GeneratedPluginRegistrant.m in Sources */,
+				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				73D4264B2DEB815D006C0AAE /* NotifyDelegate.swift in Sources */,
 				AABB02000000000000000001 /* LocalCommunicationNotification.swift in Sources */,
 				737A6380305E834C00FB8C1C /* AppIconChannel.swift in Sources */,
@@ -2185,7 +2175,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage" */ = {
+		781AD8BC2B33823900A9FFBB /* XCLocalSwiftPackageReference "FlutterGeneratedPluginSwiftPackage" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage;
 		};

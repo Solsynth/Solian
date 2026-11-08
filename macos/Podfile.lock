@@ -1,8 +1,6 @@
 PODS:
   - audio_session (0.0.1):
     - FlutterMacOS
-  - cnativeapi (0.1.3):
-    - FlutterMacOS
   - connectivity_plus (0.0.1):
     - FlutterMacOS
   - desktop_drop (0.0.1):
@@ -87,9 +85,9 @@ PODS:
     - FlutterMacOS
   - flutter_timezone (0.1.0):
     - FlutterMacOS
-  - flutter_webrtc (1.6.2):
+  - flutter_webrtc (1.6.3):
     - FlutterMacOS
-    - WebRTC-SDK (= 150.7871.01)
+    - WebRTC-SDK (= 150.7871.04)
   - FlutterMacOS (1.0.0)
   - gal (1.0.0):
     - Flutter
@@ -164,10 +162,10 @@ PODS:
   - just_audio (0.0.1):
     - Flutter
     - FlutterMacOS
-  - livekit_client (2.13.1):
+  - livekit_client (2.13.2):
     - flutter_webrtc
     - FlutterMacOS
-    - WebRTC-SDK (= 150.7871.01)
+    - WebRTC-SDK (= 150.7871.04)
   - local_auth_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -219,13 +217,12 @@ PODS:
     - FlutterMacOS
   - wakelock_plus (0.0.1):
     - FlutterMacOS
-  - WebRTC-SDK (150.7871.01)
+  - WebRTC-SDK (150.7871.04)
   - window_manager (0.5.0):
     - FlutterMacOS
 
 DEPENDENCIES:
   - audio_session (from `Flutter/ephemeral/.symlinks/plugins/audio_session/macos`)
-  - cnativeapi (from `Flutter/ephemeral/.symlinks/plugins/cnativeapi/macos`)
   - connectivity_plus (from `Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos`)
   - desktop_drop (from `Flutter/ephemeral/.symlinks/plugins/desktop_drop/macos`)
   - desktop_multi_window (from `Flutter/ephemeral/.symlinks/plugins/desktop_multi_window/macos`)
@@ -293,8 +290,6 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   audio_session:
     :path: Flutter/ephemeral/.symlinks/plugins/audio_session/macos
-  cnativeapi:
-    :path: Flutter/ephemeral/.symlinks/plugins/cnativeapi/macos
   connectivity_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/connectivity_plus/macos
   desktop_drop:
@@ -392,7 +387,6 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   audio_session: eaca2512cf2b39212d724f35d11f46180ad3a33e
-  cnativeapi: cd05855e6ea5c7083b873279e8aab591a707fe5b
   connectivity_plus: 4adf20a405e25b42b9c9f87feff8f4b6fde18a4e
   desktop_drop: 10a3e6a7fa9dbe350541f2574092fecfa345a07b
   desktop_multi_window: ea8bb43f17f12cf60220d6ebd6b249dcd82e8279
@@ -415,7 +409,7 @@ SPEC CHECKSUMS:
   flutter_local_notifications: 1fc7ffb10a83d6a2eeeeddb152d43f1944b0aad0
   flutter_secure_storage_darwin: 46e401699982ee74142909676535e0f6a7321e58
   flutter_timezone: d272288c69082ad571630e0d17140b3d6b93dc0c
-  flutter_webrtc: af708ba091a5d71e101f9f631a9f96c107581a3d
+  flutter_webrtc: c7754800cea651bdfa9e8608fdb99b33a0880858
   FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
   gal: baecd024ebfd13c441269ca7404792a7152fde89
   geocoding_darwin: 968545604e6896deeef55517d53a81b3b9801971
@@ -428,7 +422,7 @@ SPEC CHECKSUMS:
   irondash_engine_context: 893c7d96d20ce361d7e996f39d360c4c2f9869ba
   island_desktop_presence: 2360e0ca57129a334b22a67b4ba876861f680ba7
   just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
-  livekit_client: ef6e3fc11f7dfbba3a8534e4bc6c31d13bcd1b5d
+  livekit_client: c80bedf4e839fe23e2ce2b0615519029603b6e2a
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758
@@ -437,7 +431,7 @@ SPEC CHECKSUMS:
   open_file_mac: 76f06c8597551249bdb5e8fd8827a98eae0f4585
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: f0052d280d17aa382b932f399edf32507174e870
-  passkeys_darwin: 395f63bb4dbfe81344ada36400c391e86fc395ea
+  passkeys_darwin: 2be7a22a6015e2581c19edfb8d8e8730abec9444
   pasteboard: b594eaf838d930b276d7a35a44a32b4f489170cb
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   protocol_handler_macos: f9cd7b13bcaf6b0425f7410cbe52376cb843a936
@@ -445,13 +439,13 @@ SPEC CHECKSUMS:
   record_macos: 2e43c16b84ce188b8137754ee648322a2dcdf7fa
   screen_retriever_macos: c5508cc3c66ff0d4db650480cf0ab691e220d933
   share_plus: 510bf0af1a42cd602274b4629920c9649c52f4cc
-  shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
+  shared_preferences_foundation: a7c3904f2dedb3701dd1903cb152ef5e7df92422
   sign_in_with_apple: 5e34677a4e74c5f42760f41b3bbe05343e84d171
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   super_native_extensions: c2795d6d9aedf4a79fae25cb6160b71b50549189
   url_launcher_macos: f87a979182d112f911de6820aefddaf56ee9fbfd
   wakelock_plus: 917609be14d812ddd9e9528876538b2263aaa03b
-  WebRTC-SDK: 7dc931c64c00c735a614382f1a59cf65019c3c17
+  WebRTC-SDK: 71bce2be85c3082d24bbfd1a9930ea07d0c494c1
   window_manager: b729e31d38fb04905235df9ea896128991cad99e
 
 PODFILE CHECKSUM: 07517eeb58c1193352b42139a3afa8fd28d18a25

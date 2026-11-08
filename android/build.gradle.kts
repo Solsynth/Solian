@@ -18,6 +18,14 @@ subprojects {
 subprojects {
     project.evaluationDependsOn(":app")
 }
+// androidx.core 1.19.0+ requires AGP 9.1.0+; pin until AGP is upgraded.
+subprojects {
+    configurations.configureEach {
+        resolutionStrategy {
+            force("androidx.core:core:1.18.0", "androidx.core:core-ktx:1.18.0")
+        }
+    }
+}
 subprojects {
     plugins.withId("com.android.library") {
         extensions.findByName("android")?.let { ext ->
