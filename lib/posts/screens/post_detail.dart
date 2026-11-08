@@ -2582,9 +2582,12 @@ class _ArticleDetailLayout extends HookConsumerWidget {
             final tabs = DefaultTabController.of(context);
             sidebarTabs.value = tabs;
             return Padding(
-              padding: const EdgeInsets.fromLTRB(
+              // Both panes start on the same line: the sidebar clears the
+              // scaffold's floating pill exactly as the article's scroll view
+              // does, so its tabs and card top never slide under the glass.
+              padding: EdgeInsets.fromLTRB(
                 _articlePaneInset,
-                _articlePaneInset,
+                topInset + _articlePaneInset,
                 _articlePaneInset,
                 0,
               ),
@@ -2704,13 +2707,14 @@ class _ArticleDetailLayout extends HookConsumerWidget {
           ],
         ),
         // Reading progress: a thin line across the whole body, directly under
-        // the scaffold app bar.
+        // the scaffold app bar's band (the body starts at the viewport top).
         Positioned(
-          top: 0,
+          top: topInset,
           left: 0,
           right: 0,
           height: 3,
           child: IgnorePointer(
+            key: const ValueKey('article-reading-progress'),
             child: AnimatedBuilder(
               animation: scrollController,
               builder: (context, _) {
@@ -3549,7 +3553,9 @@ class PostDetailScreen extends HookConsumerWidget {
       // the capsule instead of letting it scroll under the glass.
       body: PostDetailBody(
         id: id,
-        topInset: hasPillBar ? kPillAppBarHeight : 0,
+        // The bar reserves `statusTop + kPillAppBarHeight`, and the body starts
+        // at the viewport top, so that is the band its scroll views must clear.
+        topInset: hasPillBar ? statusTop + kPillAppBarHeight : 0,
       ),
     );
   }
