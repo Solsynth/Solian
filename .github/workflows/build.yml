@@ -123,7 +123,7 @@ jobs:
       - name: Install Android build dependencies
         run: |
           yes | sdkmanager --licenses
-          sdkmanager "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.13113456"
+          sdkmanager "platforms;android-36" "platforms;android-37.0" "build-tools;36.0.0" "ndk;29.0.13113456"
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
