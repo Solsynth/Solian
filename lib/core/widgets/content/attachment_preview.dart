@@ -59,32 +59,70 @@ class SensitiveMarksSelectorState extends State<SensitiveMarksSelector> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final categories = kSensitiveCategoriesOrdered;
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       itemCount: categories.length,
+      separatorBuilder: (_, _) => const Gap(8),
       itemBuilder: (context, index) {
         final category = categories[index];
         final selected = _selected.contains(category.index);
-        return CheckboxListTile(
-          value: selected,
-          onChanged: (_) => _toggle(category.index),
-          secondary: SizedBox(
-            width: 28,
-            child: Center(
-              child: Text(
-                category.symbol,
-                style: const TextStyle(fontSize: 20),
+
+        return Material(
+          color: selected
+              ? colorScheme.primaryContainer
+              : colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(12),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => _toggle(category.index),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? colorScheme.primary.withValues(alpha: 0.12)
+                          : colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      category.symbol,
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                  ),
+                  const Gap(14),
+                  Expanded(
+                    child: Text(
+                      category.i18nKey.tr(),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: selected
+                            ? colorScheme.onPrimaryContainer
+                            : colorScheme.onSurface,
+                        fontWeight:
+                            selected ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    selected
+                        ? Symbols.check_circle_rounded
+                        : Symbols.radio_button_unchecked_rounded,
+                    color: selected
+                        ? colorScheme.primary
+                        : colorScheme.outlineVariant,
+                    fill: selected ? 1 : 0,
+                    size: 22,
+                  ),
+                ],
               ),
             ),
-          ),
-          title: Text(category.i18nKey.tr()),
-          controlAffinity: ListTileControlAffinity.trailing,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-          selected: selected,
-          selectedTileColor: theme.colorScheme.primaryContainer.withValues(
-            alpha: 0.35,
           ),
         );
       },
@@ -102,6 +140,7 @@ class AttachmentPreview extends HookConsumerWidget {
   final Function? onInsert;
   final Function(UniversalFile)? onUpdate;
   final Function? onRequestUpload;
+
   /// Cancels the upload that is running for this attachment.
   final VoidCallback? onCancelUpload;
   final bool isCompact;
@@ -136,6 +175,56 @@ class AttachmentPreview extends HookConsumerWidget {
             : '');
   }
 
+  Future<void> _handleDelete(BuildContext context) async {
+    if (onDelete == null) return;
+    if (item.isOnCloud && !item.isLink) {
+      try {
+        showLoadingModal(context);
+        await onDelete?.call();
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    } else {
+      await onDelete?.call();
+    }
+  }
+
+  Future<void> _performRename(
+    BuildContext context,
+    WidgetRef ref,
+    String newName,
+    void Function(String?) setErrorMessage,
+  ) async {
+    if (newName.isEmpty) {
+      setErrorMessage('fieldCannotBeEmpty'.tr());
+      return;
+    }
+
+    if (item.isOnCloud) {
+      try {
+        showLoadingModal(context);
+        final uploader = ref.read(driveFileUploaderProvider);
+        await uploader.renameFile(item.data.id, newName);
+        final newData = item.data;
+        newData.name = newName;
+        onUpdate?.call(
+          item.copyWith(data: newData, displayName: newName),
+        );
+        if (context.mounted) Navigator.pop(context);
+      } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    } else {
+      // Local file rename
+      onUpdate?.call(item.copyWith(displayName: newName));
+      if (context.mounted) Navigator.pop(context);
+    }
+  }
+
   Future<void> _showRenameSheet(BuildContext context, WidgetRef ref) async {
     final nameController = TextEditingController(text: _getDisplayName());
     String? errorMessage;
@@ -144,67 +233,53 @@ class AttachmentPreview extends HookConsumerWidget {
       context: context,
       isScrollControlled: true,
       useRootNavigator: true,
-      builder: (context) => SheetScaffold(
-        heightFactor: 0.6,
-        titleText: 'rename'.tr(),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              child: TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: 'fileName'.tr(),
-
-                  errorText: errorMessage,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => SheetScaffold(
+          heightFactor: 0.6,
+          titleText: 'rename'.tr(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                child: TextField(
+                  controller: nameController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText: 'fileName'.tr(),
+                    errorText: errorMessage,
+                  ),
+                  onSubmitted: (text) => _performRename(
+                    context,
+                    ref,
+                    text.trim(),
+                    (err) => setSheetState(() => errorMessage = err),
+                  ),
                 ),
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('cancel'.tr()),
-                ),
-                const Gap(8),
-                TextButton(
-                  onPressed: () async {
-                    final newName = nameController.text.trim();
-                    if (newName.isEmpty) {
-                      errorMessage = 'fieldCannotBeEmpty'.tr();
-                      return;
-                    }
-
-                    if (item.isOnCloud) {
-                      try {
-                        showLoadingModal(context);
-                        final uploader = ref.read(driveFileUploaderProvider);
-                        await uploader.renameFile(item.data.id, newName);
-                        final newData = item.data;
-                        newData.name = newName;
-                        onUpdate?.call(
-                          item.copyWith(data: newData, displayName: newName),
-                        );
-                        if (context.mounted) Navigator.pop(context);
-                      } catch (err) {
-                        showErrorAlert(err);
-                      } finally {
-                        if (context.mounted) hideLoadingModal(context);
-                      }
-                    } else {
-                      // Local file rename
-                      onUpdate?.call(item.copyWith(displayName: newName));
-                      if (context.mounted) Navigator.pop(context);
-                    }
-                  },
-                  child: Text('rename'.tr()),
-                ),
-              ],
-            ).padding(horizontal: 16, vertical: 8),
-          ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('cancel'.tr()),
+                  ),
+                  const Gap(8),
+                  FilledButton.tonal(
+                    onPressed: () => _performRename(
+                      context,
+                      ref,
+                      nameController.text.trim(),
+                      (err) => setSheetState(() => errorMessage = err),
+                    ),
+                    child: Text('rename'.tr()),
+                  ),
+                ],
+              ).padding(horizontal: 16, vertical: 8),
+            ],
+          ),
         ),
       ),
     );
@@ -239,7 +314,7 @@ class AttachmentPreview extends HookConsumerWidget {
                   child: Text('cancel'.tr()),
                 ),
                 const Gap(8),
-                FilledButton(
+                FilledButton.tonal(
                   onPressed: () async {
                     try {
                       showLoadingModal(context);
@@ -276,13 +351,175 @@ class AttachmentPreview extends HookConsumerWidget {
     );
   }
 
+  Widget _buildActionIconButton({
+    required BuildContext context,
+    required IconData icon,
+    required VoidCallback onTap,
+    String? tooltip,
+    Color? color,
+    Color? hoverColor,
+  }) {
+    final theme = Theme.of(context);
+    final button = Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        hoverColor: hoverColor,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(
+            icon,
+            size: 16,
+            color: color ?? theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+    );
+
+    if (tooltip != null) {
+      return Tooltip(message: tooltip, child: button);
+    }
+    return button;
+  }
+
+  Widget _buildStatusChip(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    if (isUploading && onCancelUpload != null) {
+      return Material(
+        color: colorScheme.errorContainer.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(10),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: onCancelUpload,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Symbols.close_rounded,
+                  size: 15,
+                  color: colorScheme.onErrorContainer,
+                ),
+                if (!isCompact) const Gap(6),
+                if (!isCompact)
+                  Text(
+                    'cancelUpload'.tr(),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onErrorContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (item.isOnCloud) {
+      return Container(
+        decoration: BoxDecoration(
+          color: colorScheme.secondaryContainer.withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Symbols.cloud_done_rounded,
+              size: 15,
+              color: colorScheme.onSecondaryContainer,
+            ),
+            if (!isCompact) const Gap(6),
+            if (!isCompact)
+              Text(
+                'attachmentOnCloud'.tr(),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSecondaryContainer,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
+    // Attachment is on device
+    final isClickable = onRequestUpload != null;
+    final chipColor = isClickable
+        ? colorScheme.primaryContainer.withValues(alpha: 0.92)
+        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.92);
+    final contentColor = isClickable
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurfaceVariant;
+
+    final chipContent = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isClickable
+                ? Symbols.cloud_upload_rounded
+                : Symbols.cloud_off_rounded,
+            size: 15,
+            color: contentColor,
+          ),
+          if (!isCompact) const Gap(6),
+          if (!isCompact)
+            Text(
+              'attachmentOnDevice'.tr(),
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: contentColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+        ],
+      ),
+    );
+
+    if (isClickable) {
+      return Material(
+        color: chipColor,
+        borderRadius: BorderRadius.circular(10),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () => onRequestUpload?.call(),
+          child: chipContent,
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: chipColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: chipContent,
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     final isEncryptedOnCloud =
         item.isOnCloud &&
         item.data is SnCloudFile &&
         DriveE2eeFileEnvelope.isEncryptedFile(item.data as SnCloudFile);
     final showEncryptedIndicator = isEncryptedUpload || isEncryptedOnCloud;
+    final isThumbnail =
+        thumbnailId != null &&
+        item.isOnCloud &&
+        (item.data as IDisplayableCloudFile).id == thumbnailId;
 
     var ratio = item.isOnCloud ? item.data.ratio : null;
 
@@ -293,10 +530,10 @@ class AttachmentPreview extends HookConsumerWidget {
           key: ValueKey(item.hashCode),
           builder: (context) {
             final fallbackIcon = switch (item.type) {
-              UniversalFileType.video => Symbols.video_file,
-              UniversalFileType.audio => Symbols.audio_file,
-              UniversalFileType.image => Symbols.image,
-              _ => Symbols.insert_drive_file,
+              UniversalFileType.video => Symbols.video_file_rounded,
+              UniversalFileType.audio => Symbols.audio_file_rounded,
+              UniversalFileType.image => Symbols.image_rounded,
+              _ => Symbols.insert_drive_file_rounded,
             };
 
             final mimeType = FileUploader.getMimeType(item);
@@ -343,14 +580,16 @@ class AttachmentPreview extends HookConsumerWidget {
                               Positioned.fill(
                                 child: Center(
                                   child: Container(
-                                    padding: const EdgeInsets.all(8),
+                                    padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
-                                      color: Colors.black.withOpacity(0.5),
+                                      color: colorScheme
+                                          .surfaceContainerHighest
+                                          .withValues(alpha: 0.85),
                                       shape: BoxShape.circle,
                                     ),
-                                    child: const Icon(
-                                      Symbols.play_arrow,
-                                      color: Colors.white,
+                                    child: Icon(
+                                      Symbols.play_arrow_rounded,
+                                      color: colorScheme.onSurfaceVariant,
                                       size: 32,
                                     ),
                                   ),
@@ -370,29 +609,87 @@ class AttachmentPreview extends HookConsumerWidget {
 
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Icon(fallbackIcon),
-                  const Gap(6),
-                  Text(
-                    _getDisplayName(),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      fallbackIcon,
+                      size: 28,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                  Text(mimeType, style: TextStyle(fontSize: 10)),
-                  const Gap(1),
-                  FutureBuilder(
+                  const Gap(10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      _getDisplayName(),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const Gap(6),
+                  FutureBuilder<int>(
                     future: file.length(),
                     builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        final size = snapshot.data as int;
-                        return Text(formatFileSize(size)).fontSize(11);
-                      }
-                      return const SizedBox.shrink();
+                      final sizeText =
+                          snapshot.hasData ? formatFileSize(snapshot.data!) : null;
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (mimeType.isNotEmpty)
+                              Text(
+                                mimeType,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            if (mimeType.isNotEmpty && sizeText != null) ...[
+                              const Gap(6),
+                              Container(
+                                width: 3,
+                                height: 3,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.outlineVariant,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const Gap(6),
+                            ],
+                            if (sizeText != null)
+                              Text(
+                                sizeText,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                  fontSize: 10,
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
                     },
                   ),
                 ],
-              ).padding(vertical: 32);
+              ).padding(vertical: 28);
             } else if (item is List<int> || item is Uint8List) {
               switch (item.type) {
                 case UniversalFileType.image:
@@ -400,117 +697,154 @@ class AttachmentPreview extends HookConsumerWidget {
                 default:
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(fallbackIcon),
-                      const Gap(6),
-                      Text(mimeType, style: TextStyle(fontSize: 10)),
-                      const Gap(1),
-                      Text(formatFileSize(item.data.length)).fontSize(11),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          fallbackIcon,
+                          size: 28,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const Gap(10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (mimeType.isNotEmpty)
+                              Text(
+                                mimeType,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            if (mimeType.isNotEmpty) ...[
+                              const Gap(6),
+                              Container(
+                                width: 3,
+                                height: 3,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.outlineVariant,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const Gap(6),
+                            ],
+                            Text(
+                              formatFileSize(item.data.length),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
-                  );
+                  ).padding(vertical: 24);
               }
             }
-            return Placeholder();
+            return const Placeholder();
           },
         ),
-        if (isUploading && progress != null)
+        if (isUploading)
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(0.3),
-              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    '${(progress!.clamp(0.0, 1.0) * 100).toStringAsFixed(0)}%',
-                    style: TextStyle(color: Colors.white),
+              color: colorScheme.scrim.withValues(alpha: 0.38),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  Gap(6),
-                  Center(
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween<double>(
-                        begin: 0.0,
-                        end: progress!.clamp(0.0, 1.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        (progress != null && progress! > 0)
+                            ? '${(progress!.clamp(0.0, 1.0) * 100).toStringAsFixed(0)}%'
+                            : 'processing'.tr(),
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      builder: (context, value, child) =>
-                          LinearProgressIndicator(value: value),
-                    ),
+                      const Gap(8),
+                      SizedBox(
+                        width: 120,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: progress != null && progress! > 0
+                              ? TweenAnimationBuilder<double>(
+                                  tween: Tween<double>(
+                                    begin: 0.0,
+                                    end: progress!.clamp(0.0, 1.0),
+                                  ),
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                  builder: (context, value, child) =>
+                                      LinearProgressIndicator(
+                                    value: value,
+                                    backgroundColor:
+                                        colorScheme.surfaceContainerHigh,
+                                    valueColor: AlwaysStoppedAnimation(
+                                      colorScheme.primary,
+                                    ),
+                                    minHeight: 6,
+                                  ),
+                                )
+                              : LinearProgressIndicator(
+                                  value: null,
+                                  backgroundColor:
+                                      colorScheme.surfaceContainerHigh,
+                                  valueColor: AlwaysStoppedAnimation(
+                                    colorScheme.primary,
+                                  ),
+                                  minHeight: 6,
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ),
-        if (isUploading && (progress == null || progress == 0))
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(0.3),
-              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    'processing'.tr(),
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  Gap(6),
-                  Center(child: LinearProgressIndicator(value: null)),
-                ],
-              ),
-            ),
-          ),
-        if (thumbnailId != null &&
-            item.isOnCloud &&
-            (item.data as IDisplayableCloudFile).id == thumbnailId)
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 3,
                 ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        if (thumbnailId != null &&
-            item.isOnCloud &&
-            (item.data as IDisplayableCloudFile).id == thumbnailId)
-          Positioned(
-            bottom: 8,
-            right: 8,
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Symbols.image,
-                size: 16,
-                color: Theme.of(context).colorScheme.onPrimary,
               ),
             ),
           ),
       ],
     );
 
+    final hasActionButtons =
+        onDelete != null || onMove != null || onInsert != null;
+    final containerColor = bordered
+        ? colorScheme.surfaceContainerHigh
+        : colorScheme.surfaceContainer;
+
     final contentWidget = Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        border: bordered
-            ? Border.all(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
-                width: 1,
-              )
-            : null,
-        borderRadius: BorderRadius.circular(8),
+        color: containerColor,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         child: Stack(
           children: [
             if (ratio != null)
@@ -520,183 +854,132 @@ class AttachmentPreview extends HookConsumerWidget {
               ).center()
             else
               IntrinsicHeight(child: innerContentWidget).center(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    color: Colors.black.withOpacity(0.5),
-                    child: Material(
-                      color: Colors.transparent,
+            Positioned(
+              top: 8,
+              left: 8,
+              right: 8,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (hasActionButtons)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.all(2),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (onDelete != null)
-                            InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Icon(
-                                item.isLink ? Symbols.link_off : Symbols.delete,
-                                size: 14,
-                                color: Colors.white,
-                              ).padding(horizontal: 8, vertical: 6),
-                              onTap: () {
-                                onDelete?.call();
-                              },
+                            _buildActionIconButton(
+                              context: context,
+                              icon: item.isLink
+                                  ? Symbols.link_off_rounded
+                                  : Symbols.delete_rounded,
+                              tooltip: 'delete'.tr(),
+                              color: colorScheme.error,
+                              hoverColor: colorScheme.errorContainer
+                                  .withValues(alpha: 0.4),
+                              onTap: () => _handleDelete(context),
                             ),
-                          if (onDelete != null && onMove != null)
-                            SizedBox(
-                              height: 26,
-                              child: const VerticalDivider(
-                                width: 0.3,
-                                color: Colors.white,
-                                thickness: 0.3,
-                              ),
-                            ).padding(horizontal: 2),
-                          if (onMove != null)
-                            InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              child: const Icon(
-                                Symbols.keyboard_arrow_up,
-                                size: 14,
-                                color: Colors.white,
-                              ).padding(horizontal: 8, vertical: 6),
-                              onTap: () {
-                                onMove?.call(-1);
-                              },
+                          if (onMove != null) ...[
+                            _buildActionIconButton(
+                              context: context,
+                              icon: Symbols.keyboard_arrow_up_rounded,
+                              tooltip: 'moveUp'.tr(),
+                              color: colorScheme.onSurfaceVariant,
+                              onTap: () => onMove?.call(-1),
                             ),
-                          if (onMove != null)
-                            InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              child: const Icon(
-                                Symbols.keyboard_arrow_down,
-                                size: 14,
-                                color: Colors.white,
-                              ).padding(horizontal: 8, vertical: 6),
-                              onTap: () {
-                                onMove?.call(1);
-                              },
+                            _buildActionIconButton(
+                              context: context,
+                              icon: Symbols.keyboard_arrow_down_rounded,
+                              tooltip: 'moveDown'.tr(),
+                              color: colorScheme.onSurfaceVariant,
+                              onTap: () => onMove?.call(1),
                             ),
+                          ],
                           if (onInsert != null)
-                            InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              child: const Icon(
-                                Symbols.add,
-                                size: 14,
-                                color: Colors.white,
-                              ).padding(horizontal: 8, vertical: 6),
-                              onTap: () {
-                                onInsert?.call();
-                              },
+                            _buildActionIconButton(
+                              context: context,
+                              icon: Symbols.add_rounded,
+                              tooltip: 'insert'.tr(),
+                              color: colorScheme.onSurfaceVariant,
+                              onTap: () => onInsert?.call(),
                             ),
                         ],
                       ),
-                    ),
-                  ),
-                ),
-                if (onRequestUpload != null)
-                  InkWell(
-                    borderRadius: BorderRadius.circular(8),
-                    // While an upload runs the chip turns into its cancel
-                    // control; otherwise it starts the upload.
-                    onTap: isUploading
-                        ? onCancelUpload
-                        : (item.isOnCloud
-                              ? null
-                              : () => onRequestUpload?.call()),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        color: Colors.black.withOpacity(0.5),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        child: isUploading && onCancelUpload != null
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Symbols.close,
-                                    size: 16,
-                                    color: Colors.white,
-                                  ),
-                                  if (!isCompact) const Gap(8),
-                                  if (!isCompact)
-                                    Text(
-                                      'cancelUpload'.tr(),
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                ],
-                              )
-                            : (item.isOnCloud)
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Symbols.cloud,
-                                    size: 16,
-                                    color: Colors.white,
-                                  ),
-                                  if (!isCompact) const Gap(8),
-                                  if (!isCompact)
-                                    Text(
-                                      'attachmentOnCloud'.tr(),
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                ],
-                              )
-                            : Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Symbols.cloud_off,
-                                    size: 16,
-                                    color: Colors.white,
-                                  ),
-                                  if (!isCompact) const Gap(8),
-                                  if (!isCompact)
-                                    Text(
-                                      'attachmentOnDevice'.tr(),
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                ],
-                              ),
-                      ),
-                    ),
-                  ),
-              ],
-            ).padding(horizontal: 12, vertical: 8),
+                    )
+                  else
+                    const SizedBox.shrink(),
+                  _buildStatusChip(context),
+                ],
+              ),
+            ),
             if (showEncryptedIndicator)
               Positioned(
                 bottom: 8,
-                right: 12,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    color: Theme.of(context).colorScheme.primary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Symbols.lock,
-                          size: 14,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                        if (!isCompact) const Gap(6),
-                        if (!isCompact)
-                          Text(
-                            'Encrypted',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onPrimary,
-                            ),
+                left: 8,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: colorScheme.tertiaryContainer
+                        .withValues(alpha: 0.94),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Symbols.lock_rounded,
+                        size: 14,
+                        color: colorScheme.onTertiaryContainer,
+                      ),
+                      if (!isCompact) const Gap(4),
+                      if (!isCompact)
+                        Text(
+                          'Encrypted',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onTertiaryContainer,
+                            fontWeight: FontWeight.w600,
                           ),
-                      ],
-                    ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            if (isThumbnail)
+              Positioned(
+                bottom: 8,
+                right: 8,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer
+                        .withValues(alpha: 0.94),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Symbols.star_rounded,
+                        size: 14,
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                      if (!isCompact) const Gap(4),
+                      if (!isCompact)
+                        Text(
+                          'thumbnailSelected'.tr(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -760,19 +1043,26 @@ class AttachmentPreview extends HookConsumerWidget {
               item.type == UniversalFileType.image &&
               onSetThumbnail != null)
             MenuAction(
-              title: thumbnailId == (item.data as IDisplayableCloudFile).id
+              title: isThumbnail
                   ? 'unsetAsThumbnail'.tr()
                   : 'setAsThumbnail'.tr(),
               image: MenuImage.icon(Symbols.image),
               callback: () {
-                final isCurrentlyThumbnail =
-                    thumbnailId == (item.data as IDisplayableCloudFile).id;
-                if (isCurrentlyThumbnail) {
+                if (isThumbnail) {
                   onSetThumbnail?.call(null);
                 } else {
                   onSetThumbnail?.call((item.data as IDisplayableCloudFile).id);
                 }
               },
+            ),
+          if (onDelete != null)
+            MenuAction(
+              title: 'delete'.tr(),
+              image: MenuImage.icon(
+                item.isLink ? Symbols.link_off : Symbols.delete,
+              ),
+              attributes: const MenuActionAttributes(destructive: true),
+              callback: () => _handleDelete(context),
             ),
         ],
       ),
