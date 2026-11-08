@@ -46,3 +46,28 @@ while IFS= read -r file; do
 done < <(find "$PUB_CACHE" -type f -name "*.gradle.kts" 2>/dev/null)
 
 echo "Done: patched $patched_gradle *.gradle, $patched_gradle_kts *.gradle.kts to ${MAX_COMPILE_SDK}."
+
+# Pre-cache openmls native libraries if missing, to bypass GitHub release download 504 timeouts.
+OPENMLS_SHARED_DIR=".dart_tool/hooks_runner/shared/openmls/build"
+echo "Checking openmls native prebuilts in ${OPENMLS_SHARED_DIR}..."
+for pair in "arm64-v8a:679650989" "armeabi-v7a:679650990" "x86_64:679650996"; do
+  abi="${pair%%:*}"
+  asset_id="${pair##*:}"
+  target_dir="${OPENMLS_SHARED_DIR}/2.4.0-android-${abi}"
+  complete_marker="${target_dir}/.download-complete"
+  so_file="${target_dir}/libopenmls_frb.so"
+  if [ ! -f "$complete_marker" ] || [ ! -f "$so_file" ]; then
+    echo "Pre-caching openmls 2.4.0 for android-${abi} via GitHub API..."
+    mkdir -p "$target_dir"
+    if curl -sSL -f -H "Accept: application/octet-stream" \
+      "https://api.github.com/repos/djx-y-z/openmls_dart/releases/assets/${asset_id}" \
+      | tar -xz -C "$target_dir"; then
+      touch "$complete_marker"
+      echo "Successfully cached openmls 2.4.0 for android-${abi}."
+    else
+      echo "Warning: Failed to pre-cache openmls for android-${abi}."
+    fi
+  else
+    echo "openmls for android-${abi} is already cached."
+  fi
+done
