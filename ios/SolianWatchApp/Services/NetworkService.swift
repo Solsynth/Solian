@@ -445,9 +445,23 @@ class NetworkService {
         }
     }
 
+    private static let iso8601Formatter = ISO8601DateFormatter()
+    private static let iso8601FractionalFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
     private static func decodeJSON<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let dateStr = try container.decode(String.self)
+            if let date = iso8601FractionalFormatter.date(from: dateStr) ?? iso8601Formatter.date(from: dateStr) {
+                return date
+            }
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date string \(dateStr)")
+        }
         // NOTE: no `.convertFromSnakeCase` here. Every model declares its own
         // snake_case CodingKeys (SnPost/SnPublisher/SnRealm/… have custom
         // `init(from:)`), and `.convertFromSnakeCase` rewrites those explicit

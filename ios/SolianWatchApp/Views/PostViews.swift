@@ -804,7 +804,7 @@ struct PostDetailView: View {
 
     @ViewBuilder
     private var embedSection: some View {
-        if let embed = currentPost.embedView {
+        if let embed = currentPost.embedView, let uri = embed.uri, !uri.isEmpty {
             VStack(alignment: .leading, spacing: 4) {
                 Text(L10n.postLink)
                     .font(.caption)
@@ -812,7 +812,7 @@ struct PostDetailView: View {
                 // Not a `Link` — watchOS has no browser, so a `Link` to an
                 // HTTPS URL shows the failed "view on your iPhone" Handoff
                 // flow. Copy the URL to the pasteboard instead.
-                ExternalLinkView(urlString: embed.uri)
+                ExternalLinkView(urlString: uri)
             }
             .padding(8)
             .background(Color.gray.opacity(0.1))

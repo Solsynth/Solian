@@ -33,7 +33,7 @@ struct SnPost: Codable, Identifiable {
     let repliesCount: Int?
     let threadedRepliesCount: Int?
     let debugRank: Double?
-    let awardedScore: Int?
+    let awardedScore: Double?
     let pinMode: Int?
     let threadedPostId: String?
     let threadedPost: SnPostReference?
@@ -72,13 +72,18 @@ struct SnPost: Codable, Identifiable {
     let isBookmarked: Bool?
     
     enum CodingKeys: String, CodingKey {
-        case id, title, description, language, editedAt, draftedAt, publishedAt, visibility
-        case content, slug, type, meta, embedView
+        case id, title, description, language, visibility
+        case editedAt = "edited_at"
+        case draftedAt = "drafted_at"
+        case publishedAt = "published_at"
+        case content, slug, type, meta
+        case embedView = "embed_view"
         case viewsUnique = "views_unique"
         case viewsTotal = "views_total"
         case upvotes, downvotes
         case repliesCount = "replies_count"
-        case threadedRepliesCount = "threaded_replies_count"
+        case threadedRepliesCount = "thread_replies_count"
+        case threadedRepliesCountAlt = "threaded_replies_count"
         case debugRank = "debug_rank"
         case awardedScore = "awarded_score"
         case pinMode = "pin_mode"
@@ -115,10 +120,257 @@ struct SnPost: Codable, Identifiable {
         case sponsored
         case isBookmarked = "is_bookmarked"
     }
+
+    init(
+        id: String,
+        title: String? = nil,
+        description: String? = nil,
+        language: String? = nil,
+        editedAt: Date? = nil,
+        draftedAt: Date? = nil,
+        publishedAt: Date? = nil,
+        visibility: Int? = nil,
+        content: String? = nil,
+        slug: String? = nil,
+        type: Int? = nil,
+        meta: [String: AnyCodable]? = nil,
+        embedView: SnPostEmbedView? = nil,
+        viewsUnique: Int? = nil,
+        viewsTotal: Int? = nil,
+        upvotes: Int? = nil,
+        downvotes: Int? = nil,
+        repliesCount: Int? = nil,
+        threadedRepliesCount: Int? = nil,
+        debugRank: Double? = nil,
+        awardedScore: Double? = nil,
+        pinMode: Int? = nil,
+        threadedPostId: String? = nil,
+        threadedPost: SnPostReference? = nil,
+        repliedPostId: String? = nil,
+        repliedPost: SnPostReference? = nil,
+        forwardedPostId: String? = nil,
+        forwardedPost: SnPostReference? = nil,
+        realmId: String? = nil,
+        realm: SnRealm? = nil,
+        publisherId: String? = nil,
+        publisher: SnPublisher? = nil,
+        actorid: String? = nil,
+        actor: SnActivityPubActor? = nil,
+        fediverseUri: String? = nil,
+        fediverseType: Int? = nil,
+        isCached: Bool? = nil,
+        contentType: Int? = nil,
+        attachments: [SnCloudFile]? = nil,
+        reactionsCount: [String: Int]? = nil,
+        reactionsMade: [String: Bool]? = nil,
+        reactions: [AnyCodable]? = nil,
+        tags: [SnPostTag]? = nil,
+        categories: [SnPostCategory]? = nil,
+        collections: [AnyCodable]? = nil,
+        publisherCollections: [SnPostCollection]? = nil,
+        featuredRecords: [AnyCodable]? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil,
+        deletedAt: Date? = nil,
+        repliedGone: Bool? = nil,
+        forwardedGone: Bool? = nil,
+        isTruncated: Bool? = nil,
+        boostedBy: SnActivityPubActor? = nil,
+        boostedAt: Date? = nil,
+        sponsored: Bool? = nil,
+        isBookmarked: Bool? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.description = description
+        self.language = language
+        self.editedAt = editedAt
+        self.draftedAt = draftedAt
+        self.publishedAt = publishedAt
+        self.visibility = visibility
+        self.content = content
+        self.slug = slug
+        self.type = type
+        self.meta = meta
+        self.embedView = embedView
+        self.viewsUnique = viewsUnique
+        self.viewsTotal = viewsTotal
+        self.upvotes = upvotes
+        self.downvotes = downvotes
+        self.repliesCount = repliesCount
+        self.threadedRepliesCount = threadedRepliesCount
+        self.debugRank = debugRank
+        self.awardedScore = awardedScore
+        self.pinMode = pinMode
+        self.threadedPostId = threadedPostId
+        self.threadedPost = threadedPost
+        self.repliedPostId = repliedPostId
+        self.repliedPost = repliedPost
+        self.forwardedPostId = forwardedPostId
+        self.forwardedPost = forwardedPost
+        self.realmId = realmId
+        self.realm = realm
+        self.publisherId = publisherId
+        self.publisher = publisher
+        self.actorid = actorid
+        self.actor = actor
+        self.fediverseUri = fediverseUri
+        self.fediverseType = fediverseType
+        self.isCached = isCached
+        self.contentType = contentType
+        self.attachments = attachments
+        self.reactionsCount = reactionsCount
+        self.reactionsMade = reactionsMade
+        self.reactions = reactions
+        self.tags = tags
+        self.categories = categories
+        self.collections = collections
+        self.publisherCollections = publisherCollections
+        self.featuredRecords = featuredRecords
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+        self.repliedGone = repliedGone
+        self.forwardedGone = forwardedGone
+        self.isTruncated = isTruncated
+        self.boostedBy = boostedBy
+        self.boostedAt = boostedAt
+        self.sponsored = sponsored
+        self.isBookmarked = isBookmarked
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        title = try? container.decodeIfPresent(String.self, forKey: .title)
+        description = try? container.decodeIfPresent(String.self, forKey: .description)
+        language = try? container.decodeIfPresent(String.self, forKey: .language)
+        editedAt = try? container.decodeIfPresent(Date.self, forKey: .editedAt)
+        draftedAt = try? container.decodeIfPresent(Date.self, forKey: .draftedAt)
+        publishedAt = try? container.decodeIfPresent(Date.self, forKey: .publishedAt)
+        visibility = try? container.decodeIfPresent(Int.self, forKey: .visibility)
+        content = try? container.decodeIfPresent(String.self, forKey: .content)
+        slug = try? container.decodeIfPresent(String.self, forKey: .slug)
+        type = try? container.decodeIfPresent(Int.self, forKey: .type)
+        meta = try? container.decodeIfPresent([String: AnyCodable].self, forKey: .meta)
+        embedView = try? container.decodeIfPresent(SnPostEmbedView.self, forKey: .embedView)
+        viewsUnique = try? container.decodeIfPresent(Int.self, forKey: .viewsUnique)
+        viewsTotal = try? container.decodeIfPresent(Int.self, forKey: .viewsTotal)
+        upvotes = try? container.decodeIfPresent(Int.self, forKey: .upvotes)
+        downvotes = try? container.decodeIfPresent(Int.self, forKey: .downvotes)
+        repliesCount = try? container.decodeIfPresent(Int.self, forKey: .repliesCount)
+        threadedRepliesCount = (try? container.decodeIfPresent(Int.self, forKey: .threadedRepliesCount))
+            ?? (try? container.decodeIfPresent(Int.self, forKey: .threadedRepliesCountAlt))
+        debugRank = try? container.decodeIfPresent(Double.self, forKey: .debugRank)
+        if let score = try? container.decodeIfPresent(Double.self, forKey: .awardedScore) {
+            awardedScore = score
+        } else if let scoreInt = try? container.decodeIfPresent(Int.self, forKey: .awardedScore) {
+            awardedScore = Double(scoreInt)
+        } else {
+            awardedScore = nil
+        }
+        pinMode = try? container.decodeIfPresent(Int.self, forKey: .pinMode)
+        threadedPostId = try? container.decodeIfPresent(String.self, forKey: .threadedPostId)
+        threadedPost = try? container.decodeIfPresent(SnPostReference.self, forKey: .threadedPost)
+        repliedPostId = try? container.decodeIfPresent(String.self, forKey: .repliedPostId)
+        repliedPost = try? container.decodeIfPresent(SnPostReference.self, forKey: .repliedPost)
+        forwardedPostId = try? container.decodeIfPresent(String.self, forKey: .forwardedPostId)
+        forwardedPost = try? container.decodeIfPresent(SnPostReference.self, forKey: .forwardedPost)
+        realmId = try? container.decodeIfPresent(String.self, forKey: .realmId)
+        realm = try? container.decodeIfPresent(SnRealm.self, forKey: .realm)
+        publisherId = try? container.decodeIfPresent(String.self, forKey: .publisherId)
+        publisher = try? container.decodeIfPresent(SnPublisher.self, forKey: .publisher)
+        actorid = try? container.decodeIfPresent(String.self, forKey: .actorid)
+        actor = try? container.decodeIfPresent(SnActivityPubActor.self, forKey: .actor)
+        fediverseUri = try? container.decodeIfPresent(String.self, forKey: .fediverseUri)
+        fediverseType = try? container.decodeIfPresent(Int.self, forKey: .fediverseType)
+        isCached = try? container.decodeIfPresent(Bool.self, forKey: .isCached)
+        contentType = try? container.decodeIfPresent(Int.self, forKey: .contentType)
+        attachments = try? container.decodeIfPresent([SnCloudFile].self, forKey: .attachments)
+        reactionsCount = try? container.decodeIfPresent([String: Int].self, forKey: .reactionsCount)
+        reactionsMade = try? container.decodeIfPresent([String: Bool].self, forKey: .reactionsMade)
+        reactions = try? container.decodeIfPresent([AnyCodable].self, forKey: .reactions)
+        tags = try? container.decodeIfPresent([SnPostTag].self, forKey: .tags)
+        categories = try? container.decodeIfPresent([SnPostCategory].self, forKey: .categories)
+        collections = try? container.decodeIfPresent([AnyCodable].self, forKey: .collections)
+        publisherCollections = try? container.decodeIfPresent([SnPostCollection].self, forKey: .publisherCollections)
+        featuredRecords = try? container.decodeIfPresent([AnyCodable].self, forKey: .featuredRecords)
+        createdAt = try? container.decodeIfPresent(Date.self, forKey: .createdAt)
+        updatedAt = try? container.decodeIfPresent(Date.self, forKey: .updatedAt)
+        deletedAt = try? container.decodeIfPresent(Date.self, forKey: .deletedAt)
+        repliedGone = try? container.decodeIfPresent(Bool.self, forKey: .repliedGone)
+        forwardedGone = try? container.decodeIfPresent(Bool.self, forKey: .forwardedGone)
+        isTruncated = try? container.decodeIfPresent(Bool.self, forKey: .isTruncated)
+        boostedBy = try? container.decodeIfPresent(SnActivityPubActor.self, forKey: .boostedBy)
+        boostedAt = try? container.decodeIfPresent(Date.self, forKey: .boostedAt)
+        sponsored = try? container.decodeIfPresent(Bool.self, forKey: .sponsored)
+        isBookmarked = try? container.decodeIfPresent(Bool.self, forKey: .isBookmarked)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encodeIfPresent(title, forKey: .title)
+        try container.encodeIfPresent(description, forKey: .description)
+        try container.encodeIfPresent(language, forKey: .language)
+        try container.encodeIfPresent(editedAt, forKey: .editedAt)
+        try container.encodeIfPresent(draftedAt, forKey: .draftedAt)
+        try container.encodeIfPresent(publishedAt, forKey: .publishedAt)
+        try container.encodeIfPresent(visibility, forKey: .visibility)
+        try container.encodeIfPresent(content, forKey: .content)
+        try container.encodeIfPresent(slug, forKey: .slug)
+        try container.encodeIfPresent(type, forKey: .type)
+        try container.encodeIfPresent(meta, forKey: .meta)
+        try container.encodeIfPresent(embedView, forKey: .embedView)
+        try container.encodeIfPresent(viewsUnique, forKey: .viewsUnique)
+        try container.encodeIfPresent(viewsTotal, forKey: .viewsTotal)
+        try container.encodeIfPresent(upvotes, forKey: .upvotes)
+        try container.encodeIfPresent(downvotes, forKey: .downvotes)
+        try container.encodeIfPresent(repliesCount, forKey: .repliesCount)
+        try container.encodeIfPresent(threadedRepliesCount, forKey: .threadedRepliesCount)
+        try container.encodeIfPresent(debugRank, forKey: .debugRank)
+        try container.encodeIfPresent(awardedScore, forKey: .awardedScore)
+        try container.encodeIfPresent(pinMode, forKey: .pinMode)
+        try container.encodeIfPresent(threadedPostId, forKey: .threadedPostId)
+        try container.encodeIfPresent(threadedPost, forKey: .threadedPost)
+        try container.encodeIfPresent(repliedPostId, forKey: .repliedPostId)
+        try container.encodeIfPresent(repliedPost, forKey: .repliedPost)
+        try container.encodeIfPresent(forwardedPostId, forKey: .forwardedPostId)
+        try container.encodeIfPresent(forwardedPost, forKey: .forwardedPost)
+        try container.encodeIfPresent(realmId, forKey: .realmId)
+        try container.encodeIfPresent(realm, forKey: .realm)
+        try container.encodeIfPresent(publisherId, forKey: .publisherId)
+        try container.encodeIfPresent(publisher, forKey: .publisher)
+        try container.encodeIfPresent(actorid, forKey: .actorid)
+        try container.encodeIfPresent(actor, forKey: .actor)
+        try container.encodeIfPresent(fediverseUri, forKey: .fediverseUri)
+        try container.encodeIfPresent(fediverseType, forKey: .fediverseType)
+        try container.encodeIfPresent(isCached, forKey: .isCached)
+        try container.encodeIfPresent(contentType, forKey: .contentType)
+        try container.encodeIfPresent(attachments, forKey: .attachments)
+        try container.encodeIfPresent(reactionsCount, forKey: .reactionsCount)
+        try container.encodeIfPresent(reactionsMade, forKey: .reactionsMade)
+        try container.encodeIfPresent(reactions, forKey: .reactions)
+        try container.encodeIfPresent(tags, forKey: .tags)
+        try container.encodeIfPresent(categories, forKey: .categories)
+        try container.encodeIfPresent(collections, forKey: .collections)
+        try container.encodeIfPresent(publisherCollections, forKey: .publisherCollections)
+        try container.encodeIfPresent(featuredRecords, forKey: .featuredRecords)
+        try container.encodeIfPresent(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        try container.encodeIfPresent(repliedGone, forKey: .repliedGone)
+        try container.encodeIfPresent(forwardedGone, forKey: .forwardedGone)
+        try container.encodeIfPresent(isTruncated, forKey: .isTruncated)
+        try container.encodeIfPresent(boostedBy, forKey: .boostedBy)
+        try container.encodeIfPresent(boostedAt, forKey: .boostedAt)
+        try container.encodeIfPresent(sponsored, forKey: .sponsored)
+        try container.encodeIfPresent(isBookmarked, forKey: .isBookmarked)
+    }
 }
 
 struct SnPostEmbedView: Codable {
-    let uri: String
+    let uri: String?
     let aspectRatio: Double?
     let renderer: Int?
     
@@ -126,6 +378,19 @@ struct SnPostEmbedView: Codable {
         case uri
         case aspectRatio = "aspect_ratio"
         case renderer
+    }
+
+    init(uri: String? = nil, aspectRatio: Double? = nil, renderer: Int? = nil) {
+        self.uri = uri
+        self.aspectRatio = aspectRatio
+        self.renderer = renderer
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        uri = try? container.decodeIfPresent(String.self, forKey: .uri)
+        aspectRatio = try? container.decodeIfPresent(Double.self, forKey: .aspectRatio)
+        renderer = try? container.decodeIfPresent(Int.self, forKey: .renderer)
     }
 }
 
@@ -207,6 +472,23 @@ struct SnPostReference: Codable, Identifiable {
     enum CodingKeys: String, CodingKey {
         case id, title, content, publisher
         case createdAt = "created_at"
+    }
+
+    init(id: String, title: String? = nil, content: String? = nil, publisher: SnPublisher? = nil, createdAt: Date? = nil) {
+        self.id = id
+        self.title = title
+        self.content = content
+        self.publisher = publisher
+        self.createdAt = createdAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        title = try? container.decodeIfPresent(String.self, forKey: .title)
+        content = try? container.decodeIfPresent(String.self, forKey: .content)
+        publisher = try? container.decodeIfPresent(SnPublisher.self, forKey: .publisher)
+        createdAt = try? container.decodeIfPresent(Date.self, forKey: .createdAt)
     }
 
     /// A minimal shell from the reference's own id + summary (used to navigate
@@ -355,15 +637,15 @@ struct SnPublisher: Codable, Identifiable {
         name = try container.decode(String.self, forKey: .name)
         nick = try container.decodeIfPresent(String.self, forKey: .nick)
         bio = try container.decodeIfPresent(String.self, forKey: .bio)
-        picture = try container.decodeIfPresent(SnCloudFile.self, forKey: .picture)
-        background = try container.decodeIfPresent(SnCloudFile.self, forKey: .background)
-        account = try container.decodeIfPresent(SnAccount.self, forKey: .account)
+        picture = try? container.decodeIfPresent(SnCloudFile.self, forKey: .picture)
+        background = try? container.decodeIfPresent(SnCloudFile.self, forKey: .background)
+        account = try? container.decodeIfPresent(SnAccount.self, forKey: .account)
         accountId = try container.decodeIfPresent(String.self, forKey: .accountId)
         createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
         updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
         deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
         realmId = try container.decodeIfPresent(String.self, forKey: .realmId)
-        verification = try container.decodeIfPresent(SnVerificationMark.self, forKey: .verification)
+        verification = try? container.decodeIfPresent(SnVerificationMark.self, forKey: .verification)
         isShadowbanned = try container.decodeIfPresent(Bool.self, forKey: .isShadowbanned) ?? false
         isGatekept = try container.decodeIfPresent(Bool.self, forKey: .isGatekept) ?? false
         isModerateSubscription = try container.decodeIfPresent(Bool.self, forKey: .isModerateSubscription) ?? false
@@ -432,24 +714,36 @@ struct SnCloudFile: Codable, Identifiable {
         // `name` and `description` are not always present on referenced
         // files (e.g. profile/room avatars), so default them rather than fail
         // the whole decode.
-        id = try container.decode(String.self, forKey: .id)
-        name = try container.decodeIfPresent(String.self, forKey: .name) ?? ""
-        description = try container.decodeIfPresent(String.self, forKey: .description)
-        fileMeta = try container.decodeIfPresent([String: AnyCodable].self, forKey: .fileMeta)
-        userMeta = try container.decodeIfPresent([String: AnyCodable].self, forKey: .userMeta)
-        sensitiveMarks = try container.decodeIfPresent([Int].self, forKey: .sensitiveMarks)
-        mimeType = try container.decodeIfPresent(String.self, forKey: .mimeType)
-        hash = try container.decodeIfPresent(String.self, forKey: .hash)
-        size = try container.decodeIfPresent(Int.self, forKey: .size) ?? 0
-        uploadedAt = try container.decodeIfPresent(Date.self, forKey: .uploadedAt)
-        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
-        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
-        deletedAt = try container.decodeIfPresent(Date.self, forKey: .deletedAt)
-        url = try container.decodeIfPresent(String.self, forKey: .url)
-        hasCompression = try container.decodeIfPresent(Bool.self, forKey: .hasCompression)
-        width = try container.decodeIfPresent(Int.self, forKey: .width)
-        height = try container.decodeIfPresent(Int.self, forKey: .height)
-        blurhash = try container.decodeIfPresent(String.self, forKey: .blurhash)
+        id = (try? container.decode(String.self, forKey: .id)) ?? ""
+        name = (try? container.decodeIfPresent(String.self, forKey: .name)) ?? ""
+        description = try? container.decodeIfPresent(String.self, forKey: .description)
+        fileMeta = try? container.decodeIfPresent([String: AnyCodable].self, forKey: .fileMeta)
+        userMeta = try? container.decodeIfPresent([String: AnyCodable].self, forKey: .userMeta)
+        sensitiveMarks = try? container.decodeIfPresent([Int].self, forKey: .sensitiveMarks)
+        mimeType = try? container.decodeIfPresent(String.self, forKey: .mimeType)
+        hash = try? container.decodeIfPresent(String.self, forKey: .hash)
+        size = (try? container.decodeIfPresent(Int.self, forKey: .size)) ?? 0
+        uploadedAt = try? container.decodeIfPresent(Date.self, forKey: .uploadedAt)
+        createdAt = try? container.decodeIfPresent(Date.self, forKey: .createdAt)
+        updatedAt = try? container.decodeIfPresent(Date.self, forKey: .updatedAt)
+        deletedAt = try? container.decodeIfPresent(Date.self, forKey: .deletedAt)
+        url = try? container.decodeIfPresent(String.self, forKey: .url)
+        hasCompression = try? container.decodeIfPresent(Bool.self, forKey: .hasCompression)
+        if let w = try? container.decodeIfPresent(Int.self, forKey: .width) {
+            width = w
+        } else if let wDouble = try? container.decodeIfPresent(Double.self, forKey: .width) {
+            width = Int(wDouble)
+        } else {
+            width = nil
+        }
+        if let h = try? container.decodeIfPresent(Int.self, forKey: .height) {
+            height = h
+        } else if let hDouble = try? container.decodeIfPresent(Double.self, forKey: .height) {
+            height = Int(hDouble)
+        } else {
+            height = nil
+        }
+        blurhash = try? container.decodeIfPresent(String.self, forKey: .blurhash)
     }
 }
 
@@ -464,6 +758,21 @@ struct SnPostTag: Codable, Identifiable {
         case isProtected = "is_protected"
     }
 
+    init(id: String, slug: String, name: String? = nil, isProtected: Bool? = nil) {
+        self.id = id
+        self.slug = slug
+        self.name = name
+        self.isProtected = isProtected
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        slug = (try? container.decodeIfPresent(String.self, forKey: .slug)) ?? ""
+        name = try? container.decodeIfPresent(String.self, forKey: .name)
+        isProtected = try? container.decodeIfPresent(Bool.self, forKey: .isProtected)
+    }
+
     var displayName: String {
         tagDisplayName(slug, name: name)
     }
@@ -474,6 +783,25 @@ struct SnPostCategory: Codable, Identifiable {
     let slug: String
     let name: String?
     let usage: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case id, slug, name, usage
+    }
+
+    init(id: String, slug: String, name: String? = nil, usage: Int? = nil) {
+        self.id = id
+        self.slug = slug
+        self.name = name
+        self.usage = usage
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        slug = (try? container.decodeIfPresent(String.self, forKey: .slug)) ?? ""
+        name = try? container.decodeIfPresent(String.self, forKey: .name)
+        usage = try? container.decodeIfPresent(Int.self, forKey: .usage)
+    }
 
     var displayName: String {
         name ?? localizedCategoryName(slug)
@@ -497,6 +825,44 @@ struct SnPostCollection: Codable, Identifiable {
         case publisherId = "publisher_id"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+    }
+
+    init(
+        id: String,
+        slug: String,
+        name: String? = nil,
+        description: String? = nil,
+        publisherId: String = "",
+        publisher: SnPublisher? = nil,
+        background: SnCloudFile? = nil,
+        icon: SnCloudFile? = nil,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
+        self.id = id
+        self.slug = slug
+        self.name = name
+        self.description = description
+        self.publisherId = publisherId
+        self.publisher = publisher
+        self.background = background
+        self.icon = icon
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        slug = (try? container.decodeIfPresent(String.self, forKey: .slug)) ?? ""
+        name = try? container.decodeIfPresent(String.self, forKey: .name)
+        description = try? container.decodeIfPresent(String.self, forKey: .description)
+        publisherId = (try? container.decodeIfPresent(String.self, forKey: .publisherId)) ?? ""
+        publisher = try? container.decodeIfPresent(SnPublisher.self, forKey: .publisher)
+        background = try? container.decodeIfPresent(SnCloudFile.self, forKey: .background)
+        icon = try? container.decodeIfPresent(SnCloudFile.self, forKey: .icon)
+        createdAt = try? container.decodeIfPresent(Date.self, forKey: .createdAt)
+        updatedAt = try? container.decodeIfPresent(Date.self, forKey: .updatedAt)
     }
 }
 
