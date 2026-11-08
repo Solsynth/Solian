@@ -867,11 +867,35 @@ class AppWrapper extends HookConsumerWidget {
         Future<void> checkForUpdatesWhenReady([int retry = 0]) async {
           final ctx = ref.read(routerProvider).navigatorKey.currentContext;
           if (ctx != null && ctx.mounted) {
-            await UpdateService(
+            final updateService = UpdateService(
               channel: ref.read(updateChannelProvider),
               productId: kDistributionProductId,
               enabled: ref.read(updateChecksEnabledProvider),
-            ).checkForUpdates(ctx);
+            );
+
+            final upgrade = await updateService.checkVersionUpgrade(
+              preferences: prefs,
+            );
+            if (upgrade.isUpgrade) {
+              final release = await updateService.fetchReleaseForVersion(
+                upgrade.currentVersion,
+              );
+              if (release != null && ctx.mounted) {
+                await updateService.showWhatsNewSheet(
+                  ctx,
+                  release,
+                  previousVersion: upgrade.previousVersion,
+                );
+              }
+              await updateService.saveCurrentVersion(preferences: prefs);
+              return;
+            } else if (upgrade.isFirstRun) {
+              await updateService.saveCurrentVersion(preferences: prefs);
+            }
+
+            if (ctx.mounted) {
+              await updateService.checkForUpdates(ctx);
+            }
             return;
           }
           if (retry >= 16) return;
