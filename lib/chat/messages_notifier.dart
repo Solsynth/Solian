@@ -1547,6 +1547,8 @@ class MessagesNotifier extends _$MessagesNotifier
       var batches = 0;
       while (ref.mounted &&
           !_allRemoteMessagesFetched &&
+          !_isJumping &&
+          !_isJumpPending &&
           _currentMessages.length < _backgroundPrefetchTarget &&
           batches < _backgroundPrefetchMaxBatches) {
         final beforeCount = _currentMessages.length;
@@ -1561,7 +1563,7 @@ class MessagesNotifier extends _$MessagesNotifier
           fetchLimit: take,
         );
 
-        if (more.isEmpty || !ref.mounted) break;
+        if (more.isEmpty || !ref.mounted || _isJumping || _isJumpPending) break;
 
         _emitMessages([..._currentMessages, ...more]);
         if (_currentMessages.length <= beforeCount) break;
@@ -2432,6 +2434,7 @@ class MessagesNotifier extends _$MessagesNotifier
       );
 
       await _repository.saveMessage(message);
+      _syncService.markDiscontiguousIfOlderThanContiguous(message);
 
       // Defer voice prefetching
       if (remoteMessage.type == 'voice') {
@@ -2457,6 +2460,7 @@ class MessagesNotifier extends _$MessagesNotifier
       return true;
     }
     _isJumping = true;
+    await _waitForOlderMessagesPrefetch();
 
     // Clear flashing messages when starting a new jump
     if (!!ref.mounted) {
@@ -2518,7 +2522,10 @@ class MessagesNotifier extends _$MessagesNotifier
 
   /// Loads one batch from a deliberately unloaded range in a sparse message
   /// timeline. A null result means the two loaded sections now meet.
-  Future<MessageLoadGap?> loadMessagesBetween(MessageLoadGap gap) async {
+  Future<MessageLoadGap?> loadMessagesBetween(
+    MessageLoadGap gap, {
+    bool fromOlderSide = false,
+  }) async {
     // The gap marker auto-loads from the room screen's initState and inserts
     // rows in the middle of the list; that would fight the reveal.
     if (_isJumpPending) return gap;
@@ -2526,11 +2533,30 @@ class MessagesNotifier extends _$MessagesNotifier
     final olderMessage = await _repository.getLocalMessage(gap.olderMessageId);
     if (newerMessage == null || olderMessage == null) return gap;
 
-    final offset =
-        await _repository.countMessagesNewerThan(newerMessage.createdAt) + 1;
+    final newerCount = await _repository.countMessagesNewerThan(
+      newerMessage.createdAt,
+    );
+    final olderCount = await _repository.countMessagesNewerThan(
+      olderMessage.createdAt,
+    );
+    final olderIsDiscontiguous = _syncService.isDiscontiguous(
+      gap.olderMessageId,
+    );
+
+    final int offset;
+    final int take;
+    if (fromOlderSide && !olderIsDiscontiguous && olderCount > newerCount + 1) {
+      final gapSize = olderCount - newerCount - 1;
+      take = gapSize.clamp(1, 100);
+      offset = olderCount - take;
+    } else {
+      offset = newerCount + 1;
+      take = 100;
+    }
+
     final page = await _syncService.loadMore(
       currentCount: offset,
-      take: 100,
+      take: take,
       filter: const MessageFilter(),
     );
     if (page.isEmpty) return gap;
@@ -2543,19 +2569,45 @@ class MessagesNotifier extends _$MessagesNotifier
       await _updateStateSafely([..._currentMessages, ...newMessages]);
     }
 
-    if (page.any((message) => message.id == gap.olderMessageId)) {
-      return null;
-    }
-
     final bridgeMessages = page
         .where(
           (message) =>
               message.id != gap.newerMessageId &&
+              message.id != gap.olderMessageId &&
               message.createdAt.isBefore(newerMessage.createdAt) &&
               message.createdAt.isAfter(olderMessage.createdAt),
         )
         .toList();
+
+    if (!_syncService.isDiscontiguous(gap.olderMessageId)) {
+      if (page.any((message) => message.id == gap.olderMessageId)) {
+        return null;
+      }
+      if (fromOlderSide && offset <= newerCount + 1) {
+        return null;
+      }
+    }
+
     if (bridgeMessages.isEmpty) return gap;
+
+    if (fromOlderSide && !olderIsDiscontiguous) {
+      final stillHasGap = await hasMessagesBetween(
+        gap.newerMessageId,
+        bridgeMessages.first.id,
+      );
+      if (!stillHasGap) return null;
+      return MessageLoadGap(
+        newerMessageId: gap.newerMessageId,
+        olderMessageId: bridgeMessages.first.id,
+        isAutoManaged: gap.isAutoManaged,
+      );
+    }
+
+    final stillHasGap = await hasMessagesBetween(
+      bridgeMessages.last.id,
+      gap.olderMessageId,
+    );
+    if (!stillHasGap) return null;
 
     return MessageLoadGap(
       newerMessageId: bridgeMessages.last.id,
@@ -2568,6 +2620,9 @@ class MessagesNotifier extends _$MessagesNotifier
     String newerMessageId,
     String olderMessageId,
   ) async {
+    if (_syncService.isDiscontiguous(olderMessageId)) {
+      return true;
+    }
     final newerMessage = await _repository.getLocalMessage(newerMessageId);
     final olderMessage = await _repository.getLocalMessage(olderMessageId);
     if (newerMessage == null || olderMessage == null) return false;

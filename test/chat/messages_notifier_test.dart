@@ -1095,5 +1095,39 @@ void main() {
       expect(adapter.requestedOffsets, contains(20));
       expect(adapter.requestedOffsets, isNot(contains(21)));
     });
+
+    test(
+      'jumpToMessage marks an unbridged remote target as a gap',
+      () async {
+        final now = DateTime.utc(2026, 1, 1, 12);
+        await _seedLocalHistory(database, 60, newest: now);
+        final adapter = _JumpTargetAdapter(
+          target: messageJson(
+            'old-target',
+            now.subtract(const Duration(days: 30)),
+          ),
+          newestMessages: List.generate(
+            20,
+            (index) => messageJson(
+              'new-$index',
+              now.subtract(Duration(minutes: index)),
+            ),
+          ),
+        );
+        container.read(apiClientProvider).httpClientAdapter = adapter;
+
+        final notifier = container.read(messagesProvider('room-1').notifier);
+        await notifier.loadInitial(forceRemoteRefresh: false);
+
+        expect(await notifier.jumpToMessage('old-target'), isTrue);
+
+        // Even before intermediate server pages are cached, the discontiguous
+        // jump target must report a gap after the oldest contiguous message.
+        expect(
+          await notifier.hasMessagesBetween('new-19', 'old-target'),
+          isTrue,
+        );
+      },
+    );
   });
 }

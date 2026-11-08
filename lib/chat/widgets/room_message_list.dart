@@ -297,6 +297,15 @@ class RoomMessageList extends HookConsumerWidget {
       return null;
     }, [pendingJumpMessageId, messageIndexByServerId]);
 
+    useEffect(() {
+      final anchor = chatStateNotifier.pendingScrollAnchor;
+      if (anchor == null) return null;
+      final index = messageIndexByServerId[anchor.messageId];
+      if (index == null) return null;
+      chatStateNotifier.restoreScrollAnchor(index, anchor.alignment);
+      return null;
+    }, [displayMessages, messageIndexByServerId]);
+
     final listWidget = SuperListView.builder(
       listController: chatStateNotifier.listController,
       controller: chatStateNotifier.scrollController,
@@ -347,8 +356,11 @@ class RoomMessageList extends HookConsumerWidget {
         final isFirstInGroup =
             !isSameSenderGroup(previousMessage) ||
             (previousMessage != null && hasMarkerAbove(previousMessage));
+        final key = Key(
+          '$messageKeyPrefix${message.clientMessageId ?? message.id}',
+        );
         if (useStickyGroupedDisplay && !isFirstInGroup) {
-          return const SizedBox.shrink();
+          return SizedBox.shrink(key: key);
         }
 
         final groupedMessages = <LocalChatMessage>[message];
@@ -367,10 +379,6 @@ class RoomMessageList extends HookConsumerWidget {
             groupedMessages.add(groupedMessage);
           }
         }
-
-        final key = Key(
-          '$messageKeyPrefix${message.clientMessageId ?? message.id}',
-        );
 
         /// The "messages skipped" seam and the "new messages" rule belong to
         /// the message they precede. A group renders every bubble of its
@@ -393,6 +401,7 @@ class RoomMessageList extends HookConsumerWidget {
                   key: ValueKey(
                     'message-gap-${gap.newerMessageId}-${gap.olderMessageId}',
                   ),
+                  autoLoad: pendingJumpMessageId == null,
                   onLoad: () => onLoadMessageGap(gap),
                 ),
               if (showRead) const _LastReadMarker(),
@@ -508,8 +517,13 @@ class RoomMessageList extends HookConsumerWidget {
 
 class _MessageLoadGapMarker extends StatefulWidget {
   final Future<void> Function() onLoad;
+  final bool autoLoad;
 
-  const _MessageLoadGapMarker({super.key, required this.onLoad});
+  const _MessageLoadGapMarker({
+    super.key,
+    required this.onLoad,
+    this.autoLoad = true,
+  });
 
   @override
   State<_MessageLoadGapMarker> createState() => _MessageLoadGapMarkerState();
@@ -521,7 +535,11 @@ class _MessageLoadGapMarkerState extends State<_MessageLoadGapMarker> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    if (widget.autoLoad) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && widget.autoLoad) _load();
+      });
+    }
   }
 
   Future<void> _load() async {

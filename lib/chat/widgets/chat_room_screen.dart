@@ -1002,7 +1002,11 @@ class ChatRoomScreen extends HookConsumerWidget {
       [onJump],
     );
     final loadMessageGap = useCallback((MessageLoadGap gap) async {
-      final nextGap = await messagesNotifier.loadMessagesBetween(gap);
+      final fromOlderSide = chatStateNotifier.captureGapScrollAnchor(gap);
+      final nextGap = await messagesNotifier.loadMessagesBetween(
+        gap,
+        fromOlderSide: fromOlderSide,
+      );
       chatStateNotifier.updateMessageLoadGap(nextGap);
     }, [messagesNotifier, chatStateNotifier]);
     final initialMessageJumpHandled = useRef(false);

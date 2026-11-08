@@ -22,6 +22,10 @@ class MessageSyncService {
   int _lastApiOffset = 0;
   int? _totalRemoteCount;
   bool _allRemoteFetched = false;
+  DateTime? _oldestContiguousRemoteTimestamp;
+  final Set<String> _discontiguousMessageIds = {};
+
+  static const int _kMaxJumpBridgeBatches = 10;
 
   MessageSyncService(
     this._roomId,
@@ -36,6 +40,18 @@ class MessageSyncService {
   bool get allRemoteFetched => _allRemoteFetched;
   int? get totalRemoteCount => _totalRemoteCount;
   int get lastApiOffset => _lastApiOffset;
+  bool isDiscontiguous(String messageId) =>
+      _discontiguousMessageIds.contains(messageId);
+
+  /// Marks [message] as fetched out-of-order if it is older than the
+  /// contiguously-paged remote frontier.
+  void markDiscontiguousIfOlderThanContiguous(LocalChatMessage message) {
+    if (_allRemoteFetched) return;
+    final frontier = _oldestContiguousRemoteTimestamp;
+    if (frontier == null || message.createdAt.isBefore(frontier)) {
+      _discontiguousMessageIds.add(message.id);
+    }
+  }
 
   // ── Initial Load ─────────────────────────────────────────────────────────
 
@@ -50,6 +66,7 @@ class MessageSyncService {
     _lastApiOffset = 0;
     _allRemoteFetched = false;
     _totalRemoteCount = null;
+    _oldestContiguousRemoteTimestamp = null;
 
     // Try cache first
     final cached = await _loadFromCache(
@@ -65,6 +82,9 @@ class MessageSyncService {
 
     if (!shouldFetchRemote) {
       _logger.info('Using cached messages (${cached.length})');
+      if (cached.isNotEmpty) {
+        _oldestContiguousRemoteTimestamp = cached.last.createdAt;
+      }
       return cached;
     }
 
@@ -154,6 +174,8 @@ class MessageSyncService {
 
     // Try to find the message
     var message = await _repository.getLocalMessage(messageId);
+    final wasInLocalDb = message != null;
+    int? contiguousNewerBeforeFetch;
 
     // If not in local DB, fetch from remote
     if (message == null) {
@@ -172,7 +194,82 @@ class MessageSyncService {
         decrypted,
         MessageStatus.sent,
       );
+      contiguousNewerBeforeFetch = await _repository.countMessagesNewerThan(
+        message.createdAt,
+      );
       await _repository.saveMessage(message);
+      _discontiguousMessageIds.add(message.id);
+    }
+
+    // If the target was fetched out-of-order or sits near/beyond the edge of
+    // our contiguously-synced history, page from remote towards the target so
+    // it has a real surrounding window (including older messages above it) and
+    // an accurate offset for subsequent pagination.
+    if (!_allRemoteFetched) {
+      final targetMessage = message;
+      final newerNow =
+          contiguousNewerBeforeFetch ??
+          await _repository.countMessagesNewerThan(targetMessage.createdAt);
+      final olderCached = await _loadFromCache(
+        offset: newerNow + 1,
+        limit: chunkSize ~/ 2,
+        filter: const MessageFilter(),
+      );
+      final needsRemoteBridge =
+          !wasInLocalDb ||
+          _discontiguousMessageIds.contains(targetMessage.id) ||
+          olderCached.length < chunkSize ~/ 4;
+
+      if (needsRemoteBridge) {
+        if (newerNow > _lastApiOffset) {
+          _lastApiOffset = newerNow;
+        }
+        try {
+          var batches = 0;
+          while (!_allRemoteFetched && batches < _kMaxJumpBridgeBatches) {
+            final batch = await _fetchAndCacheRemote(
+              offset: _lastApiOffset,
+              limit: PaginationConfig.batchSize,
+            );
+            batches += 1;
+            if (batch.isEmpty) break;
+
+            final oldestInBatch = batch.last.createdAt;
+            final reachedTarget =
+                batch.any((m) => m.id == targetMessage.id) ||
+                oldestInBatch.isBefore(targetMessage.createdAt) ||
+                oldestInBatch.isAtSameMomentAs(targetMessage.createdAt);
+            if (reachedTarget) {
+              _discontiguousMessageIds.remove(targetMessage.id);
+              final olderInBatch = batch
+                  .where((m) => m.createdAt.isBefore(targetMessage.createdAt))
+                  .length;
+              if (olderInBatch < chunkSize ~/ 4 && !_allRemoteFetched) {
+                await _fetchAndCacheRemote(
+                  offset: _lastApiOffset,
+                  limit: PaginationConfig.batchSize,
+                );
+              }
+              break;
+            }
+          }
+        } catch (e) {
+          _logger.warning(
+            'Remote bridge around $messageId stopped early: $e',
+          );
+        }
+      }
+    }
+
+    // If the target is still discontiguous from the local cache prefix, do not
+    // attach unrelated newer cache rows to the target window (doing so would
+    // hide the gap boundary between the newest section and the target).
+    if (_discontiguousMessageIds.contains(message.id)) {
+      return JumpResult(
+        messages: [message],
+        targetIndex: 0,
+        targetMessage: message,
+      );
     }
 
     // Calculate offset to center the target message
@@ -290,6 +387,11 @@ class MessageSyncService {
       offset: offset,
       limit: limit,
     );
+    if (_discontiguousMessageIds.isNotEmpty) {
+      messages = messages
+          .where((m) => !_discontiguousMessageIds.contains(m.id))
+          .toList();
+    }
     _cache.putAll(messages);
 
     // Merge with pending messages if at the top
@@ -317,7 +419,20 @@ class MessageSyncService {
     _lastApiOffset = offset + result.messages.length;
 
     // Process and cache messages
-    return processRemoteMessages(result.messages);
+    final processed = await processRemoteMessages(result.messages);
+    if (_allRemoteFetched) {
+      _discontiguousMessageIds.clear();
+    } else if (processed.isNotEmpty) {
+      final oldestInBatch = processed.last.createdAt;
+      if (_oldestContiguousRemoteTimestamp == null ||
+          oldestInBatch.isBefore(_oldestContiguousRemoteTimestamp!)) {
+        _oldestContiguousRemoteTimestamp = oldestInBatch;
+      }
+      for (final msg in processed) {
+        _discontiguousMessageIds.remove(msg.id);
+      }
+    }
+    return processed;
   }
 
   List<LocalChatMessage> _applyFilters(

@@ -181,7 +181,6 @@ class _FilterChipButton extends StatelessWidget {
   final String label;
   final IconData? stateIcon;
   final bool emphasized;
-  final int? badge;
   final VoidCallback? onTap;
 
   const _FilterChipButton({
@@ -189,7 +188,6 @@ class _FilterChipButton extends StatelessWidget {
     required this.label,
     this.stateIcon,
     required this.emphasized,
-    this.badge,
     this.onTap,
   });
 
@@ -198,65 +196,40 @@ class _FilterChipButton extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
     final enabled = onTap != null;
-    // Outlined when idle, filled when on: the ribbon stays quiet until a
-    // filter actually narrows the search.
     final selected = emphasized && enabled;
     final foreground = selected
         ? colorScheme.onSecondaryContainer
         : colorScheme.onSurfaceVariant;
-    final outline = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-      side: BorderSide(
-        color: selected ? Colors.transparent : colorScheme.outlineVariant,
-      ),
-    );
 
     return Opacity(
-      opacity: enabled ? 1 : 0.5,
+      opacity: enabled ? 1.0 : 0.45,
       child: Material(
-        color: selected ? colorScheme.secondaryContainer : Colors.transparent,
-        shape: outline,
+        color: selected
+            ? colorScheme.secondaryContainer
+            : colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(SolRadius.sm),
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(SolRadius.sm),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            padding: const EdgeInsets.symmetric(
+              horizontal: SolSpace.md,
+              vertical: SolSpace.sm,
+            ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(icon, size: 16, color: foreground),
-                const Gap(6),
+                const Gap(SolSpace.xs),
                 Text(
                   label,
-                  style: theme.textTheme.labelLarge?.copyWith(
+                  style: theme.textTheme.labelMedium?.copyWith(
                     color: foreground,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
                   ),
                 ),
-                if (badge != null && badge! > 0) ...[
-                  const Gap(6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      '$badge',
-                      style: GoogleFonts.robotoMono(
-                        fontSize: 10.5,
-                        height: 1.2,
-                        color: colorScheme.onPrimary,
-                      ),
-                    ),
-                  ),
-                ],
                 if (stateIcon != null) ...[
-                  const Gap(4),
+                  const Gap(SolSpace.xxs),
                   Icon(stateIcon, size: 14, color: foreground),
                 ],
               ],
@@ -365,149 +338,221 @@ class _ChatSearchFilterBar extends HookWidget {
       onFiltersChanged();
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            _FilterChipButton(
-              icon: cloudSearch ? Symbols.cloud : Symbols.cloud_off,
-              label: cloudSearch
-                  ? 'chatSearchCloud'.tr()
-                  : 'chatSearchLocal'.tr(),
-              stateIcon: cloudSearch
-                  ? Symbols.check_circle
-                  : Symbols.radio_button_unchecked,
-              emphasized: cloudSearch,
-              onTap: () {
-                final next = !cloudSearch;
-                onCloudSearchChanged(next);
-                // Cloud index has no links/attachments filters.
-                if (next) {
-                  if (withLinks) onLinksChanged(false);
-                  if (withAttachments) onAttachmentsChanged(false);
-                }
-                onFiltersChanged();
-              },
-            ),
-            _FilterChipButton(
-              icon: Symbols.link,
-              label: 'searchLinks'.tr(),
-              stateIcon: withLinks
-                  ? Symbols.check_circle
-                  : Symbols.radio_button_unchecked,
-              emphasized: withLinks && localFiltersEnabled,
-              onTap: localFiltersEnabled
-                  ? () {
-                      onLinksChanged(!withLinks);
-                      onFiltersChanged();
-                    }
-                  : null,
-            ),
-            _FilterChipButton(
-              icon: Symbols.file_copy,
-              label: 'searchAttachments'.tr(),
-              stateIcon: withAttachments
-                  ? Symbols.check_circle
-                  : Symbols.radio_button_unchecked,
-              emphasized: withAttachments && localFiltersEnabled,
-              onTap: localFiltersEnabled
-                  ? () {
-                      onAttachmentsChanged(!withAttachments);
-                      onFiltersChanged();
-                    }
-                  : null,
-            ),
-            _FilterChipButton(
-              icon: Symbols.tune,
-              label: 'advancedFilters'.tr(),
-              badge: _advancedCount,
-              stateIcon: showAdvanced.value
-                  ? Symbols.expand_less
-                  : Symbols.expand_more,
-              emphasized: showAdvanced.value,
-              onTap: () => showAdvanced.value = !showAdvanced.value,
-            ),
-            if (_activeCount > 0)
+    return ExploreCard(
+      padding: const EdgeInsets.all(SolSpace.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            spacing: SolSpace.sm,
+            runSpacing: SolSpace.sm,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
               _FilterChipButton(
-                icon: Symbols.restart_alt,
-                label: 'clear'.tr(),
-                emphasized: false,
-                onTap: clearAll,
+                icon: cloudSearch ? Symbols.cloud : Symbols.cloud_off,
+                label: cloudSearch
+                    ? 'chatSearchCloud'.tr()
+                    : 'chatSearchLocal'.tr(),
+                stateIcon: cloudSearch
+                    ? Symbols.check_circle
+                    : Symbols.radio_button_unchecked,
+                emphasized: cloudSearch,
+                onTap: () {
+                  final next = !cloudSearch;
+                  onCloudSearchChanged(next);
+                  // Cloud index has no links/attachments filters.
+                  if (next) {
+                    if (withLinks) onLinksChanged(false);
+                    if (withAttachments) onAttachmentsChanged(false);
+                  }
+                  onFiltersChanged();
+                },
               ),
-          ],
-        ),
-        const Gap(8),
-        AnimatedCrossFade(
-          firstChild: const SizedBox.shrink(),
-          secondChild: Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(12),
+              _FilterChipButton(
+                icon: Symbols.link,
+                label: 'searchLinks'.tr(),
+                stateIcon: withLinks
+                    ? Symbols.check_circle
+                    : Symbols.radio_button_unchecked,
+                emphasized: withLinks && localFiltersEnabled,
+                onTap: localFiltersEnabled
+                    ? () {
+                        onLinksChanged(!withLinks);
+                        onFiltersChanged();
+                      }
+                    : null,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _SenderAccountField(
-                    account: sender,
-                    onPick: pickSender,
-                    onClear: sender == null
-                        ? null
-                        : () {
-                            onSenderChanged(null);
-                            onFiltersChanged();
-                          },
-                  ),
-                  const Gap(8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _DateFieldButton(
-                          label: 'fromDate'.tr(),
-                          value: after,
-                          enabled: true,
-                          onTap: () => pickDate(isStart: true),
-                          onClear: after == null
-                              ? null
-                              : () {
-                                  onAfterChanged(null);
-                                  onFiltersChanged();
-                                },
+              _FilterChipButton(
+                icon: Symbols.file_copy,
+                label: 'searchAttachments'.tr(),
+                stateIcon: withAttachments
+                    ? Symbols.check_circle
+                    : Symbols.radio_button_unchecked,
+                emphasized: withAttachments && localFiltersEnabled,
+                onTap: localFiltersEnabled
+                    ? () {
+                        onAttachmentsChanged(!withAttachments);
+                        onFiltersChanged();
+                      }
+                    : null,
+              ),
+              if (_activeCount > 0)
+                _FilterChipButton(
+                  icon: Symbols.restart_alt,
+                  label: 'clear'.tr(),
+                  emphasized: false,
+                  onTap: clearAll,
+                ),
+            ],
+          ),
+          const Gap(SolSpace.md),
+          Material(
+            color: colorScheme.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(SolRadius.md),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(SolRadius.md),
+              onTap: () => showAdvanced.value = !showAdvanced.value,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: SolSpace.md,
+                  vertical: SolSpace.md,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(SolRadius.sm),
+                      ),
+                      child: Icon(
+                        Symbols.tune,
+                        size: 18,
+                        color: colorScheme.onSecondaryContainer,
+                      ),
+                    ),
+                    const Gap(SolSpace.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'advancedFilters'.tr(),
+                            style: theme.textTheme.labelLarge,
+                          ),
+                          Text(
+                            'chatSearchIdleBody'.tr(),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontSize: 11,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (_advancedCount > 0) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: SolSpace.sm,
+                          vertical: SolSpace.xxs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer,
+                          borderRadius: SolRadius.pillRadius,
+                        ),
+                        child: Text(
+                          '$_advancedCount',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: colorScheme.onPrimaryContainer,
+                            fontSize: 11,
+                          ),
                         ),
                       ),
-                      const Gap(8),
-                      Expanded(
-                        child: _DateFieldButton(
-                          label: 'toDate'.tr(),
-                          value: before,
-                          enabled: true,
-                          onTap: () => pickDate(isStart: false),
-                          onClear: before == null
-                              ? null
-                              : () {
-                                  onBeforeChanged(null);
-                                  onFiltersChanged();
-                                },
-                        ),
-                      ),
+                      const Gap(SolSpace.sm),
                     ],
-                  ),
-                ],
+                    Icon(
+                      showAdvanced.value
+                          ? Symbols.expand_less
+                          : Symbols.expand_more,
+                      size: 20,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-          crossFadeState: showAdvanced.value
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
-          duration: const Duration(milliseconds: 180),
-        ),
-      ],
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Padding(
+              padding: const EdgeInsets.only(top: SolSpace.md),
+              child: Container(
+                padding: const EdgeInsets.all(SolSpace.lg),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLowest,
+                  borderRadius: SolRadius.cardRadius,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _SenderAccountField(
+                      account: sender,
+                      onPick: pickSender,
+                      onClear: sender == null
+                          ? null
+                          : () {
+                              onSenderChanged(null);
+                              onFiltersChanged();
+                            },
+                    ),
+                    const Gap(SolSpace.md),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _DateFieldButton(
+                            label: 'fromDate'.tr(),
+                            value: after,
+                            enabled: true,
+                            onTap: () => pickDate(isStart: true),
+                            onClear: after == null
+                                ? null
+                                : () {
+                                    onAfterChanged(null);
+                                    onFiltersChanged();
+                                  },
+                          ),
+                        ),
+                        const Gap(SolSpace.md),
+                        Expanded(
+                          child: _DateFieldButton(
+                            label: 'toDate'.tr(),
+                            value: before,
+                            enabled: true,
+                            onTap: () => pickDate(isStart: false),
+                            onClear: before == null
+                                ? null
+                                : () {
+                                    onBeforeChanged(null);
+                                    onFiltersChanged();
+                                  },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            crossFadeState: showAdvanced.value
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 180),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -826,9 +871,6 @@ class SearchMessagesScreen extends HookConsumerWidget {
                 take: 100,
               );
               messages = page.messages;
-              if (messages.isNotEmpty) {
-                await database.saveMessagesWithSenders(messages);
-              }
               if (withLinks.value) {
                 messages = messages.where(_messageHasLink).toList();
                 // X-Total is pre-filter; prefer filtered length when narrowing.
@@ -1019,20 +1061,26 @@ class SearchMessagesScreen extends HookConsumerWidget {
                           );
 
                         case SearchState.results:
-                          return SuperListView.builder(
-                            padding: const EdgeInsets.only(bottom: 16),
+                          return SuperListView.separated(
+                            padding: const EdgeInsets.fromLTRB(
+                              SolSpace.md,
+                              0,
+                              SolSpace.md,
+                              SolSpace.lg,
+                            ),
                             reverse: false,
                             itemCount: messageList.length,
-                            itemBuilder: (context, index) =>
-                                _ChatSearchMatchTile(
-                                  message: messageList[index],
-                                  query: searchController.text,
-                                  onJump: (messageId) {
-                                    context.pop(
-                                      SearchMessagesResult(messageId),
-                                    );
-                                  },
-                                ),
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: kExploreCardGap),
+                            itemBuilder: (context, index) => ExploreCard(
+                              child: _ChatSearchMatchTile(
+                                message: messageList[index],
+                                query: searchController.text,
+                                onJump: (messageId) {
+                                  context.pop(SearchMessagesResult(messageId));
+                                },
+                              ),
+                            ),
                           );
 
                         default:
@@ -1144,11 +1192,6 @@ class ChatMessageSearchView extends HookConsumerWidget {
               take: 100,
             );
             nextGroups = page.groups;
-
-            final flat = page.messages;
-            if (flat.isNotEmpty) {
-              await database.saveMessagesWithSenders(flat);
-            }
           } on DioException catch (exception) {
             // Fall back to local cache when cloud fails.
             if (currentRequest != request.value) return;
@@ -1243,10 +1286,14 @@ class ChatMessageSearchView extends HookConsumerWidget {
 
     // The host page's pill floats over this section, so its band is reserved
     // as the scroll view's first sliver: the first result clears the capsule
-    // and everything after it travels under the glass. The narrow layout
-    // reserves it inside its sliver; the wide layout's panes are siblings of
-    // the pill, so they reserve it as padding instead (see below).
-    final band = MediaQuery.paddingOf(context).top + kPillAppBarHeight;
+    // and everything after it travels under the glass. When hosted inside a
+    // Scaffold with `extendBodyBehindAppBar: true`, `MediaQuery.paddingOf.top`
+    // already includes the appBar height; in a standalone Scaffold without an
+    // app bar, add `kPillAppBarHeight` explicitly.
+    final scaffoldAppBarHeight = Scaffold.maybeOf(context)?.appBarMaxHeight ?? 0;
+    final band = scaffoldAppBarHeight > 0
+        ? MediaQuery.paddingOf(context).top
+        : MediaQuery.paddingOf(context).top + kPillAppBarHeight;
     final topGap = band + kExploreCardGap;
 
     Widget buildGroup(_SearchRoomGroup group) => _SearchRoomSection(
@@ -1276,7 +1323,9 @@ class ChatMessageSearchView extends HookConsumerWidget {
                 iconColor: Theme.of(context).colorScheme.error,
                 title: 'searchError'.tr(),
               )
-            : displayGroups.isEmpty && !isSearching.value
+            : displayGroups.isEmpty && isSearching.value
+            ? const Center(child: CircularProgressIndicator())
+            : displayGroups.isEmpty
             ? EmptyState(
                 key: const Key('chatSearchNoResults'),
                 icon: Symbols.search_off,
@@ -1310,7 +1359,6 @@ class ChatMessageSearchView extends HookConsumerWidget {
     if (isWideScreen(context)) {
       return ResponsiveSidebar(
         showSidebar: filtersVisible,
-        isLeft: false,
         sidebarWidth: 320,
         sidebarBackgroundColor: Colors.transparent,
         sidebarElevation: 0,
@@ -1366,7 +1414,12 @@ class ChatMessageSearchView extends HookConsumerWidget {
               title: 'searchError'.tr(),
             ),
           )
-        else if (displayGroups.isEmpty && !isSearching.value)
+        else if (displayGroups.isEmpty && isSearching.value)
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (displayGroups.isEmpty)
           SliverFillRemaining(
             hasScrollBody: false,
             child: EmptyState(
@@ -1425,7 +1478,12 @@ class _CollapsibleFilterHeader extends StatelessWidget {
           child: visible
               ? Padding(
                   key: const ValueKey('filters-visible'),
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  padding: const EdgeInsets.fromLTRB(
+                    SolSpace.md,
+                    0,
+                    SolSpace.md,
+                    kExploreCardGap,
+                  ),
                   child: child,
                 )
               : const SizedBox(key: ValueKey('filters-hidden')),
@@ -1474,9 +1532,8 @@ List<_SearchRoomGroup> _groupMessagesByRoom(
   ];
 }
 
-/// One room's matches: the band that names it, then its hits down a hairline
-/// spine that runs from the band to the last row, so a group reads as that
-/// room's transcript rather than another block of list.
+/// One room's matches: the band that names it, then its hits separated cleanly
+/// inside a single floating [ExploreCard] surface.
 class _SearchRoomSection extends StatelessWidget {
   final _SearchRoomGroup group;
   final String query;
@@ -1493,39 +1550,35 @@ class _SearchRoomSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    // The spine is a painted edge, not a stretched child: a sliver hands its
-    // items an unbounded height, which a stretched Row would try to fill.
-    //
-    // One room is one card: its band and hits share a single floating surface,
-    // the way an explore card owns its section.
+    final dividerColor = colorScheme.outlineVariant.withValues(alpha: 0.35);
+
     return ExploreCard(
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(
-              width: 2,
-              color: colorScheme.outlineVariant.withValues(alpha: 0.7),
-            ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _SearchRoomHeader(
+            roomId: group.roomId,
+            room: group.room,
+            messages: group.messages,
+            onTap: onOpenRoom,
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _SearchRoomHeader(
-              roomId: group.roomId,
-              room: group.room,
-              messages: group.messages,
-              onTap: onOpenRoom,
-            ),
-            for (final message in group.messages)
-              _ChatSearchMatchTile(
-                message: message,
-                query: query,
-                onJump: onJumpMessage,
+          Divider(height: 1, thickness: 1, color: dividerColor),
+          for (var i = 0; i < group.messages.length; i++) ...[
+            if (i > 0)
+              Divider(
+                height: 1,
+                thickness: 1,
+                indent: SolSpace.lg + 36 + SolSpace.md,
+                endIndent: SolSpace.lg,
+                color: dividerColor,
               ),
-            const SizedBox(height: SolSpace.md),
+            _ChatSearchMatchTile(
+              message: group.messages[i],
+              query: query,
+              onJump: onJumpMessage,
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -1566,16 +1619,19 @@ class _ChatSearchMatchTile extends StatelessWidget {
       child: InkWell(
         onTap: () => onJump(message.id),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 9, 16, 9),
+          padding: const EdgeInsets.symmetric(
+            horizontal: SolSpace.lg,
+            vertical: SolSpace.md,
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ProfilePictureWidget(
                 file: remoteMessage.sender.account.profile.picture,
                 fallbackName: remoteMessage.sender.account.nick,
-                radius: 16,
+                radius: 18,
               ),
-              const Gap(10),
+              const Gap(SolSpace.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1588,7 +1644,7 @@ class _ChatSearchMatchTile extends StatelessWidget {
                       showAvatar: false,
                       isCompact: true,
                     ),
-                    const Gap(3),
+                    const Gap(SolSpace.xxs),
                     if (excerpt != null)
                       _MessageExcerptText(excerpt: excerpt)
                     else
@@ -1644,9 +1700,13 @@ class _MessageExcerptText extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final base =
-        Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.35) ??
-        const TextStyle(fontSize: 14, height: 1.35);
-    final marked = base.copyWith(backgroundColor: colorScheme.primaryContainer);
+        Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.4) ??
+        const TextStyle(fontSize: 14, height: 1.4);
+    final marked = base.copyWith(
+      backgroundColor: colorScheme.primaryContainer,
+      color: colorScheme.onPrimaryContainer,
+      fontWeight: FontWeight.w600,
+    );
 
     return Text.rich(
       TextSpan(
@@ -1713,21 +1773,23 @@ class _SearchRoomHeader extends ConsumerWidget {
       fontWeight: FontWeight.w700,
       color: colorScheme.onSurface,
       letterSpacing: -0.2,
-      height: 1.2,
+      height: 1.25,
     );
-    final reachStyle = GoogleFonts.robotoMono(
-      fontSize: 11,
-      height: 1.2,
-      letterSpacing: 0.1,
+    final reachStyle = theme.textTheme.labelSmall?.copyWith(
       color: colorScheme.onSurfaceVariant,
+      fontSize: 11.5,
+      height: 1.25,
     );
 
     return Material(
-      color: colorScheme.surfaceContainerLow,
+      color: colorScheme.surfaceContainerLowest,
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 9, 16, 9),
+          padding: const EdgeInsets.symmetric(
+            horizontal: SolSpace.lg,
+            vertical: SolSpace.md,
+          ),
           child: Row(
             children: [
               if (room != null)
@@ -1749,7 +1811,7 @@ class _SearchRoomHeader extends ConsumerWidget {
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-              const SizedBox(width: 12),
+              const Gap(SolSpace.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1765,7 +1827,7 @@ class _SearchRoomHeader extends ConsumerWidget {
                           ),
                         ),
                         if (room != null && room.encryptionMode != 0) ...[
-                          const SizedBox(width: 4),
+                          const Gap(SolSpace.xxs),
                           Icon(
                             Icons.lock_outline,
                             size: 13,
@@ -1774,7 +1836,7 @@ class _SearchRoomHeader extends ConsumerWidget {
                         ],
                       ],
                     ),
-                    const SizedBox(height: 3),
+                    const Gap(SolSpace.xxs),
                     Text(
                       '${'matches'.plural(messages.length)}  ·  '
                       '${formatMatchDateSpan(newest, oldest)}',

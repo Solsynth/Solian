@@ -179,6 +179,8 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
   int? _settleIndex;
   int _settleFrames = 0;
   bool _settleScheduled = false;
+  bool _isRestoringAnchor = false;
+  ({String messageId, double alignment})? _pendingScrollAnchor;
 
   ChatRoomStateNotifier(this.arg) {
     roomId = arg;
@@ -225,14 +227,18 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     if (position == null) return;
     // The reveal drives the offset across the whole history for a deep jump;
     // paging from that transient position would corrupt the loaded window.
-    if (state.pendingJumpMessageId != null) return;
+    if (state.pendingJumpMessageId != null || _isRestoringAnchor) return;
 
     if (position.pixels >= position.maxScrollExtent - 200) {
       if (!_isLoadingMore) {
         _isLoadingMore = true;
         // Read fresh notifier each time to avoid using disposed instance
         final notifier = ref.read(messagesProvider(roomId).notifier);
-        final loadMore = state.messageLoadGap?.isAutoManaged == true
+        // Whenever a gap exists in the timeline (whether from compaction or
+        // from jumping to an older message), _currentMessages.length is smaller
+        // than the oldest message's server offset; always page before the
+        // oldest loaded message rather than inside the gap.
+        final loadMore = state.messageLoadGap != null
             ? notifier.loadMoreBeforeOldest()
             : notifier.loadMore();
         loadMore
@@ -787,17 +793,35 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
       final onScreen =
           range != null && target >= range.$1 && target <= range.$2;
       if (onScreen) {
-        // The row is built, so its extent is measured and the animated
-        // reveal cannot undershoot.
+        if (_settleFrames > 0) {
+          // We already jumped across history on prior frames to bring the row
+          // into view; now that it is built and measured, snap it directly to
+          // center so no multi-hundred-millisecond animation can be interrupted
+          // by gap or scroll pagination.
+          listController.jumpToItem(
+            index: target,
+            scrollController: scrollController,
+            alignment: 0.5,
+          );
+          _clearPendingJump(messageId);
+          return;
+        }
+        // The row was already on screen before the jump started, so its extent
+        // is measured and the animated reveal cannot undershoot.
+        var animDurationMs = 250;
         listController.animateToItem(
           index: target,
           scrollController: scrollController,
           alignment: 0.5,
-          duration: (distance) =>
-              Duration(milliseconds: (distance * 0.5).clamp(200, 800).toInt()),
+          duration: (distance) {
+            animDurationMs = (distance * 0.5).clamp(200, 800).toInt();
+            return Duration(milliseconds: animDurationMs);
+          },
           curve: (_) => Curves.easeOutCubic,
         );
-        _clearPendingJump(messageId);
+        Future.delayed(Duration(milliseconds: animDurationMs + 32), () {
+          _clearPendingJump(messageId);
+        });
         return;
       }
       if (_settleFrames >= _kMaxJumpSettleFrames) {
@@ -844,6 +868,102 @@ class ChatRoomStateNotifier extends Notifier<ChatRoomState> {
     state = gap == null
         ? state.copyWith(clearMessageLoadGap: true)
         : state.copyWith(messageLoadGap: gap);
+  }
+
+  ({String messageId, double alignment})? get pendingScrollAnchor =>
+      _pendingScrollAnchor;
+
+  /// Captures the visible message on the older side of [gap] before gap rows
+  /// are inserted, returning `true` when the user is viewing the older section
+  /// (so the gap should be filled from the older boundary downwards and the
+  /// viewport anchored to that section).
+  bool captureGapScrollAnchor(MessageLoadGap gap) {
+    _pendingScrollAnchor = null;
+    if (!listController.isAttached) return false;
+    final position = _getSingleScrollPosition();
+    if (position == null) return false;
+
+    final range =
+        listController.unobstructedVisibleRange ?? listController.visibleRange;
+    if (range == null) return false;
+
+    final messages =
+        ref
+            .read(messagesProvider(roomId))
+            .value
+            ?.where((m) => m.threadId == null)
+            .toList() ??
+        const <LocalChatMessage>[];
+    if (messages.isEmpty) return false;
+
+    final olderIdx = messages.indexWhere((m) => m.id == gap.olderMessageId);
+    final newerIdx = messages.indexWhere((m) => m.id == gap.newerMessageId);
+    if (olderIdx == -1) return false;
+
+    final maxIdx = listController.numberOfItems - 1;
+    if (maxIdx < 0) return false;
+
+    final fromOlderSide =
+        range.$2 >= olderIdx &&
+        (newerIdx == -1 ||
+            range.$1 >= newerIdx ||
+            olderIdx >= messages.length - 1);
+    if (!fromOlderSide) return false;
+
+    final anchorIdx = olderIdx.clamp(range.$1, range.$2).clamp(0, maxIdx);
+    final anchorMessageId = messages[anchorIdx].id;
+
+    double alignment = 0.2;
+    try {
+      final offset0 = listController.getOffsetToReveal(anchorIdx, 0.0);
+      final offset1 = listController.getOffsetToReveal(anchorIdx, 1.0);
+      final span = offset1 - offset0;
+      if (span.abs() > 1e-3) {
+        alignment = ((position.pixels - offset0) / span).clamp(0.0, 1.0);
+      }
+    } catch (_) {
+      alignment = 0.2;
+    }
+
+    _pendingScrollAnchor = (messageId: anchorMessageId, alignment: alignment);
+    return true;
+  }
+
+  /// Restores the scroll position to [displayIndex] after gap rows were
+  /// inserted below the older section.
+  void restoreScrollAnchor(int displayIndex, double alignment) {
+    _pendingScrollAnchor = null;
+    if (!ref.mounted || !listController.isAttached) return;
+    _isRestoringAnchor = true;
+    _restoreAnchorFrame(displayIndex, alignment, 0);
+  }
+
+  void _restoreAnchorFrame(int displayIndex, double alignment, int attempt) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!ref.mounted || !listController.isAttached) {
+        _isRestoringAnchor = false;
+        return;
+      }
+      final maxIndex = listController.numberOfItems - 1;
+      if (maxIndex < 0) {
+        _isRestoringAnchor = false;
+        return;
+      }
+      final target = displayIndex.clamp(0, maxIndex);
+      listController.jumpToItem(
+        index: target,
+        scrollController: scrollController,
+        alignment: alignment,
+      );
+      final range = listController.visibleRange;
+      final onScreen =
+          range != null && target >= range.$1 && target <= range.$2;
+      if (onScreen || attempt >= 4) {
+        _isRestoringAnchor = false;
+        return;
+      }
+      _restoreAnchorFrame(displayIndex, alignment, attempt + 1);
+    });
   }
 
   void jumpToBottom() {
