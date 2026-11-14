@@ -176,7 +176,6 @@ struct StickerRenderView: View {
     var dimension: CGFloat
 
     @EnvironmentObject var appState: AppState
-    @StateObject private var store = StickerStore.shared
 
     @State private var sticker: SnSticker?
 
@@ -193,7 +192,7 @@ struct StickerRenderView: View {
         }
         .task(id: identifier) {
             guard let token = appState.token, let serverUrl = appState.serverUrl else { return }
-            sticker = await store.resolve(identifier: identifier, token: token, serverUrl: serverUrl)
+            sticker = await StickerStore.shared.resolve(identifier: identifier, token: token, serverUrl: serverUrl)
         }
     }
 }

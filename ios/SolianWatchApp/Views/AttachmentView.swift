@@ -242,12 +242,13 @@ struct AttachmentView: View {
               let token = appState.token else { return }
 
         let mimeType = attachment.mimeType ?? ""
+        let targetSize = CGSize(width: screenWidth, height: isCompact ? 80 : 180)
         
         if mimeType.starts(with: "image") {
-            await imageLoader.loadImage(from: attachmentUrl, token: token)
+            await imageLoader.loadImage(from: attachmentUrl, token: token, targetSize: targetSize)
         } else if mimeType.starts(with: "video") {
             let thumbnailUrl = attachmentUrl.appending(queryItems: [URLQueryItem(name: "thumbnail", value: "true")])
-            await imageLoader.loadImage(from: thumbnailUrl, token: token)
+            await imageLoader.loadImage(from: thumbnailUrl, token: token, targetSize: targetSize)
         }
     }
 

@@ -8,6 +8,9 @@
 import SwiftUI
 import Kingfisher
 import Combine
+#if os(watchOS)
+import WatchKit
+#endif
 
 // MARK: - Image Loader
 
@@ -25,7 +28,8 @@ class ImageLoader: ObservableObject {
         currentTask?.cancel()
     }
 
-    func loadImage(from initialUrl: URL, token: String) async {
+    func loadImage(from initialUrl: URL, token: String, targetSize: CGSize? = nil) async {
+        currentTask?.cancel()
         isLoading = true
         errorMessage = nil
         image = nil
@@ -38,14 +42,27 @@ class ImageLoader: ObservableObject {
             return r
         }
 
+        var options: KingfisherOptionsInfo = [
+            .requestModifier(modifier),
+            .backgroundDecode
+        ]
+        if let targetSize {
+            #if os(watchOS)
+            let scale = WKInterfaceDevice.current().screenScale
+            #else
+            let scale: CGFloat = 2.0
+            #endif
+            let processor = DownsamplingImageProcessor(size: targetSize)
+            options.append(.processor(processor))
+            options.append(.scaleFactor(scale))
+        } else {
+            options.append(.cacheOriginalImage)
+        }
+
         // Use KingfisherManager to retrieve image with caching
         currentTask = KingfisherManager.shared.retrieveImage(
             with: initialUrl,
-            options: [
-                .requestModifier(modifier),
-                .cacheOriginalImage, // Cache the original image data
-                .loadDiskFileSynchronously // Load from disk cache synchronously if available
-            ]
+            options: options
         ) { [weak self] result in
             guard let self = self else { return }
 
@@ -54,17 +71,21 @@ class ImageLoader: ObservableObject {
                 case .success(let value):
                     self.image = Image(uiImage: value.image)
                     self.isLoading = false
-                case .failure(_):
-                    // If WebP processor fails (likely due to format), try with default processor
-                    let defaultProcessor = DefaultImageProcessor.default
+                case .failure(let error):
+                    if error.isTaskCancelled { return }
+                    // Fall back to DefaultImageProcessor (e.g. formats DownsamplingImageProcessor
+                    // or WebPProcessor cannot handle directly).
+                    var fallbackOptions: KingfisherOptionsInfo = [
+                        .requestModifier(modifier),
+                        .processor(DefaultImageProcessor.default),
+                        .backgroundDecode
+                    ]
+                    if targetSize == nil {
+                        fallbackOptions.append(.cacheOriginalImage)
+                    }
                     self.currentTask = KingfisherManager.shared.retrieveImage(
                         with: initialUrl,
-                        options: [
-                            .requestModifier(modifier),
-                            .processor(defaultProcessor),
-                            .cacheOriginalImage,
-                            .loadDiskFileSynchronously
-                        ]
+                        options: fallbackOptions
                     ) { [weak self] fallbackResult in
                         guard let self = self else { return }
 
@@ -73,8 +94,10 @@ class ImageLoader: ObservableObject {
                             case .success(let value):
                                 self.image = Image(uiImage: value.image)
                             case .failure(let fallbackError):
-                                self.errorMessage = fallbackError.localizedDescription
-                                print("[watchOS] Image loading failed: \(fallbackError.localizedDescription)")
+                                if !fallbackError.isTaskCancelled {
+                                    self.errorMessage = fallbackError.localizedDescription
+                                    print("[watchOS] Image loading failed: \(fallbackError.localizedDescription)")
+                                }
                             }
                             self.isLoading = false
                         }

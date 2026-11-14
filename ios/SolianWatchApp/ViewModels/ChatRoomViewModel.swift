@@ -18,7 +18,10 @@ enum ChatDecodeError: LocalizedError {
 /// paginated load, real-time append, and send-with-optimistic-insert.
 @MainActor
 final class ChatRoomViewModel: ObservableObject {
-    @Published private(set) var messages: [SnChatMessage] = []
+    @Published private(set) var messages: [SnChatMessage] = [] {
+        didSet { rebuildTimelinePieces() }
+    }
+    @Published private(set) var timelinePieces: [TimelinePiece] = []
     @Published private(set) var isLoading = false
     @Published private(set) var isLoadingMore = false
     @Published private(set) var hasMore = false
@@ -64,13 +67,31 @@ final class ChatRoomViewModel: ObservableObject {
         case top
     }
 
+    /// Timeline rows in render order: message groups, with a read-watermark
+    /// divider inserted at the read boundary and day-boundary dividers.
+    enum TimelinePiece: Identifiable {
+        case watermark
+        case dateDivider(Date)
+        case group(messages: [SnChatMessage], showsHeader: Bool)
+
+        var id: String {
+            switch self {
+            case .watermark:
+                return "read-watermark"
+            case .dateDivider(let date):
+                return "date-\(Calendar.current.startOfDay(for: date).timeIntervalSince1970)"
+            case .group(let messages, _):
+                return "group-\(messages[0].id)"
+            }
+        }
+    }
+
     let room: SnChatRoom
     private let appState: AppState
     private let chatCache: ChatCache
-    /// Messages requested when a room opens. One request fills the timeline to
-    /// the cache's per-room cap (`ChatCache.maxMessagesPerRoom`) instead of
-    /// paging in 20-row slices.
-    private let initialPageSize = 100
+    /// Messages requested when a room opens. Bounded for watchOS memory while
+    /// still filling the initial timeline; `loadMore()` fetches older pages.
+    private let initialPageSize = 40
     /// Messages per "load older" request, matching Flutter's `_pageSize`.
     private let pageSize = 20
     private var hasLoaded = false
@@ -80,6 +101,12 @@ final class ChatRoomViewModel: ObservableObject {
     private var fetchedRowCount = 0
     private var pendingFetches = Set<String>()
     private var cancellables = Set<AnyCancellable>()
+    private let wsDecoder: JSONDecoder = {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }()
+    private static let isoFormatter = ISO8601DateFormatter()
 
     init(room: SnChatRoom, appState: AppState, chatCache: ChatCache) {
         self.room = room
@@ -88,6 +115,7 @@ final class ChatRoomViewModel: ObservableObject {
         observeWebSocket()
         // Seed the timeline from cache for instant/offline rendering.
         self.messages = chatCache.loadMessages(roomId: room.id)
+        rebuildTimelinePieces()
     }
 
     /// True when a message was sent by the current user (used to render own
@@ -105,7 +133,13 @@ final class ChatRoomViewModel: ObservableObject {
     /// footer is on screen). The read watermark is hidden at that position,
     /// mirroring Flutter's `isAtLatestMessages` suppression of the "new
     /// message below" marker.
-    @Published private(set) var isAtLatest = true
+    @Published private(set) var isAtLatest = true {
+        didSet {
+            if isAtLatest != oldValue {
+                rebuildTimelinePieces()
+            }
+        }
+    }
 
     /// The client-side read high-water mark: the newest point in the timeline
     /// that has demonstrably been read this session. Seeded from the room
@@ -114,7 +148,13 @@ final class ChatRoomViewModel: ObservableObject {
     /// or an echoed receipt for this account carries a newer server time.
     /// Mirror of Flutter's `savedLastReadAt`, kept fresh without refetching
     /// `members/me` on every receipt.
-    @Published private(set) var readThroughAt: Date?
+    @Published private(set) var readThroughAt: Date? {
+        didSet {
+            if readThroughAt != oldValue {
+                rebuildTimelinePieces()
+            }
+        }
+    }
 
     /// The message the read-watermark divider sits directly ABOVE: the first
     /// loaded message newer than [readThroughAt]. Flutter's "new message
@@ -244,6 +284,84 @@ final class ChatRoomViewModel: ObservableObject {
         chatCache.updateRoomSummary(roomId: room.id, summary: currentSummary)
     }
 
+    /// Persists a single inserted/updated message + room summary without
+    /// re-encoding the entire timeline.
+    private func persistMessage(_ message: SnChatMessage) {
+        chatCache.upsertMessage(roomId: room.id, message)
+        chatCache.updateRoomSummary(roomId: room.id, summary: currentSummary)
+    }
+
+    /// Deletes a single message from cache + updates the room summary.
+    private func persistDeletedMessage(id: String) {
+        chatCache.deleteMessage(id: id)
+        chatCache.updateRoomSummary(roomId: room.id, summary: currentSummary)
+    }
+
+    private func rebuildTimelinePieces() {
+        let seamId = isAtLatest ? nil : readWatermarkMessageId
+        guard let seamId,
+              let seamIndex = messages.firstIndex(where: { $0.id == seamId }) else {
+            timelinePieces = makeTimelinePieces(from: messages, continuingSender: nil, previousDay: nil)
+            return
+        }
+        let readMessages = Array(messages[..<seamIndex])
+        let unreadMessages = Array(messages[seamIndex...])
+        var pieces = makeTimelinePieces(
+            from: readMessages,
+            continuingSender: nil,
+            previousDay: nil
+        )
+        pieces.append(.watermark)
+        pieces += makeTimelinePieces(
+            from: unreadMessages,
+            continuingSender: readMessages.last,
+            previousDay: readMessages.last.map { Calendar.current.startOfDay(for: $0.createdAt) }
+        )
+        timelinePieces = pieces
+    }
+
+    private func makeTimelinePieces(
+        from messages: [SnChatMessage],
+        continuingSender: SnChatMessage?,
+        previousDay: Date?
+    ) -> [TimelinePiece] {
+        var pieces: [TimelinePiece] = []
+        var run: [SnChatMessage] = []
+        var isFirstRun = true
+
+        func flush() {
+            guard !run.isEmpty else { return }
+            var showsHeader = true
+            if isFirstRun, let continuing = continuingSender,
+               continuing.senderId == run[0].senderId,
+               run[0].createdAt.timeIntervalSince(continuing.createdAt) <= 180 {
+                showsHeader = false
+            }
+            pieces.append(.group(messages: run, showsHeader: showsHeader))
+            run = []
+            isFirstRun = false
+        }
+
+        let calendar = Calendar.current
+        var prevDay = previousDay
+        for message in messages {
+            let day = calendar.startOfDay(for: message.createdAt)
+            if prevDay == nil || day != prevDay {
+                flush()
+                pieces.append(.dateDivider(message.createdAt))
+                prevDay = day
+            }
+            if let last = run.last,
+               !(last.senderId == message.senderId
+                 && message.createdAt.timeIntervalSince(last.createdAt) <= 180) {
+                flush()
+            }
+            run.append(message)
+        }
+        flush()
+        return pieces
+    }
+
     /// Last displayable message + live unread count for this room.
     private var currentSummary: ChatSummary {
         ChatSummary(lastMessage: messages.last, unreadCount: unreadCount)
@@ -342,7 +460,6 @@ final class ChatRoomViewModel: ObservableObject {
         if message.id.hasPrefix("pending_") || messageStatus[message.id] == .failed {
             messages.removeAll { $0.id == message.id }
             messageStatus.removeValue(forKey: message.id)
-            persist()
             return
         }
         guard let token = appState.token, let serverUrl = appState.serverUrl else { return }
@@ -356,7 +473,7 @@ final class ChatRoomViewModel: ObservableObject {
             // Optimistic removal; the WS `messages.delete` echo will also
             // remove it, but removing here gives instant feedback.
             messages.removeAll { $0.id == message.id }
-            persist()
+            persistDeletedMessage(id: message.id)
         } catch {
             print("[ChatRoomViewModel] deleteMessage failed: \(error.localizedDescription)")
         }
@@ -506,7 +623,7 @@ final class ChatRoomViewModel: ObservableObject {
                 serverUrl: serverUrl
             )
             replacePending(pendingId, with: sent)
-            persist()
+            persistMessage(sent)
         } catch {
             print("[ChatRoomViewModel] sendVoice - failed: \(error.localizedDescription)")
             messageStatus[pendingId] = .failed
@@ -586,7 +703,7 @@ final class ChatRoomViewModel: ObservableObject {
                 attachmentIds: attachmentIds
             )
             replacePending(pendingId, with: sent)
-            persist()
+            persistMessage(sent)
         } catch {
             print("[ChatRoomViewModel] sendImage/sendContent - failed: \(error.localizedDescription)")
             messageStatus[pendingId] = .failed
@@ -598,8 +715,8 @@ final class ChatRoomViewModel: ObservableObject {
     ///
     /// The ack can race the `messages.new` WebSocket echo for the same
     /// `clientMessageId`, so when the pending row is already gone we dedup by
-    /// id *and* clientMessageId rather than blindly appending — otherwise a
-    /// single send renders twice.
+    /// id *and* non-nil clientMessageId rather than blindly appending — otherwise
+    /// a single send renders twice.
     private func replacePending(_ pendingId: String, with sent: SnChatMessage) {
         if let index = messages.firstIndex(where: { $0.id == pendingId }) {
             messages[index] = sent
@@ -609,7 +726,7 @@ final class ChatRoomViewModel: ObservableObject {
         }
         // The pending row is already replaced (an earlier WS echo landed it).
         if let duplicateIndex = messages.firstIndex(where: {
-            $0.id == sent.id || $0.clientMessageId == sent.clientMessageId
+            $0.id == sent.id || (sent.clientMessageId != nil && $0.clientMessageId == sent.clientMessageId)
         }) {
             messages[duplicateIndex] = sent
             messageStatus.removeValue(forKey: pendingId)
@@ -668,17 +785,12 @@ final class ChatRoomViewModel: ObservableObject {
                 serverUrl: serverUrl,
                 replyToId: replyToId
             )
-            // Replace the optimistic row with the server-confirmed message.
-            if let index = messages.firstIndex(where: { $0.id == pendingId }) {
-                messages[index] = sent
-                messageStatus.removeValue(forKey: pendingId)
-                updateReferencedCacheIfNeeded(sent)
-            } else if sent.isDisplayable, !messages.contains(where: { $0.id == sent.id }) {
-                messages.append(sent)
-            }
+            // Replace the optimistic row with the server-confirmed message,
+            // deduplicating against any WebSocket echo that raced the ack.
+            replacePending(pendingId, with: sent)
             // Clear reply state after successful send.
             if replyToId != nil { replyingTo = nil }
-            persist()
+            persistMessage(sent)
         } catch {
             print("[ChatRoomViewModel] send - failed: \(error.localizedDescription)")
             messageStatus[pendingId] = .failed
@@ -750,10 +862,9 @@ final class ChatRoomViewModel: ObservableObject {
             print("[ChatRoomViewModel] handle - could not serialize packet data")
             return
         }
-        let decoder = makeDecoder()
         let message: SnChatMessage
         do {
-            message = try decoder.decode(SnChatMessage.self, from: jsonData)
+            message = try wsDecoder.decode(SnChatMessage.self, from: jsonData)
         } catch {
             print("[ChatRoomViewModel] handle - decode failed: \(error)")
             return
@@ -765,19 +876,18 @@ final class ChatRoomViewModel: ObservableObject {
         case "messages.new":
             // If a pending optimistic row for this client_message_id exists,
             // replace it with the server-confirmed message (Flutter's ack path).
-            let pending = messages.first {
-                $0.id.hasPrefix("pending_") && $0.clientMessageId == message.clientMessageId
-            }
-            if let pending = pending {
-                if let index = messages.firstIndex(where: { $0.id == pending.id }) {
-                    messages[index] = message
-                    messageStatus.removeValue(forKey: pending.id)
-                    messageStatus.removeValue(forKey: message.id)
-                    lastScrollTarget = .bottom
-                }
+            if let clientId = message.clientMessageId,
+               let index = messages.firstIndex(where: {
+                   $0.id.hasPrefix("pending_") && $0.clientMessageId == clientId
+               }) {
+                let pendingId = messages[index].id
+                messages[index] = message
+                messageStatus.removeValue(forKey: pendingId)
+                messageStatus.removeValue(forKey: message.id)
+                lastScrollTarget = .bottom
             } else if message.isDisplayable,
                       !messages.contains(where: {
-                          $0.id == message.id || $0.clientMessageId == message.clientMessageId
+                          $0.id == message.id || (message.clientMessageId != nil && $0.clientMessageId == message.clientMessageId)
                       }) {
                 messages.append(message)
                 lastScrollTarget = .bottom
@@ -788,27 +898,20 @@ final class ChatRoomViewModel: ObservableObject {
             if isAtLatest {
                 markReadThroughLatest()
             }
+            if chatCache.isAvailable {
+                persistMessage(message)
+            }
         case "messages.update":
             if let index = messages.firstIndex(where: { $0.id == message.id }) {
                 messages[index] = message
             }
-            persist()
+            persistMessage(message)
         case "messages.delete":
             messages.removeAll { $0.id == message.id }
-            persist()
+            persistDeletedMessage(id: message.id)
         default:
             break
         }
-        // Persist after any live mutation that changed the list.
-        if packet.type == "messages.new", chatCache.isAvailable {
-            persist()
-        }
-    }
-
-    private func makeDecoder() -> JSONDecoder {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return decoder
     }
 
     /// Parses a receipt `last_read_at` value (ISO-8601 string or epoch
@@ -816,7 +919,7 @@ final class ChatRoomViewModel: ObservableObject {
     /// `parseChatReadReceiptTimestamp`.
     private func parseReadTimestamp(_ value: Any?) -> Date? {
         if let string = value as? String {
-            return ISO8601DateFormatter().date(from: string)
+            return Self.isoFormatter.date(from: string)
         }
         if let number = value as? NSNumber {
             return Date(timeIntervalSince1970: number.doubleValue / 1000)

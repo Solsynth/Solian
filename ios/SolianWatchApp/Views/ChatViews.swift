@@ -477,7 +477,11 @@ struct ChatRoomListItem: View {
                            let pictureId = avatarPictureId,
                            let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl),
                            let token = appState.token {
-                            await avatarLoader.loadImage(from: imageUrl, token: token)
+                            await avatarLoader.loadImage(
+                                from: imageUrl,
+                                token: token,
+                                targetSize: CGSize(width: 36, height: 36)
+                            )
                         }
                     }
                     
@@ -549,6 +553,7 @@ struct ChatRoomView: View {
     @State private var showVoiceRecorder = false
     @State private var showPhotoPicker = false
     @State private var showCloudLinker = false
+    @State private var localDraft = ""
     @FocusState private var composerFocused: Bool
     @ObservedObject private var stickerStore = StickerStore.shared
     
@@ -672,7 +677,7 @@ struct ChatRoomView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 8)
                             }
-                            ForEach(timelinePieces) { piece in
+                            ForEach(viewModel.timelinePieces) { piece in
                                 switch piece {
                                 case .watermark:
                                     watermarkRow
@@ -720,6 +725,11 @@ struct ChatRoomView: View {
                 // indicator is visible.
                 .onChange(of: viewModel.replyingTo?.id) { _, _ in
                     scrollToLatest(proxy)
+                }
+                .onChange(of: viewModel.editingMessage?.id) { _, _ in
+                    if let editing = viewModel.editingMessage {
+                        localDraft = editing.content ?? ""
+                    }
                 }
                 // Track whether the newest end of the timeline is on screen:
                 // only then are live arrivals actually "read" (Flutter's
@@ -803,112 +813,6 @@ struct ChatRoomView: View {
         return date.formatted(date: .abbreviated, time: .shortened)
     }
     
-    /// Timeline rows in render order: message groups, with a read-watermark
-    /// divider inserted at the read boundary. The boundary can fall in the
-    /// middle of a same-sender run, so the run owning the boundary is split
-    /// into two groups; the lower half keeps no header (the sender hasn't
-    /// changed — only the divider separates it from its own earlier messages).
-    private enum TimelinePiece: Identifiable {
-        case watermark
-        case dateDivider(Date)
-        case group(messages: [SnChatMessage], showsHeader: Bool)
-        
-        var id: String {
-            switch self {
-            case .watermark:
-                return "read-watermark"
-            case .dateDivider(let date):
-                // A day boundary belongs between two distinct calendar days;
-                // keying on its day-stamp keeps exactly one divider per day.
-                return "date-\(Calendar.current.startOfDay(for: date).timeIntervalSince1970)"
-            case .group(let messages, _):
-                // Group pieces are contiguous, non-overlapping message runs,
-                // so the first message's id uniquely identifies the piece.
-                return "group-\(messages[0].id)"
-            }
-        }
-    }
-    
-    private var timelinePieces: [TimelinePiece] {
-        // Reading `isAtLatest` here makes SwiftUI re-evaluate the pieces when
-        // the user pins/unpins the latest end (Flutter nulls its anchor while
-        // at the latest — the divider belongs to history scrollback).
-        let isAtLatest = viewModel.isAtLatest
-        let seamId = isAtLatest ? nil : viewModel.readWatermarkMessageId
-        guard let seamId,
-              let seamIndex = viewModel.messages.firstIndex(where: { $0.id == seamId }) else {
-            return makeTimelinePieces(from: viewModel.messages, continuingSender: nil, previousDay: nil)
-        }
-        let readMessages = Array(viewModel.messages[..<seamIndex])
-        let unreadMessages = Array(viewModel.messages[seamIndex...])
-        var pieces = makeTimelinePieces(
-            from: readMessages,
-            continuingSender: nil,
-            previousDay: nil
-        )
-        pieces.append(.watermark)
-        // The first unread run continues the sender of the last read message
-        // unless it's actually a sender change at the seam. The seam keeps the
-        // last read day-stamp so a same-day unread segment doesn't re-emit the
-        // divider the read side already drew.
-        pieces += makeTimelinePieces(
-            from: unreadMessages,
-            continuingSender: readMessages.last,
-            previousDay: readMessages.last.map { Calendar.current.startOfDay(for: $0.createdAt) }
-        )
-        return pieces
-    }
-    
-    /// Groups a message array into same-sender runs (≤3 min apart) as pieces,
-    /// inserting a day-boundary divider whenever the calendar date rolls over.
-    /// `previousDay` is the day-stamp of the last message rendered before this
-    /// segment (nil for the oldest segment), so a divider is emitted only on a
-    /// real day change — never twice when the read watermark splits a day.
-    private func makeTimelinePieces(
-        from messages: [SnChatMessage],
-        continuingSender: SnChatMessage?,
-        previousDay: Date?
-    ) -> [TimelinePiece] {
-        var pieces: [TimelinePiece] = []
-        var run: [SnChatMessage] = []
-        var isFirstRun = true
-        
-        func flush() {
-            guard !run.isEmpty else { return }
-            var showsHeader = true
-            if isFirstRun, let continuing = continuingSender,
-               continuing.senderId == run[0].senderId,
-               run[0].createdAt.timeIntervalSince(continuing.createdAt) <= 180 {
-                showsHeader = false
-            }
-            pieces.append(.group(messages: run, showsHeader: showsHeader))
-            run = []
-            isFirstRun = false
-        }
-        
-        let calendar = Calendar.current
-        var prevDay = previousDay
-        for message in messages {
-            // A day-boundary divider when the date rolls over (or at the very
-            // first message of the conversation, so it anchors to a labeled
-            // day like Apple Messages).
-            let day = calendar.startOfDay(for: message.createdAt)
-            if prevDay == nil || day != prevDay {
-                flush()
-                pieces.append(.dateDivider(message.createdAt))
-                prevDay = day
-            }
-            if let last = run.last,
-               !(last.senderId == message.senderId
-                 && message.createdAt.timeIntervalSince(last.createdAt) <= 180) {
-                flush()
-            }
-            run.append(message)
-        }
-        flush()
-        return pieces
-    }
-    
     /// The trailing compose affordance, styled after Apple Messages' input
     /// bar: a round "+" (opens the content-type menu) beside an inline text
     /// field with a send button. The field expands with its content and the
@@ -988,12 +892,12 @@ struct ChatRoomView: View {
     
     @ViewBuilder
     private var messageField: some View {
-        TextField(L10n.chatRoomMessages, text: $viewModel.draft)
+        TextField(L10n.chatRoomMessages, text: $localDraft)
             .buttonBorderShape(.capsule)
             .submitLabel(.send)
             .labelsHidden()
             .onSubmit { sendFromBar() }
-            .onChange(of: viewModel.draft) { _, newValue in
+            .onChange(of: localDraft) { _, newValue in
                 viewModel.typingChanged(to: newValue)
             }
             .focused($composerFocused)
@@ -1019,7 +923,7 @@ struct ChatRoomView: View {
     }
     
     private var canSendFromBar: Bool {
-        !viewModel.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !localDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
     /// Apple Messages only reveals the send arrow once there's text, which
@@ -1028,25 +932,37 @@ struct ChatRoomView: View {
         canSendFromBar || viewModel.isSending
     }
     
-    /// Sends the inline draft and opens the system text input on first tap
-    /// (watchOS opens its keyboard/scribble when the field gains focus).
+    /// Sends the inline draft without re-focusing the text field afterwards
+    /// (re-opening the system input sheet while `composeBar` and `LazyVStack`
+    /// are updating after send causes watchOS layout/focus crashes).
     private func sendFromBar() {
-        guard canSendFromBar else { return }
+        let text = localDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty, !viewModel.isSending else { return }
         WKInterfaceDevice.current().play(.click)
+        composerFocused = false
+        viewModel.draft = text
+        localDraft = ""
         Task {
             await viewModel.send()
-            if !viewModel.isSending {
-                composerFocused = true
-            }
         }
     }
     
     private func scrollToLatest(_ proxy: ScrollViewProxy) {
-        withAnimation { proxy.scrollTo("compose-bar", anchor: .bottom) }
+        Task { @MainActor in
+            await Task.yield()
+            proxy.scrollTo("compose-bar", anchor: .bottom)
+        }
     }
     
     private func scrollToTop(_ proxy: ScrollViewProxy) {
-        withAnimation { proxy.scrollTo("load-older", anchor: .top) }
+        Task { @MainActor in
+            await Task.yield()
+            if viewModel.hasMore {
+                proxy.scrollTo("load-older", anchor: .top)
+            } else if let firstId = viewModel.timelinePieces.first?.id {
+                proxy.scrollTo(firstId, anchor: .top)
+            }
+        }
     }
     
     /// Whether the whole group (same sender) is the current user's.
@@ -1609,7 +1525,11 @@ struct AvatarView: View {
                let pictureId = pictureId,
                let imageUrl = getAttachmentUrl(for: pictureId, serverUrl: serverUrl),
                let token = appState.token {
-                await loader.loadImage(from: imageUrl, token: token)
+                await loader.loadImage(
+                    from: imageUrl,
+                    token: token,
+                    targetSize: CGSize(width: size, height: size)
+                )
             }
         }
     }

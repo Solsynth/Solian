@@ -68,6 +68,13 @@ struct WatchRunner_Watch_AppApp: App {
     }
 
     private func configureKingfisher() {
+        let cache = KingfisherManager.shared.cache
+        // Bound memory & disk caches for watchOS's tight jetsam budget.
+        cache.memoryStorage.config.totalCostLimit = 12 * 1024 * 1024 // 12 MB
+        cache.memoryStorage.config.countLimit = 40
+        cache.memoryStorage.config.expiration = .seconds(300)
+        cache.diskStorage.config.sizeLimit = 50 * 1024 * 1024 // 50 MB
+
         KingfisherManager.shared.defaultOptions += [
             .processor(WebPProcessor.default),
             .cacheSerializer(WebPSerializer.default)

@@ -29,8 +29,10 @@ final class ChatCache {
     static var shared = ChatCache(modelContext: nil)
 
     private let modelContext: ModelContext?
-    /// Cap the cached message rows per room to bound disk usage on watchOS.
-    private let maxMessagesPerRoom = 100
+    /// Cap the cached message rows per room to bound disk & memory usage on watchOS.
+    private let maxMessagesPerRoom = 50
+    private let encoder = JSONEncoder()
+    private let decoder = JSONDecoder()
 
     init(modelContext: ModelContext?) {
         self.modelContext = modelContext
@@ -57,40 +59,40 @@ final class ChatCache {
 
     func saveRooms(_ rooms: [SnChatRoom]) {
         guard let context = modelContext else { return }
+        let existingRows = (try? context.fetch(FetchDescriptor<CachedChatRoom>())) ?? []
+        let byId = Dictionary(uniqueKeysWithValues: existingRows.map { ($0.id, $0) })
         for room in rooms {
-            guard let data = try? JSONEncoder().encode(room) else { continue }
-            upsertRoom(id: room.id, roomData: data, updatedAt: room.updatedAt)
+            guard let data = try? encoder.encode(room) else { continue }
+            if let row = byId[room.id] {
+                row.roomData = data
+                row.updatedAt = room.updatedAt
+            } else {
+                context.insert(CachedChatRoom(id: room.id, roomData: data, updatedAt: room.updatedAt))
+            }
         }
         try? context.save()
     }
 
     func updateRoomSummary(roomId: String, summary: ChatSummary) {
         guard let context = modelContext else { return }
-        let row = fetchRoom(roomId)
-        if let row = row {
-            row.lastMessageData = summary.lastMessage.flatMap { try? JSONEncoder().encode($0) }
+        let encodedLast = summary.lastMessage.flatMap { try? encoder.encode($0) }
+        if let row = fetchRoom(roomId) {
+            row.lastMessageData = encodedLast
             row.lastMessageAt = summary.lastMessage?.createdAt
             row.unreadCount = summary.unreadCount
         } else {
             // No cached room row yet (summary arrived first).
-            upsertRoom(id: roomId, roomData: Data(), updatedAt: summary.lastMessage?.createdAt ?? Date())
-            if let fresh = fetchRoom(roomId) {
-                fresh.lastMessageData = summary.lastMessage.flatMap { try? JSONEncoder().encode($0) }
-                fresh.lastMessageAt = summary.lastMessage?.createdAt
-                fresh.unreadCount = summary.unreadCount
-            }
+            let fresh = CachedChatRoom(
+                id: roomId,
+                roomData: Data(),
+                lastMessageData: encodedLast,
+                lastMessageAt: summary.lastMessage?.createdAt,
+                unreadCount: summary.unreadCount,
+                updatedAt: summary.lastMessage?.createdAt ?? Date()
+            )
+            context.insert(fresh)
         }
         try? context.save()
-    }
-
-    private func upsertRoom(id: String, roomData: Data, updatedAt: Date) {
-        guard let context = modelContext else { return }
-        if let row = fetchRoom(id) {
-            row.roomData = roomData
-            row.updatedAt = updatedAt
-        } else {
-            context.insert(CachedChatRoom(id: id, roomData: roomData, updatedAt: updatedAt))
-        }
     }
 
     private func fetchRoom(_ id: String) -> CachedChatRoom? {
@@ -107,42 +109,94 @@ final class ChatCache {
         guard let context = modelContext else { return [] }
         var descriptor = FetchDescriptor<CachedChatMessage>(
             predicate: #Predicate { $0.roomId == roomId },
-            sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
         )
         descriptor.fetchLimit = maxMessagesPerRoom
         let rows = (try? context.fetch(descriptor)) ?? []
-        return rows.compactMap { decodeMessage($0.messageData) }
+        return rows.reversed().compactMap { decodeMessage($0.messageData) }
     }
 
     func saveMessages(roomId: String, _ messages: [SnChatMessage]) {
         guard let context = modelContext else { return }
-        var seen = Set<String>()
-        var rows = (try? context.fetch(FetchDescriptor<CachedChatMessage>(
+        let persistable = messages
+            .filter { !$0.id.hasPrefix("pending_") }
+            .suffix(maxMessagesPerRoom)
+
+        let existingRows = (try? context.fetch(FetchDescriptor<CachedChatMessage>(
             predicate: #Predicate { $0.roomId == roomId }
         ))) ?? []
+        var byId: [String: CachedChatMessage] = [:]
+        byId.reserveCapacity(existingRows.count)
+        for row in existingRows {
+            byId[row.id] = row
+        }
 
-        for message in messages {
+        var seen = Set<String>()
+        var allRows = existingRows
+        for message in persistable {
             guard !seen.contains(message.id) else { continue }
             seen.insert(message.id)
-            guard let data = try? JSONEncoder().encode(message) else { continue }
-            if let existing = rows.first(where: { $0.id == message.id }) {
+            guard let data = try? encoder.encode(message) else { continue }
+            if let existing = byId[message.id] {
                 existing.messageData = data
                 existing.createdAt = message.createdAt
             } else {
                 let row = CachedChatMessage(id: message.id, roomId: roomId, messageData: data, createdAt: message.createdAt)
                 context.insert(row)
-                rows.append(row)
+                byId[message.id] = row
+                allRows.append(row)
             }
         }
 
         // Enforce the per-room cap (drop oldest beyond the limit).
-        let sorted = rows.sorted { $0.createdAt < $1.createdAt }
-        if sorted.count > maxMessagesPerRoom {
-            for row in sorted.prefix(sorted.count - maxMessagesPerRoom) {
+        if allRows.count > maxMessagesPerRoom {
+            let sorted = allRows.sorted { $0.createdAt < $1.createdAt }
+            for row in sorted.prefix(allRows.count - maxMessagesPerRoom) {
                 context.delete(row)
             }
         }
         try? context.save()
+    }
+
+    /// Inserts or updates a single message in the cache without re-encoding the
+    /// entire room history.
+    func upsertMessage(roomId: String, _ message: SnChatMessage) {
+        guard let context = modelContext, !message.id.hasPrefix("pending_") else { return }
+        guard let data = try? encoder.encode(message) else { return }
+
+        let msgId = message.id
+        var descriptor = FetchDescriptor<CachedChatMessage>(predicate: #Predicate { $0.id == msgId })
+        descriptor.fetchLimit = 1
+        if let existing = try? context.fetch(descriptor).first {
+            existing.messageData = data
+            existing.createdAt = message.createdAt
+        } else {
+            context.insert(CachedChatMessage(id: message.id, roomId: roomId, messageData: data, createdAt: message.createdAt))
+            trimRoomMessagesIfNeeded(roomId: roomId, context: context)
+        }
+        try? context.save()
+    }
+
+    /// Removes a single message from the cache by id.
+    func deleteMessage(id: String) {
+        guard let context = modelContext, !id.hasPrefix("pending_") else { return }
+        var descriptor = FetchDescriptor<CachedChatMessage>(predicate: #Predicate { $0.id == id })
+        descriptor.fetchLimit = 1
+        if let existing = try? context.fetch(descriptor).first {
+            context.delete(existing)
+            try? context.save()
+        }
+    }
+
+    private func trimRoomMessagesIfNeeded(roomId: String, context: ModelContext) {
+        let descriptor = FetchDescriptor<CachedChatMessage>(
+            predicate: #Predicate { $0.roomId == roomId },
+            sortBy: [SortDescriptor(\.createdAt, order: .forward)]
+        )
+        guard let rows = try? context.fetch(descriptor), rows.count > maxMessagesPerRoom else { return }
+        for row in rows.prefix(rows.count - maxMessagesPerRoom) {
+            context.delete(row)
+        }
     }
 
     // MARK: - Invalidation
@@ -163,10 +217,10 @@ final class ChatCache {
 
     private func decodeRoom(_ data: Data) -> SnChatRoom? {
         guard !data.isEmpty else { return nil }
-        return try? JSONDecoder().decode(SnChatRoom.self, from: data)
+        return try? decoder.decode(SnChatRoom.self, from: data)
     }
 
     private func decodeMessage(_ data: Data) -> SnChatMessage? {
-        try? JSONDecoder().decode(SnChatMessage.self, from: data)
+        try? decoder.decode(SnChatMessage.self, from: data)
     }
 }
