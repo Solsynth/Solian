@@ -1,6 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:solar_network_foundation/solar_network_foundation.dart';
 
+import 'package:island/discovery/discovery_service.dart';
+import 'package:island/posts/widgets/compose/block_mention_autocomplete.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
 
 /// The Solian compose content editor: the shared [SolarBlockEditor]
@@ -11,7 +16,7 @@ import 'package:island/posts/widgets/compose/compose_shared.dart';
 /// `contentController`; external writes (draft restore, attachment
 /// placeholders, imports) flow back through
 /// [ComposeState.syncContentFromTextController].
-class BlockContentEditor extends StatefulWidget {
+class BlockContentEditor extends ConsumerStatefulWidget {
   const BlockContentEditor({
     super.key,
     required this.state,
@@ -29,10 +34,45 @@ class BlockContentEditor extends StatefulWidget {
   final bool shrinkWrap;
 
   @override
-  State<BlockContentEditor> createState() => _BlockContentEditorState();
+  ConsumerState<BlockContentEditor> createState() => _BlockContentEditorState();
 }
 
-class _BlockContentEditorState extends State<BlockContentEditor> {
+class _BlockContentEditorState extends ConsumerState<BlockContentEditor> {
+  BlockMentionAutocomplete? _autocomplete;
+  StreamSubscription? _transactionSub;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.state.editorLoaded.addListener(_onEditorLoaded);
+    // The composer may have built its editor before this widget mounted.
+    _onEditorLoaded();
+  }
+
+  void _onEditorLoaded() {
+    if (!mounted) return;
+    final controller = widget.state.solarEditorController;
+    if (controller == null || _autocomplete != null) return;
+    _autocomplete = BlockMentionAutocomplete(
+      context,
+      controller.editorState,
+      onFetchSuggestions: (query) =>
+          ref.read(autocompleteServiceProvider).getGeneralSuggestions(query),
+      isEnabled: () => widget.enabled,
+    );
+    _transactionSub = controller.editorState.transactionStream.listen(
+      (_) => _autocomplete!.onTransaction(),
+    );
+  }
+
+  @override
+  void dispose() {
+    widget.state.editorLoaded.removeListener(_onEditorLoaded);
+    _transactionSub?.cancel();
+    _autocomplete?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Host flows (the cloud image picker sheet) need a context; keep the
@@ -47,6 +87,9 @@ class _BlockContentEditorState extends State<BlockContentEditor> {
       controller: controller,
       editable: widget.enabled,
       shrinkWrap: widget.shrinkWrap,
+      // Route keys through the mention popup first: while it is open,
+      // arrows/enter/escape navigate it instead of the document.
+      onKeyEvent: (event) => _autocomplete?.handleKey(event),
     );
 
     return Padding(
