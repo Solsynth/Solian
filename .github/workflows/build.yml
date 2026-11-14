@@ -30,6 +30,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.47.9
           cache: true
       - run: flutter pub get
       - run: flutter build windows --dart-define=DISTRIBUTION_API_BASE_URL="${{ vars.DISTRIBUTION_API_BASE_URL }}" --dart-define=DISTRIBUTION_PRODUCT_ID="${{ vars.DISTRIBUTION_PRODUCT_ID }}"
@@ -70,6 +71,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.47.9
       - run: |
           sudo apt-get update -y
           sudo apt-get install -y libcurl4-openssl-dev
@@ -128,6 +130,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.47.9
           cache: true
       - name: Configure Android signing
         env:
