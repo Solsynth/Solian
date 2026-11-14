@@ -149,15 +149,9 @@ struct ContentView: View {
         case .explore:
             ExploreView().environmentObject(appState)
         case .chat:
-            // ChatView owns its navigation: room pushes (ChatRoomListItem →
-            // ChatRoomView) live inside this stack, so the back control
-            // returns to the room list rather than popping the whole
-            // split-view detail out to the sidebar root.
-            NavigationStack {
-                ChatView()
-                    .environmentObject(appState)
-                    .environmentObject(summaryStore)
-            }
+            ChatView()
+                .environmentObject(appState)
+                .environmentObject(summaryStore)
         case .agent:
             AgentChatView()
                 .environmentObject(appState)

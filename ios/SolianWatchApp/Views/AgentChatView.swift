@@ -27,17 +27,10 @@ struct AgentChatView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            conversationList
-                .background {
-                    NavigationLink(
-                        isActive: $navigatingToThread,
-                        destination: { AgentChatThreadView(viewModel: viewModel) },
-                        label: { EmptyView() }
-                    )
-                    .hidden()
-                }
-        }
+        conversationList
+            .navigationDestination(isPresented: $navigatingToThread) {
+                AgentChatThreadView(viewModel: viewModel)
+            }
     }
 
     // MARK: - Conversation list

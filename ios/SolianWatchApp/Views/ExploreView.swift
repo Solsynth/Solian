@@ -19,7 +19,7 @@ struct ExploreView: View {
     @State private var showSearch = false
 
     var body: some View {
-        NavigationStack {
+        Group {
             if appState.isReady {
                 FeedPageView(
                     onCompose: { isComposing = true },
