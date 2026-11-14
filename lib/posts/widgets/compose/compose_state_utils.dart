@@ -55,6 +55,17 @@ class ComposeStateUtils {
     }, [publishers, publishingSettings, preferredPublisher]);
   }
 
+  /// Boots the block editor from the content controller's current markdown.
+  /// Call once per composer build, after the content-priming effects have
+  /// run (initial state / draft restore), so the editor starts from the
+  /// restored text.
+  static void useEditorBootstrap(ComposeState state) {
+    useEffect(() {
+      state.ensureEditorLoaded();
+      return null;
+    }, []);
+  }
+
   /// Loads initial state from provided parameters.
   static void useInitialStateLoader(
     ComposeState state,

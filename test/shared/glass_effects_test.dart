@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:island/chat/widgets/call_chrome.dart';
 import 'package:island/shared/widgets/glass_effects.dart';
@@ -36,25 +36,26 @@ void main() {
 
     expect(find.byType(LiquidGlassLayer), findsNothing);
 
-    // The capsule still occupies the same box, now painted from the theme.
-    final decoration =
-        tester
-                .widgetList<DecoratedBox>(
-                  find.descendant(
-                    of: find.byType(PillSurface),
-                    matching: find.byType(DecoratedBox),
-                  ),
-                )
-                .first
-                .decoration
-            as BoxDecoration;
+    // The capsule still occupies the same box, now painted as a pure surface
+    // fill with an outer shadow and no border.
+    final boxes = tester
+        .widgetList<DecoratedBox>(
+          find.descendant(
+            of: find.byType(PillSurface),
+            matching: find.byType(DecoratedBox),
+          ),
+        )
+        .toList();
+    final shadowDecoration = boxes[0].decoration as BoxDecoration;
+    final decoration = boxes[1].decoration as BoxDecoration;
     expect(
       decoration.borderRadius,
       const BorderRadius.all(Radius.circular(999)),
     );
-    expect(decoration.border, isNotNull);
+    expect(decoration.border, isNull);
     expect(decoration.color, isNotNull);
     expect(decoration.color!.a, greaterThan(0));
+    expect(shadowDecoration.boxShadow, isNotEmpty);
   });
 
   testWidgets('a fading pill still paints nothing at t = 0', (tester) async {
@@ -174,4 +175,69 @@ void main() {
     expect(find.byType(PillSurface), findsOneWidget);
     expect(find.byKey(const ValueKey('test-action-star')), findsOneWidget);
   });
+
+  testWidgets(
+    'non-glass material uses surface color with no border in light and dark mode',
+    (tester) async {
+      Future<BoxDecoration> pumpWithBrightness(Brightness brightness) async {
+        final theme = ThemeData(
+          brightness: brightness,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.amber,
+            brightness: brightness,
+          ),
+        );
+        await tester.pumpWidget(
+          GlassEffects(
+            enabled: false,
+            child: MaterialApp(
+              theme: theme,
+              home: const Scaffold(
+                body: Center(
+                  child: PillSurface(
+                    t: 1,
+                    child: SizedBox(width: 120, height: 40),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        return tester
+                .widgetList<DecoratedBox>(
+                  find.descendant(
+                    of: find.byType(PillSurface),
+                    matching: find.byType(DecoratedBox),
+                  ),
+                )
+                .elementAt(1)
+                .decoration
+            as BoxDecoration;
+      }
+
+      final lightTheme = ThemeData(
+        brightness: Brightness.light,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.amber,
+          brightness: Brightness.light,
+        ),
+      );
+      final lightDecoration = await pumpWithBrightness(Brightness.light);
+      expect(lightDecoration.color, lightTheme.colorScheme.surface);
+      expect(lightDecoration.border, isNull);
+
+      final darkTheme = ThemeData(
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.amber,
+          brightness: Brightness.dark,
+        ),
+      );
+      final darkDecoration = await pumpWithBrightness(Brightness.dark);
+      expect(darkDecoration.color, darkTheme.colorScheme.surface);
+      expect(darkDecoration.border, isNull);
+    },
+  );
 }

@@ -47,6 +47,24 @@ bool updatePillFade(
   return false;
 }
 
+/// Evaluates [builder] with the current fade value (1.0 when [fade] is null),
+/// passing [child] through untouched so scroll ticks do not rebuild the bar's
+/// inner controls.
+Widget _buildWithFade({
+  required ValueListenable<double>? fade,
+  required Widget child,
+  required Widget Function(BuildContext context, double t, Widget child) builder,
+}) {
+  if (fade == null) {
+    return Builder(builder: (context) => builder(context, 1.0, child));
+  }
+  return ValueListenableBuilder<double>(
+    valueListenable: fade,
+    child: child,
+    builder: (context, t, builtChild) => builder(context, t, builtChild!),
+  );
+}
+
 /// [PillSurface] for a header: the capsule sits 12px in from each side and
 /// 12px below the status bar, and carries [SolSpace.lg] of inner inset — one
 /// step wider than the side gutter, so the first control clears the end cap's
@@ -148,72 +166,74 @@ class PillSplitBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fade = this.fade;
-    if (fade == null) return _build(context, 1);
-    return ValueListenableBuilder<double>(
-      valueListenable: fade,
-      builder: (context, t, _) => _build(context, t),
+    final pinnedChild = SizedBox(
+      height: kGlassNavigationButtonSize,
+      child: child,
     );
-  }
-
-  Widget _build(BuildContext context, double t) {
-    final showNav = showNavigation ?? SolDrawerButton.isShownIn(context);
     final trailing = this.trailing;
-    return SizedBox(
-      height: preferredSize.height,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          kPillSideGutter,
-          statusTop + kPillSideGutter,
-          kPillSideGutter,
-          SolSpace.xs,
-        ),
-        child: Row(
-          children: [
-            if (showNav) ...[
-              GlassNavigationButton(t: t),
-              const SizedBox(width: SolSpace.xs),
-            ],
-            Flexible(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: PillSurface(
-                  t: t,
-                  loading: loading,
-                  margin: EdgeInsets.zero,
-                  radius: SolRadius.pillRadius,
-                  // Roomier than the old `SolSpace.xs`: the capsule's end caps
-                  // curve inwards, so the picker's icon needs a full spacing
-                  // step before it clears the contour.
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: SolSpace.md,
-                  ),
-                  // Pinned to the navigation circle's height so the two
-                  // surfaces read as one row instead of a tall capsule beside
-                  // a small circle.
-                  child: SizedBox(
-                    height: kGlassNavigationButtonSize,
-                    child: Material(color: Colors.transparent, child: child),
-                  ),
-                ),
-              ),
+    final pinnedTrailing = trailing == null
+        ? null
+        : SizedBox.square(
+            dimension: kGlassNavigationButtonSize,
+            child: trailing,
+          );
+
+    return _buildWithFade(
+      fade: fade,
+      child: pinnedChild,
+      builder: (context, t, content) {
+        final showNav = showNavigation ?? SolDrawerButton.isShownIn(context);
+        return SizedBox(
+          height: preferredSize.height,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              kPillSideGutter,
+              statusTop + kPillSideGutter,
+              kPillSideGutter,
+              SolSpace.xs,
             ),
-            if (trailing != null) ...[
-              const SizedBox(width: SolSpace.sm),
-              PillSurface(
-                t: t,
-                margin: EdgeInsets.zero,
-                radius: SolRadius.pillRadius,
-                contentPadding: EdgeInsets.zero,
-                child: SizedBox.square(
-                  dimension: kGlassNavigationButtonSize,
-                  child: Material(color: Colors.transparent, child: trailing),
+            child: Row(
+              children: [
+                if (showNav) ...[
+                  GlassNavigationButton(t: t),
+                  const SizedBox(width: SolSpace.xs),
+                ],
+                Flexible(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: PillSurface(
+                      t: t,
+                      loading: loading,
+                      margin: EdgeInsets.zero,
+                      radius: SolRadius.pillRadius,
+                      // Roomier than the old `SolSpace.xs`: the capsule's end
+                      // caps curve inwards, so the picker's icon needs a full
+                      // spacing step before it clears the contour.
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: SolSpace.md,
+                      ),
+                      // Pinned to the navigation circle's height so the two
+                      // surfaces read as one row instead of a tall capsule
+                      // beside a small circle.
+                      child: content,
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ],
-        ),
-      ),
+                if (pinnedTrailing != null) ...[
+                  const SizedBox(width: SolSpace.sm),
+                  PillSurface(
+                    t: t,
+                    margin: EdgeInsets.zero,
+                    radius: SolRadius.pillRadius,
+                    contentPadding: EdgeInsets.zero,
+                    child: pinnedTrailing,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -223,7 +243,7 @@ class PillSplitBar extends StatelessWidget implements PreferredSizeWidget {
 /// The sliver's geometry never changes and because it is pinned nothing moves
 /// the bar: the feed slides underneath while only the surfaces' fill animates.
 class PillSplitSliverAppBar extends StatelessWidget {
-  final ValueListenable<double> fade;
+  final ValueListenable<double>? fade;
 
   /// Status-bar inset, measured by the caller so the sliver's height matches.
   final double statusTop;
@@ -242,7 +262,7 @@ class PillSplitSliverAppBar extends StatelessWidget {
 
   const PillSplitSliverAppBar({
     super.key,
-    required this.fade,
+    this.fade,
     required this.statusTop,
     required this.child,
     this.loading = false,
@@ -280,7 +300,7 @@ class PillSplitSliverAppBar extends StatelessWidget {
 /// sliver's own geometry never changes, and because it is pinned nothing moves
 /// the bar either: the feed slides underneath it while only the fill animates.
 class PillSliverAppBar extends StatelessWidget {
-  final ValueListenable<double> fade;
+  final ValueListenable<double>? fade;
 
   /// Status-bar inset, measured by the caller so the sliver's height matches.
   final double statusTop;
@@ -293,7 +313,7 @@ class PillSliverAppBar extends StatelessWidget {
 
   const PillSliverAppBar({
     super.key,
-    required this.fade,
+    this.fade,
     required this.statusTop,
     required this.child,
     this.loading = false,
@@ -311,13 +331,14 @@ class PillSliverAppBar extends StatelessWidget {
       scrolledUnderElevation: 0,
       elevation: 0,
       pinned: true,
-      flexibleSpace: ValueListenableBuilder<double>(
-        valueListenable: fade,
-        builder: (context, t, _) => PillBarSurface(
+      flexibleSpace: _buildWithFade(
+        fade: fade,
+        child: child,
+        builder: (context, t, content) => PillBarSurface(
           t: t,
           statusTop: statusTop,
           loading: loading,
-          child: Material(color: Colors.transparent, child: child),
+          child: content,
         ),
       ),
     );
@@ -356,18 +377,15 @@ class PillAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget surface(double t) => PillBarSurface(
-      t: t,
-      statusTop: statusTop,
-      loading: loading,
-      child: Material(color: Colors.transparent, child: child),
-    );
-
-    final fade = this.fade;
-    if (fade == null) return surface(1);
-    return ValueListenableBuilder<double>(
-      valueListenable: fade,
-      builder: (context, t, _) => surface(t),
+    return _buildWithFade(
+      fade: fade,
+      child: child,
+      builder: (context, t, content) => PillBarSurface(
+        t: t,
+        statusTop: statusTop,
+        loading: loading,
+        child: content,
+      ),
     );
   }
 }

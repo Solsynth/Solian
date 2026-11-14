@@ -23,10 +23,10 @@ import 'package:island/shared/widgets/glass_effects.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/measure_height.dart';
 import 'package:island/shared/widgets/page_app_bar.dart';
+import 'package:island/shared/widgets/pill_surface.dart';
 import 'package:island/shared/widgets/responsive_sidebar.dart';
 import 'package:island/thoughts/personality_api.dart';
 import 'package:island/thoughts/thoughts_controller.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:pasteboard/pasteboard.dart';
@@ -1094,9 +1094,13 @@ class _Composer extends HookConsumerWidget {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 760),
-            child: _GlassComposerSurface(
+            child: PillSurface(
               radius: BorderRadius.circular(SolRadius.xl),
               highlight: isDraggingOver.value,
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 6,
+                horizontal: 8,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1304,94 +1308,6 @@ class _Composer extends HookConsumerWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Alpha of the solid fallback's hairline, matching the pill's own edge.
-const double _kPillBorderOpacity = 0.5;
-
-/// The composer's floating shell: the same iOS 27 liquid glass material as the
-/// chat composer and pill app bar.
-class _GlassComposerSurface extends StatelessWidget {
-  final BorderRadius radius;
-  final Widget child;
-  final bool highlight;
-
-  const _GlassComposerSurface({
-    required this.radius,
-    required this.child,
-    this.highlight = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final glass = GlassEffects.of(context);
-    final edgeColor = highlight
-        ? colorScheme.primary
-        : colorScheme.outlineVariant.withValues(alpha: _kPillBorderOpacity);
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.12),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Stack(
-        fit: StackFit.passthrough,
-        children: [
-          if (glass)
-            Positioned.fill(
-              child: LiquidGlassLayer(
-                settings: LiquidGlassSettings.ios27Regular(
-                  brightness: theme.brightness,
-                ),
-                defaultAppearance: LiquidGlassAppearance.ios27Regular(
-                  brightness: theme.brightness,
-                ),
-                child: LiquidGlass(
-                  shape: LiquidRoundedSuperellipse(
-                    borderRadius: radius.topLeft.x,
-                  ),
-                  child: const SizedBox.expand(),
-                ),
-              ),
-            )
-          else
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerLow,
-                  borderRadius: radius,
-                  border: Border.all(
-                    color: edgeColor,
-                    width: highlight ? 1.5 : 1,
-                  ),
-                ),
-              ),
-            ),
-          if (highlight && glass)
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: radius,
-                  border: Border.all(color: colorScheme.primary, width: 1.5),
-                ),
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-            child: Material(type: MaterialType.transparency, child: child),
-          ),
-        ],
       ),
     );
   }

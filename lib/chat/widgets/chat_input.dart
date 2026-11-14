@@ -35,8 +35,7 @@ import "package:pasteboard/pasteboard.dart";
 import "package:path_provider/path_provider.dart";
 import "package:record/record.dart" as rec;
 import "package:island/shared/widgets/alert.dart";
-import "package:island/shared/widgets/glass_effects.dart";
-import "package:liquid_glass_renderer/liquid_glass_renderer.dart";
+import "package:island/shared/widgets/pill_surface.dart";
 import "package:island/shared/widgets/typeahead_enter_handler.dart";
 import "package:styled_widget/styled_widget.dart";
 import "package:material_symbols_icons/symbols.dart";
@@ -109,9 +108,6 @@ Map<String, dynamic> _convertKeysToSnakeCase(Map map) {
 const kInputDrawerExpandedHeight = 280.0;
 
 const kExpandedSectionTabHeight = 32.0;
-
-/// Alpha of the solid fallback's hairline, matching the pill's own edge.
-const double _kPillBorderOpacity = 0.5;
 
 class _DirectMessageStatusBanner extends ConsumerWidget {
   final SnChatRoom chatRoom;
@@ -1603,9 +1599,13 @@ class ChatInput extends HookConsumerWidget {
           right: rightMargin,
           bottom: bottomMargin,
         ),
-        child: _GlassComposerSurface(
+        child: PillSurface(
           radius: inputBorderRadius,
           highlight: isDraggingOver.value,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 6,
+            horizontal: 8,
+          ),
           // `min`: the composer now floats in a band with loose height, so a
           // stretching Column would grow to the whole page and take the glass
           // with it. The shell owns the horizontal/vertical inset.
@@ -2575,96 +2575,6 @@ class ChatInput extends HookConsumerWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// The composer's floating shell: the same iOS 27 material as the room's
-/// floating pill header, so the two read as one family.
-///
-/// A pill fades its glass in only once content slides under it. The composer
-/// never has that resting state: it is the page's primary control and always
-/// floats over the messages being answered, so its surface is always on.
-///
-/// [GlassEffects] off — or a platform without the shader — paints the same
-/// capsule as a flat theme fill with a hairline instead: the composer sits
-/// over the whole timeline, so it is the single most expensive glass surface
-/// in the app to keep on screen and the one the setting exists for.
-class _GlassComposerSurface extends StatelessWidget {
-  final BorderRadius radius;
-  final Widget child;
-
-  /// The composer is receiving a dragged file: the edge turns primary, the
-  /// same signal the previous solid surface gave.
-  final bool highlight;
-
-  const _GlassComposerSurface({
-    required this.radius,
-    required this.child,
-    this.highlight = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final glass = GlassEffects.of(context);
-    // The edge is drawn by the glass contour, or by the fallback's hairline.
-    // A drag still has to turn it primary in both worlds.
-    final edgeColor = highlight
-        ? colorScheme.primary
-        : colorScheme.outlineVariant.withValues(alpha: _kPillBorderOpacity);
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.12),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Stack(
-        fit: StackFit.passthrough,
-        children: [
-          if (glass)
-            Positioned.fill(
-              child: LiquidGlassLayer(
-                settings: LiquidGlassSettings.ios27Regular(
-                  brightness: theme.brightness,
-                ),
-                defaultAppearance: LiquidGlassAppearance.ios27Regular(
-                  brightness: theme.brightness,
-                ),
-                child: LiquidGlass(
-                  shape: LiquidRoundedSuperellipse(
-                    borderRadius: radius.topLeft.x,
-                  ),
-                  child: const SizedBox.expand(),
-                ),
-              ),
-            )
-          else
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerLow,
-                  borderRadius: radius,
-                  border: Border.all(
-                    color: edgeColor,
-                    width: highlight ? 1.5 : 1,
-                  ),
-                ),
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-            child: Material(type: MaterialType.transparency, child: child),
-          ),
-        ],
       ),
     );
   }

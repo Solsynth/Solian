@@ -46,6 +46,9 @@ dependencies:
     path: socommon/packages/island_desktop_presence
   solar_network_foundation:
     path: socommon/packages/solar_network_foundation
+  appflowy_editor:
+    path: socommon/packages/appflowy_editor
+  file_picker: ^13.3.2
   solsynth_express:
     path: socommon/packages/solsynth_express
 
@@ -80,7 +83,6 @@ dependencies:
   protocol_handler: ^0.2.0
   cross_file: ^0.3.5+5
   image_picker: ^1.2.4
-  file_picker: ^13.3.2
   disk_space_2: ^1.0.13
   riverpod_annotation: ^4.0.8
   image_picker_platform_interface: ^2.11.2
@@ -192,8 +194,6 @@ dependencies:
   material_ui: ^1.10.0
   native_glass_navbar: ^1.2.0
   flutter_image_compress: ^2.5.1
-  flutter_quill: ^11.6.0
-  markdown_quill: ^4.3.0
   liquid_glass_renderer: ^1.0.0-dev.2
   shared_preferences_platform_interface: ^2.4.2
 dev_dependencies:

@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
-import 'package:island/posts/widgets/compose/quill_content_editor.dart';
+import 'package:island/posts/widgets/compose/block_content_editor.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 
 /// Inset shared by the title, description and content fields so their text
@@ -147,8 +147,8 @@ class ComposeFormFields extends HookConsumerWidget {
               ),
 
               // Content field
-              QuillContentEditor(
-                padding: const .symmetric(horizontal: 12, vertical: 8),
+              BlockContentEditor(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 state: state,
                 enabled: enabled && state.currentPublisher.value != null,
               ),

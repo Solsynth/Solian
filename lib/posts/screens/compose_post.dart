@@ -247,6 +247,7 @@ class PostComposePane extends HookConsumerWidget {
       preferredPublisher: chainedPost?.publisher,
     );
     ComposeStateUtils.useInitialStateLoader(state, initialState);
+    ComposeStateUtils.useEditorBootstrap(state);
 
     // A composer page never traps the user: leaving saves the draft, whether
     // they pop the route or a submit dismisses it.

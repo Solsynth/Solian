@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/screens/me/account_settings.dart';
@@ -140,7 +139,6 @@ void main() {
                 supportedLocales: const [Locale('en', 'US')],
                 localizationsDelegates: [
                   ...context.localizationDelegates,
-                  FlutterQuillLocalizations.delegate,
                 ],
                 theme: mui.ThemeData(
                   colorScheme: mui.ColorScheme.fromSeed(

@@ -94,6 +94,7 @@ class PostComposeForm extends HookConsumerWidget {
       preferredPublisher: chainedPost?.publisher,
     );
 
+    ComposeStateUtils.useEditorBootstrap(composeState);
     // Track the publisher's most recent post so the auto-chain banner can
     // reflect server-side auto-chaining (Posts:AutoChainWindowMinutes).
     final currentPublisherName = composeState.currentPublisher.value?.name;

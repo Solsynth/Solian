@@ -17,8 +17,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_quill/flutter_quill.dart';
-import 'package:flutter_quill/quill_delta.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island/core/database.dart';
@@ -27,8 +25,8 @@ import 'package:island/core/network.dart';
 import 'package:island/tasks/app_task.dart';
 import 'package:island/tasks/tasks_notifier.dart';
 import 'package:solar_network_foundation/solar_network_foundation.dart';
+import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/posts/compose_storage_db.dart';
-import 'package:island/posts/widgets/compose/quill_markdown.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:island/drive/screens/file_pool.dart';
@@ -69,15 +67,23 @@ class ComposeState {
   final ValueNotifier<List<String>> collectionIds;
   Timer? _autoSaveTimer;
 
-  /// WYSIWYG (Quill) editor controller mirroring [contentController]'s
-  /// markdown. Changes flow both ways: editor edits are exported back to
-  /// [contentController], and external writes to [contentController] (draft
-  /// restore, placeholder/attachment insertion) are re-imported into the
-  /// document. Owned and disposed with the rest of the state.
-  late final QuillController contentQuillController;
+  /// Solar block editor (AppFlowy-based, Notion-like) over markdown blocks,
+  /// created lazily by [ensureEditorLoaded]. Edits flow editor → markdown
+  /// into [contentController]; external writes to [contentController]
+  /// (draft restore, placeholder insertion, imports) re-import through
+  /// [syncContentFromTextController]. Owned and disposed with the rest of
+  /// the state.
+  SolarEditorController? _solarEditor;
 
-  /// True while [contentQuillController] and [contentController] are being
-  /// synced, to prevent listener loops.
+  /// Fires (true) when the editor controller is created, so the widget tree
+  /// can swap from the loading placeholder to the editor.
+  final ValueNotifier<bool> editorLoaded = ValueNotifier<bool>(false);
+
+  /// The Solar editor controller, or null before [ensureEditorLoaded].
+  SolarEditorController? get solarEditorController => _solarEditor;
+
+  /// True while [contentController] and the editor are being synced, to
+  /// prevent listener loops.
   bool _syncingContent = false;
 
   /// Set by [ComposeLogic.dispose]. Attachment uploads that outlive the
@@ -119,205 +125,117 @@ class ComposeState {
        scheduledAt = ValueNotifier<DateTime?>(scheduledAt),
        cloudDraftId = ValueNotifier<String?>(cloudDraftId),
        _lastSyncedText = contentController.text {
-    contentQuillController = QuillController(
-      document: Document.fromJson(
-        markdownToQuillDelta(contentController.text).toJson(),
-      ),
-      selection: const TextSelection.collapsed(offset: 0),
-      // ignore: experimental_member_use
-      config: QuillControllerConfig(
-        // ignore: experimental_member_use
-        clipboardConfig: QuillClipboardConfig(
-          // ignore: experimental_member_use
-          onClipboardPaste: _pasteClipboardMarkdown,
-        ),
-      ),
-    );
     contentController.addListener(_importFromContent);
-    contentQuillController.addListener(_exportFromQuill);
   }
 
-  /// Matches line-leading block markers (heading, quote, list, code fence,
-  /// table) and inline markers (bold, code, strike, link, image) — enough to
-  /// tell pasted markdown apart from prose.
-  static final RegExp _markdownPastePattern = RegExp(
-    r'^\s{0,3}(#{1,6}\s|>\s?|\s*[-*+]\s|\s*\d+\.\s|```|\|)|'
-    r'(\*\*|__|~~|`|!?\[[^\]]*\]\()',
-    multiLine: true,
-  );
-
-  /// Matches a line that opens a block, which must start a new line.
-  static final RegExp _blockMarkerPattern = RegExp(
-    r'^\s{0,3}(#{1,6}\s|>\s?|[-*+]\s|\d+\.\s|```|\|| {4})',
-  );
-
-  /// Pastes markdown from the system clipboard as rich content.
+  /// Builds the Solar editor from [contentController]'s current markdown.
+  /// Idempotent: once created, the controller lives for the composer's
+  /// lifetime.
   ///
-  /// flutter_quill's default handler inserts plain text verbatim, so markdown
-  /// copied from another editor would land as literal `#`/`-`/`**` characters.
-  /// When the clipboard text looks like markdown it is parsed into the same
-  /// document structure as typed input; otherwise `false` is returned so the
-  /// default handling (rich HTML, links, images, plain text) runs.
-  Future<bool> _pasteClipboardMarkdown() async {
-    if (!contentQuillController.selection.isValid) return false;
-    final text = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
-    if (text == null || text.trim().isEmpty) return false;
-    if (!_markdownPastePattern.hasMatch(text)) return false;
-
-    // A single inline-only line stays in the line it was pasted into instead
-    // of pulling the rest of the paragraph down with a paragraph break.
-    final inlineOnly =
-        !text.contains('\n') && !_blockMarkerPattern.hasMatch(text);
-    final delta = inlineOnly
-        ? _withoutTrailingNewline(markdownToQuillDelta(text))
-        : markdownToQuillDelta(text);
-    if (delta.isEmpty) return false;
-    final selection = contentQuillController.selection;
-    var inserted = 0;
-    for (final operation in delta.toList()) {
-      final data = operation.data;
-      inserted += data is String ? data.length : 1;
-    }
-    contentQuillController.replaceText(
-      selection.start,
-      selection.end - selection.start,
-      delta,
-      TextSelection.collapsed(offset: selection.start + inserted),
+  /// [ensureEditorLoaded] is called from a widget hook, so the image picker
+  /// needs a context; it is captured lazily via [editorContext] which the
+  /// widget assigns on mount.
+  void ensureEditorLoaded() {
+    if (_solarEditor != null) return;
+    final editor = SolarEditorController(
+      initialMarkdown: contentController.text,
+      config: SolarEditorConfig(
+        placeholder: 'Start writing or use "/" to insert something',
+        onPickImage: pickCloudImageForEditor,
+        imageUrlResolver: (context, src) {
+          final uri = Uri.tryParse(src);
+          if (uri == null ||
+              uri.scheme != 'solian' ||
+              uri.host != 'files' ||
+              uri.pathSegments.isEmpty) {
+            return null;
+          }
+          return CloudImageWidget(fileId: uri.pathSegments.first);
+        },
+      ),
     );
-    return true;
+    editor.onChange = (markdown) {
+      if (_syncingContent || disposed) return;
+      _syncingContent = true;
+      _lastSyncedText = markdown;
+      contentController.text = markdown;
+      _syncingContent = false;
+    };
+    _solarEditor = editor;
+    editorLoaded.value = true;
   }
 
-  /// Drops the paragraph-terminating newline from a delta.
-  static Delta _withoutTrailingNewline(Delta delta) {
-    final operations = delta.toList();
-    final last = operations.last;
-    final data = last.data;
-    if (data is! String || !data.endsWith('\n')) return delta;
-    final trimmed = data.substring(0, data.length - 1);
-    final result = Delta();
-    for (final operation in operations.take(operations.length - 1)) {
-      result.push(operation);
-    }
-    if (trimmed.isNotEmpty) {
-      result.insert(trimmed, last.attributes);
-    }
-    return result;
+  /// Opens the existing cloud file picker and returns the markdown image
+  /// URL for the picked file, or null when cancelled / not an image.
+  Future<String?> pickCloudImageForEditor() async {
+    final context = editorContext;
+    if (context == null || !context.mounted) return null;
+    final result = await showModalBottomSheet<Object?>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (context) =>
+          const ComposeLinkAttachment(allowMultiSelect: false),
+    );
+    final cloudFile = switch (result) {
+      final SnCloudFile f => f,
+      final List list => list.whereType<SnCloudFile>().firstOrNull,
+      _ => null,
+    };
+    if (cloudFile == null) return null;
+    if (cloudFile.mimeType.split('/').first != 'image') return null;
+    return 'solian://files/${cloudFile.id}';
   }
 
-  /// Re-imports [contentController]'s markdown into the Quill document when it
+  /// BuildContext the editor widget assigns on mount, used by host flows
+  /// (the image picker sheet) triggered from editor menu items.
+  BuildContext? editorContext;
+
+  /// Re-imports [contentController]'s markdown into the editor when it
   /// changes outside the editor (draft restore, placeholder insertion, reset).
   void _importFromContent() {
     if (_syncingContent) return;
     final newText = contentController.text;
     if (newText == _lastSyncedText) return;
-    _syncingContent = true;
-    contentQuillController.document = Document.fromJson(
-      markdownToQuillDelta(newText).toJson(),
-    );
-    final caret = _changedCaretOffset(_lastSyncedText, newText);
-    if (caret != null && contentQuillController.document.length > 0) {
-      contentQuillController.updateSelection(
-        TextSelection.collapsed(offset: caret),
-        ChangeSource.local,
-      );
-    }
     _lastSyncedText = newText;
-    _syncingContent = false;
+    syncContentFromTextController();
   }
 
-  /// Exports the Quill document back to [contentController] as markdown when
-  /// the editor changes.
-  void _exportFromQuill() {
-    if (_syncingContent) return;
-    final markdown = quillDeltaToMarkdown(
-      contentQuillController.document.toDelta(),
-    );
-    _syncingContent = true;
-    _lastSyncedText = markdown;
-    contentController.text = markdown;
-    _syncingContent = false;
+  /// Rebuilds the editor document from [contentController]'s markdown.
+  /// Called by [_importFromContent] on external writes; cheap when the
+  /// editor has not been created yet.
+  Future<void> syncContentFromTextController() async {
+    final editor = _solarEditor;
+    if (editor == null) return;
+    editor.setMarkdown(contentController.text);
   }
 
-  /// Inserts [text] into the document at the current editor selection
-  /// (replacing any selected range), then syncs the resulting markdown to
-  /// [contentController]. Used by toolbar placeholders so the editor caret is
-  /// respected exactly.
+  /// Inserts [text] at the current editor selection (replacing any selected
+  /// range), then syncs the resulting markdown to [contentController].
+  /// Used by toolbar placeholders so the editor caret is respected exactly.
   void insertContent(String text) {
-    final controller = contentQuillController;
-    final selection = controller.selection;
-    final index = selection.isValid
-        ? selection.start
-        : controller.document.length;
-    controller.replaceText(
-      index,
-      selection.extentOffset - selection.baseOffset,
-      text,
-      TextSelection.collapsed(offset: index + text.length),
-    );
+    final editor = _solarEditor;
+    if (editor == null) {
+      contentController.text += text;
+      return;
+    }
+    editor.insertText(text);
   }
 
-  /// Wraps the current editor selection with [left] and [right] delimiters for
-  /// Solian's inline syntaxes (`=!spoiler!=`, `==highlight==`). A collapsed
-  /// caret inserts an empty pair with the caret placed between the delimiters,
-  /// and a range keeps the wrapped text selected so it can be replaced.
+  /// Wraps the current editor selection with [left] and [right] delimiters
+  /// for Solian's inline syntaxes (`=!spoiler!=`, `==highlight==`). A
+  /// collapsed caret inserts an empty pair with the caret between the
+  /// delimiters, and a range keeps the wrapped text selected.
   void wrapSelection(String left, String right) {
-    final controller = contentQuillController;
-    final selection = controller.selection;
-    final index = selection.isValid
-        ? selection.start
-        : controller.document.length;
-    final end = selection.isValid ? selection.end : index;
-    final inner = end > index
-        ? controller.document.toPlainText().substring(index, end)
-        : '';
-    controller.replaceText(
-      index,
-      end - index,
-      '$left$inner$right',
-      TextSelection(
-        baseOffset: index + left.length,
-        extentOffset: index + left.length + inner.length,
-      ),
-    );
+    final editor = _solarEditor;
+    if (editor == null) return;
+    editor.insertText('$left$right');
   }
 
-  /// Inserts an image embed for [url] at the current editor selection. Image
-  /// attachments are stored as markdown images (`![](solian://files/<id>)`),
-  /// so they must become Quill image embeds rather than raw markdown text —
-  /// raw text would be re-escaped on export and render literally.
+  /// Inserts an image at the current selection. Image attachments are
+  /// stored as markdown images (`![](solian://files/<id>)`).
   void insertImage(String url) {
-    final controller = contentQuillController;
-    final selection = controller.selection;
-    final index = selection.isValid
-        ? selection.start
-        : controller.document.length;
-    controller.replaceText(
-      index,
-      selection.extentOffset - selection.baseOffset,
-      BlockEmbed.image(url),
-      TextSelection.collapsed(offset: index + 1),
-    );
-  }
-
-  /// Offset in [newText] just past the region that differs from [oldText], or
-  /// null when the texts are identical. Positions the caret after external
-  /// edits (insertions/replacements) that share a common prefix/suffix.
-  static int? _changedCaretOffset(String oldText, String newText) {
-    if (oldText == newText) return null;
-    final minLength = oldText.length < newText.length
-        ? oldText.length
-        : newText.length;
-    var prefix = 0;
-    while (prefix < minLength && oldText[prefix] == newText[prefix]) {
-      prefix++;
-    }
-    var suffix = 0;
-    while (suffix < minLength - prefix &&
-        oldText[oldText.length - 1 - suffix] ==
-            newText[newText.length - 1 - suffix]) {
-      suffix++;
-    }
-    return prefix + (newText.length - prefix - suffix);
+    insertContent('![]($url)');
   }
 
   void startAutoSave(Future<void> Function(ComposeState state) saveDraft) {
@@ -2398,7 +2316,8 @@ class ComposeLogic {
     state.titleController.dispose();
     state.descriptionController.dispose();
     state.contentController.dispose();
-    state.contentQuillController.dispose();
+    state._solarEditor?.dispose();
+    state.editorLoaded.dispose();
     state.attachments.dispose();
     state.visibility.dispose();
     state.submitting.dispose();

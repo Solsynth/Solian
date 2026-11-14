@@ -211,6 +211,9 @@ class ArticleComposeScreen extends HookConsumerWidget {
     final stateNotifier = ComposeStateUtils.useStateNotifier(state);
     useListenable(stateNotifier);
 
+    // Boot the block editor from the (possibly restored) content markdown.
+    ComposeStateUtils.useEditorBootstrap(state);
+
     final restorePrompted = useState(false);
 
     // Prompt restore if available (only for new articles)
