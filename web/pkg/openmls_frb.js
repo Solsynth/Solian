@@ -828,6 +828,15 @@ let wasm_bindgen = (function(exports) {
     /**
      * @param {any} port_
      * @param {any} that
+     */
+    function wire__crate__api__engine__MlsEngine_group_ids(port_, that) {
+        wasm.wire__crate__api__engine__MlsEngine_group_ids(port_, that);
+    }
+    exports.wire__crate__api__engine__MlsEngine_group_ids = wire__crate__api__engine__MlsEngine_group_ids;
+
+    /**
+     * @param {any} port_
+     * @param {any} that
      * @param {Uint8Array} group_id_bytes
      */
     function wire__crate__api__engine__MlsEngine_group_is_active(port_, that, group_id_bytes) {
@@ -960,9 +969,10 @@ let wasm_bindgen = (function(exports) {
      * @param {Uint8Array} signer_bytes
      * @param {Uint8Array} credential_identity
      * @param {Uint8Array} signer_public_key
-     * @param {Uint8Array | null} [credential_bytes]
+     * @param {Uint8Array | null | undefined} credential_bytes
+     * @param {any} replace_stored_group
      */
-    function wire__crate__api__engine__MlsEngine_join_group_external_commit(port_, that, config, group_info_bytes, ratchet_tree_bytes, signer_bytes, credential_identity, signer_public_key, credential_bytes) {
+    function wire__crate__api__engine__MlsEngine_join_group_external_commit(port_, that, config, group_info_bytes, ratchet_tree_bytes, signer_bytes, credential_identity, signer_public_key, credential_bytes, replace_stored_group) {
         const ptr0 = passArray8ToWasm0(group_info_bytes, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
         var ptr1 = isLikeNone(ratchet_tree_bytes) ? 0 : passArray8ToWasm0(ratchet_tree_bytes, wasm.__wbindgen_malloc);
@@ -975,7 +985,7 @@ let wasm_bindgen = (function(exports) {
         const len4 = WASM_VECTOR_LEN;
         var ptr5 = isLikeNone(credential_bytes) ? 0 : passArray8ToWasm0(credential_bytes, wasm.__wbindgen_malloc);
         var len5 = WASM_VECTOR_LEN;
-        wasm.wire__crate__api__engine__MlsEngine_join_group_external_commit(port_, that, config, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, ptr4, len4, ptr5, len5);
+        wasm.wire__crate__api__engine__MlsEngine_join_group_external_commit(port_, that, config, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, ptr4, len4, ptr5, len5, replace_stored_group);
     }
     exports.wire__crate__api__engine__MlsEngine_join_group_external_commit = wire__crate__api__engine__MlsEngine_join_group_external_commit;
 
@@ -990,9 +1000,10 @@ let wasm_bindgen = (function(exports) {
      * @param {Uint8Array} signer_public_key
      * @param {Uint8Array | null | undefined} aad
      * @param {boolean} skip_lifetime_validation
-     * @param {Uint8Array | null} [credential_bytes]
+     * @param {Uint8Array | null | undefined} credential_bytes
+     * @param {any} replace_stored_group
      */
-    function wire__crate__api__engine__MlsEngine_join_group_external_commit_v2(port_, that, config, group_info_bytes, ratchet_tree_bytes, signer_bytes, credential_identity, signer_public_key, aad, skip_lifetime_validation, credential_bytes) {
+    function wire__crate__api__engine__MlsEngine_join_group_external_commit_v2(port_, that, config, group_info_bytes, ratchet_tree_bytes, signer_bytes, credential_identity, signer_public_key, aad, skip_lifetime_validation, credential_bytes, replace_stored_group) {
         const ptr0 = passArray8ToWasm0(group_info_bytes, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
         var ptr1 = isLikeNone(ratchet_tree_bytes) ? 0 : passArray8ToWasm0(ratchet_tree_bytes, wasm.__wbindgen_malloc);
@@ -1007,7 +1018,7 @@ let wasm_bindgen = (function(exports) {
         var len5 = WASM_VECTOR_LEN;
         var ptr6 = isLikeNone(credential_bytes) ? 0 : passArray8ToWasm0(credential_bytes, wasm.__wbindgen_malloc);
         var len6 = WASM_VECTOR_LEN;
-        wasm.wire__crate__api__engine__MlsEngine_join_group_external_commit_v2(port_, that, config, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, ptr4, len4, ptr5, len5, skip_lifetime_validation, ptr6, len6);
+        wasm.wire__crate__api__engine__MlsEngine_join_group_external_commit_v2(port_, that, config, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3, ptr4, len4, ptr5, len5, skip_lifetime_validation, ptr6, len6, replace_stored_group);
     }
     exports.wire__crate__api__engine__MlsEngine_join_group_external_commit_v2 = wire__crate__api__engine__MlsEngine_join_group_external_commit_v2;
 
@@ -1445,6 +1456,22 @@ let wasm_bindgen = (function(exports) {
         wasm.wire__crate__api__engine__MlsEngine_update_group_context_extensions(port_, that, ptr0, len0, ptr1, len1, extensions);
     }
     exports.wire__crate__api__engine__MlsEngine_update_group_context_extensions = wire__crate__api__engine__MlsEngine_update_group_context_extensions;
+
+    /**
+     * @param {any} port_
+     * @param {any} that
+     * @param {any} config
+     * @param {Uint8Array} welcome_bytes
+     * @param {Uint8Array | null} [ratchet_tree_bytes]
+     */
+    function wire__crate__api__engine__MlsEngine_welcome_group_info_extensions(port_, that, config, welcome_bytes, ratchet_tree_bytes) {
+        const ptr0 = passArray8ToWasm0(welcome_bytes, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        var ptr1 = isLikeNone(ratchet_tree_bytes) ? 0 : passArray8ToWasm0(ratchet_tree_bytes, wasm.__wbindgen_malloc);
+        var len1 = WASM_VECTOR_LEN;
+        wasm.wire__crate__api__engine__MlsEngine_welcome_group_info_extensions(port_, that, config, ptr0, len0, ptr1, len1);
+    }
+    exports.wire__crate__api__engine__MlsEngine_welcome_group_info_extensions = wire__crate__api__engine__MlsEngine_welcome_group_info_extensions;
 
     /**
      * @param {any} not_before
@@ -2269,32 +2296,32 @@ let wasm_bindgen = (function(exports) {
                 return ret;
             },
             __wbindgen_cast_0000000000000001: function(arg0, arg1) {
-                // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 421, ret: Externref, inner_ret: Some(Externref) }, mutable: true }) -> Externref`.
+                // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 349, ret: Externref, inner_ret: Some(Externref) }, mutable: true }) -> Externref`.
                 const ret = makeMutClosure(arg0, arg1, wasm_bindgen_55c76f7b23f69dc0___convert__closures_____invoke___wasm_bindgen_55c76f7b23f69dc0___JsValue__wasm_bindgen_55c76f7b23f69dc0___JsValue__true_);
                 return ret;
             },
             __wbindgen_cast_0000000000000002: function(arg0, arg1) {
-                // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 911, ret: Result(Unit), inner_ret: Some(Result(Unit)) }, mutable: true }) -> Externref`.
+                // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 912, ret: Result(Unit), inner_ret: Some(Result(Unit)) }, mutable: true }) -> Externref`.
                 const ret = makeMutClosure(arg0, arg1, wasm_bindgen_55c76f7b23f69dc0___convert__closures_____invoke___wasm_bindgen_55c76f7b23f69dc0___JsValue__core_37ee0ce0c4cd57d5___result__Result_____wasm_bindgen_55c76f7b23f69dc0___JsError___true_);
                 return ret;
             },
             __wbindgen_cast_0000000000000003: function(arg0, arg1) {
-                // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("Event")], shim_idx: 658, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+                // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("Event")], shim_idx: 659, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
                 const ret = makeMutClosure(arg0, arg1, wasm_bindgen_55c76f7b23f69dc0___convert__closures_____invoke___web_sys_f6fdcddfdde3f286___features__gen_MessageEvent__MessageEvent______true_);
                 return ret;
             },
             __wbindgen_cast_0000000000000004: function(arg0, arg1) {
-                // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("Event")], shim_idx: 885, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+                // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("Event")], shim_idx: 886, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
                 const ret = makeMutClosure(arg0, arg1, wasm_bindgen_55c76f7b23f69dc0___convert__closures_____invoke___web_sys_f6fdcddfdde3f286___features__gen_Event__Event______true_);
                 return ret;
             },
             __wbindgen_cast_0000000000000005: function(arg0, arg1) {
-                // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("IDBVersionChangeEvent")], shim_idx: 422, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+                // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [NamedExternref("IDBVersionChangeEvent")], shim_idx: 350, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
                 const ret = makeMutClosure(arg0, arg1, wasm_bindgen_55c76f7b23f69dc0___convert__closures_____invoke___web_sys_f6fdcddfdde3f286___features__gen_IdbVersionChangeEvent__IdbVersionChangeEvent______true_);
                 return ret;
             },
             __wbindgen_cast_0000000000000006: function(arg0, arg1) {
-                // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [], shim_idx: 657, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+                // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [], shim_idx: 658, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
                 const ret = makeMutClosure(arg0, arg1, wasm_bindgen_55c76f7b23f69dc0___convert__closures_____invoke_______true_);
                 return ret;
             },
