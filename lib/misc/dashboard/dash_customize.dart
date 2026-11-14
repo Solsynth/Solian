@@ -85,10 +85,6 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
       ),
     );
 
-    final showSearchBar = useState<bool>(
-      appSettings.dashboardConfig?.showSearchBar ?? true,
-    );
-
     final showClockAndCountdown = useState<bool>(
       appSettings.dashboardConfig?.showClockAndCountdown ?? true,
     );
@@ -99,7 +95,7 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
         // verticalLayouts = mobile, horizontalLayouts = desktop.
         verticalLayouts: mobileLayouts.value,
         horizontalLayouts: desktopLayouts.value,
-        showSearchBar: showSearchBar.value,
+        showSearchBar: appSettings.dashboardConfig?.showSearchBar ?? false,
         showClockAndCountdown: showClockAndCountdown.value,
       );
 
@@ -133,7 +129,6 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
                           ref,
                           'dashboardLayoutMobile'.tr(),
                           mobileLayouts,
-                          showSearchBar,
                           showClockAndCountdown,
                         ),
                         _buildSliverLayoutEditor(
@@ -141,7 +136,6 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
                           ref,
                           'dashboardLayoutDesktop'.tr(),
                           desktopLayouts,
-                          showSearchBar,
                           showClockAndCountdown,
                         ),
                       ],
@@ -161,7 +155,6 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
     WidgetRef ref,
     String title,
     ValueNotifier<List<String>> layouts,
-    ValueNotifier<bool> showSearchBar,
     ValueNotifier<bool> showClockAndCountdown,
   ) {
     final cardMetadata = _getCardMetadata(context);
@@ -330,17 +323,6 @@ class DashboardCustomizationSheet extends HookConsumerWidget {
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ).padding(horizontal: 24, top: 12, bottom: 8),
-              CheckboxListTile(
-                dense: true,
-                title: Text('dashboardShowSearchBar'.tr()),
-                value: showSearchBar.value,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                onChanged: (value) {
-                  if (value != null) {
-                    showSearchBar.value = value;
-                  }
-                },
-              ),
               CheckboxListTile(
                 dense: true,
                 title: Text('dashboardShowClockAndCountdown'.tr()),

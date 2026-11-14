@@ -113,11 +113,6 @@ class ChallengePendingEvent {
   const ChallengePendingEvent(this.challenge);
 }
 
-/// Event fired to trigger the command palette
-class CommandPaletteTriggerEvent {
-  const CommandPaletteTriggerEvent();
-}
-
 /// Event fired to show the compose post sheet
 class ShowComposeSheetEvent {
   const ShowComposeSheetEvent();

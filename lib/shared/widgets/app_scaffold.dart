@@ -7,12 +7,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:island/command_palette/palette.dart';
 import 'package:island/core/config.dart';
 import 'package:island/plugins/widgets/plugin_pane_layer.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/websocket.dart';
-import 'package:island/core/services/event_bus.dart';
 import 'package:island/core/services/responsive.dart';
 import 'package:island/notifications/notification_overlay.dart';
 import 'package:island/route.gr.dart';
@@ -23,7 +21,6 @@ import 'package:island_ui_foundation/island_ui_foundation.dart'
     hide isWideScreen, isWiderScreen, isWidestScreen;
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shake/shake.dart';
 import 'package:window_manager/window_manager.dart';
 
 class AppScrollBehavior extends MaterialScrollBehavior {
@@ -40,10 +37,8 @@ class WindowScaffold extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final showPalette = useState(false);
     final isDesktop = DesktopWindowFrame.isPlatformDesktop;
     final useNativeFrame = ref.watch(desktopNativeWindowFrameProvider);
-    final shakeEnabled = ref.watch(shakeDetectionEnabledProvider);
 
     useEffect(() {
       if (!isDesktop) return null;
@@ -60,102 +55,60 @@ class WindowScaffold extends HookConsumerWidget {
       };
     }, []);
 
-    final subscription = useMemoized(
-      () => eventBus.on<CommandPaletteTriggerEvent>().listen(
-        (_) => showPalette.value = true,
-      ),
-      [],
-    );
-    useEffect(() => subscription.cancel, [subscription]);
-
-    useEffect(() {
-      ShakeDetector? detector;
-      if (!kIsWeb && (Platform.isIOS || Platform.isAndroid) && shakeEnabled) {
-        detector = ShakeDetector.autoStart(
-          onPhoneShake: (_) {
-            showPalette.value = true;
-          },
-        );
-      }
-
-      return () {
-        detector?.stopListening();
-      };
-    }, [shakeEnabled]);
-
     final overlays = <Widget>[
       const WebSocketIndicator(),
       const SnNotificationOverlay(),
       const PluginPaneLayer(),
     ];
 
-    return Focus(
-      canRequestFocus: false,
-      skipTraversal: true,
-      onKeyEvent: (_, event) {
-        if (event is! KeyDownEvent) return KeyEventResult.ignored;
-
-        final isShiftTab =
-            event.logicalKey == LogicalKeyboardKey.tab &&
-            HardwareKeyboard.instance.isShiftPressed;
-        if (!isShiftTab) return KeyEventResult.ignored;
-
-        showPalette.value = !showPalette.value;
-        return KeyEventResult.handled;
-      },
-      child: DesktopWindowFrame(
-        isDesktopPlatform: isDesktop && !useNativeFrame,
-        title: isDesktop && !useNativeFrame
-            ? Platform.isMacOS
-                  ? Text(
-                      'Solar Network',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
+    return DesktopWindowFrame(
+      isDesktopPlatform: isDesktop && !useNativeFrame,
+      title: isDesktop && !useNativeFrame
+          ? Platform.isMacOS
+                ? Text(
+                    'Solar Network',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  )
+                : Row(
+                    children: [
+                      Image.asset(
+                        Theme.of(context).brightness == Brightness.dark
+                            ? 'assets/icons/icon-dark.webp'
+                            : 'assets/icons/icon.webp',
+                        width: 20,
+                        height: 20,
                       ),
-                    )
-                  : Row(
-                      children: [
-                        Image.asset(
-                          Theme.of(context).brightness == Brightness.dark
-                              ? 'assets/icons/icon-dark.webp'
-                              : 'assets/icons/icon.webp',
-                          width: 20,
-                          height: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Text('Solar Network'),
-                      ],
-                    )
-            : null,
-        overlays: [
-          ...overlays,
-          if (showPalette.value)
-            CommandPaletteWidget(onDismiss: () => showPalette.value = false),
+                      const SizedBox(width: 8),
+                      Text('Solar Network'),
+                    ],
+                  )
+          : null,
+      overlays: overlays,
+      onClose: () => windowManager.hide(),
+      child: Stack(
+        children: [
+          Column(
+            children: [
+              Expanded(child: child),
+              const MediaPlaybackDock(),
+            ],
+          ),
+          // The task pill floats over the bottom edge like a Live
+          // Activity. An overlay, so a running task never resizes the
+          // page below it; only the transparent parts of its lane let
+          // taps through to what's underneath.
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: TaskOverlayHost(),
+          ),
+          // Video keeps playing in a floating picture-in-picture overlay;
+          // the audio dock stays in the column above.
+          const FloatingVideoDock(),
         ],
-        onClose: () => windowManager.hide(),
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                Expanded(child: child),
-                const MediaPlaybackDock(),
-              ],
-            ),
-            // The task pill floats over the bottom edge like a Live
-            // Activity. An overlay, so a running task never resizes the
-            // page below it; only the transparent parts of its lane let
-            // taps through to what's underneath.
-            const Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: TaskOverlayHost(),
-            ),
-            // Video keeps playing in a floating picture-in-picture overlay;
-            // the audio dock stays in the column above.
-            const FloatingVideoDock(),
-          ],
-        ),
       ),
     );
   }

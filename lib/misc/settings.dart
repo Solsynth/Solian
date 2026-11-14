@@ -1202,13 +1202,9 @@ class SettingsScreen extends HookConsumerWidget {
           'vibration',
           'friend status',
           'desktop notification',
-          'shake detection',
-          'shake to open',
-          'shake gesture',
           'settingsSoundEffects',
           'settingsFestivalFeatures',
           'settingsNotifyWithHaptic',
-          'settingsShakeDetection',
           'settingsFriendStatusDesktopNotification',
         ],
         children: [
@@ -1252,23 +1248,6 @@ class SettingsScreen extends HookConsumerWidget {
               },
             ),
           ),
-          if (!isDesktop)
-            ListTile(
-              minLeadingWidth: 48,
-              title: Text('settingsShakeDetection').tr(),
-              subtitle: Text('settingsShakeDetectionHelper').tr().fontSize(12),
-              contentPadding: _kSettingsTilePadding,
-              leading: const Icon(Symbols.vibration),
-              trailing: Switch(
-                value: ref.watch(shakeDetectionEnabledProvider),
-                onChanged: (value) {
-                  ref
-                      .read(shakeDetectionEnabledProvider.notifier)
-                      .setEnabled(value);
-                  showSnackBar('settingsApplied'.tr());
-                },
-              ),
-            ),
           if (isDesktop)
             ListTile(
               minLeadingWidth: 48,
@@ -1774,7 +1753,6 @@ class SettingsScreen extends HookConsumerWidget {
           'settingsGlassEffects',
           'settingsGlassEffectsHelper',
           'settingsDefaultScreen',
-          'settingsDashSearchEngine',
           'settingsWeatherNoGeolocation',
           'settingsWeatherNoGeolocationHelper',
           'settingsAutoUploadAttachments',
@@ -1873,44 +1851,6 @@ class SettingsScreen extends HookConsumerWidget {
                     .setDashboardEnabled(value);
                 showSnackBar('settingsApplied'.tr());
               },
-            ),
-          ),
-          ListTile(
-            isThreeLine: true,
-            minLeadingWidth: 48,
-            title: Text('settingsDashSearchEngine').tr(),
-            contentPadding: _kSettingsTilePadding,
-            leading: const Icon(Symbols.search),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: TextField(
-                controller: TextEditingController(
-                  text: settings.dashSearchEngine,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'https://google.com/?q=%s',
-                  helperText: 'settingsDashSearchEngineHelper'.tr(),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Symbols.restart_alt),
-                    onPressed: () {
-                      ref
-                          .read(appSettingsProvider.notifier)
-                          .setDashSearchEngine(null);
-                      showSnackBar('settingsApplied'.tr());
-                    },
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  isDense: true,
-                ),
-                onSubmitted: (value) {
-                  ref
-                      .read(appSettingsProvider.notifier)
-                      .setDashSearchEngine(value.isEmpty ? null : value);
-                  showSnackBar('settingsApplied'.tr());
-                },
-              ),
             ),
           ),
           ListTile(
