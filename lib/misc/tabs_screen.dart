@@ -308,88 +308,6 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
       tabsRouter.setActiveIndex(bottomNavDestinations[index].routeIndex);
     }
 
-    /// Opens the per-tab entrances that used to live elsewhere in the UI.
-    ///
-    /// Only Explore has entrances today: category/tag browsing, shuffle, the
-    /// post footprints (bookmarks and reactions) and the draft box.
-    /// Long-pressing (or secondary clicking) its destination in the bottom
-    /// bar, drawer or rail is the replacement for the app-bar icons and list
-    /// rows these used to have.
-    void showDestinationEntrances(TabDestination destination) {
-      if (destination.id != 'explore') return;
-      HapticFeedback.mediumImpact();
-      showModalBottomSheet<void>(
-        context: context,
-        useRootNavigator: true,
-        showDragHandle: false,
-        constraints: const BoxConstraints(maxWidth: 480),
-        builder: (sheetContext) => SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-                  child: Text(
-                    'explore'.tr(),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                  leading: const Icon(Symbols.category),
-                  title: Text('categoriesAndTags'.tr()),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    context.router.push(PostCategoriesListRoute());
-                  },
-                ),
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                  leading: const Icon(Symbols.shuffle),
-                  title: Text('postShuffle'.tr()),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    context.router.push(const PostShuffleRoute());
-                  },
-                ),
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                  leading: const Icon(Symbols.footprint),
-                  title: Text('browseFootprints'.tr()),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    context.router.push(const BookmarksRoute());
-                  },
-                ),
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                  leading: const Icon(Symbols.drafts),
-                  title: Text('draftBox').tr(),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    context.router.push(const DraftBoxRoute());
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    Widget withEntranceMenu(Widget child, TabDestination destination) {
-      return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onLongPress: () => showDestinationEntrances(destination),
-        onSecondaryTap: () => showDestinationEntrances(destination),
-        child: child,
-      );
-    }
-
     Widget buildNavigationDrawerContent() {
       return SafeArea(
         child: NavigationDrawer(
@@ -522,12 +440,9 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
             ),
             ...drawerDestinations.map((d) {
               return NavigationDrawerDestination(
-                label: withEntranceMenu(Text(d.label), d),
-                icon: withEntranceMenu(Icon(d.navigationIcon), d),
-                selectedIcon: withEntranceMenu(
-                  Icon(d.navigationIcon, fill: 1),
-                  d,
-                ),
+                label: Text(d.label),
+                icon: Icon(d.navigationIcon),
+                selectedIcon: Icon(d.navigationIcon, fill: 1),
               );
             }),
           ],
@@ -577,23 +492,17 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
         scrollable: true,
         destinations: displayedRailDestinations.mapIndexed((idx, d) {
           return NavigationRailDestination(
-            icon: withEntranceMenu(
-              SizedBox(
-                width: 56,
-                height: 32,
-                child: Center(child: d.iconBuilder(railCurrentIndex == idx)),
-              ),
-              d,
+            icon: SizedBox(
+              width: 56,
+              height: 32,
+              child: Center(child: d.iconBuilder(railCurrentIndex == idx)),
             ),
-            label: withEntranceMenu(
-              SizedBox(
-                height: 32,
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(d.label),
-                ),
+            label: SizedBox(
+              height: 32,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(d.label),
               ),
-              d,
             ),
           );
         }).toList(),
@@ -676,13 +585,9 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
         destinations: bottomNavDestinations.mapIndexed((idx, destination) {
           return NavigationDestination(
             // `label` still feeds semantics ("Home, Tab 1 of 3"), so only
-            // the paint is suppressed — here and in the tooltip, whose
-            // long-press gesture the entrance menu owns.
+            // the paint is suppressed.
             tooltip: '',
-            icon: withEntranceMenu(
-              destination.iconBuilder(bottomNavCurrentIndex == idx),
-              destination,
-            ),
+            icon: destination.iconBuilder(bottomNavCurrentIndex == idx),
             label: destination.label,
           );
         }).toList(),

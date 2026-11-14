@@ -47,21 +47,40 @@ bool updatePillFade(
   return false;
 }
 
-/// Evaluates [builder] with the current fade value (1.0 when [fade] is null),
-/// passing [child] through untouched so scroll ticks do not rebuild the bar's
-/// inner controls.
+/// Evaluates [builder] with the current fade value (1.0 when [fade] is null)
+/// and determinate [progress] (null when unset), passing [child] through
+/// untouched so scroll ticks do not rebuild the bar's inner controls.
 Widget _buildWithFade({
   required ValueListenable<double>? fade,
+  ValueListenable<double>? progress,
   required Widget child,
-  required Widget Function(BuildContext context, double t, Widget child) builder,
+  required Widget Function(
+    BuildContext context,
+    double t,
+    double? progress,
+    Widget child,
+  )
+  builder,
 }) {
+  Widget buildProgress(BuildContext context, double t, Widget builtChild) {
+    if (progress == null) {
+      return builder(context, t, null, builtChild);
+    }
+    return ValueListenableBuilder<double>(
+      valueListenable: progress,
+      child: builtChild,
+      builder: (context, p, innerChild) =>
+          builder(context, t, p, innerChild!),
+    );
+  }
+
   if (fade == null) {
-    return Builder(builder: (context) => builder(context, 1.0, child));
+    return Builder(builder: (context) => buildProgress(context, 1.0, child));
   }
   return ValueListenableBuilder<double>(
     valueListenable: fade,
     child: child,
-    builder: (context, t, builtChild) => builder(context, t, builtChild!),
+    builder: (context, t, builtChild) => buildProgress(context, t, builtChild!),
   );
 }
 
@@ -85,6 +104,9 @@ class PillBarSurface extends StatelessWidget {
   /// Lap the capsule's outline as a spinner.
   final bool loading;
 
+  /// Determinate progress (0..1) drawn along the capsule's outline.
+  final double? progress;
+
   final Widget child;
 
   const PillBarSurface({
@@ -93,6 +115,7 @@ class PillBarSurface extends StatelessWidget {
     required this.statusTop,
     required this.child,
     this.loading = false,
+    this.progress,
   });
 
   @override
@@ -100,6 +123,7 @@ class PillBarSurface extends StatelessWidget {
     return PillSurface(
       t: t,
       loading: loading,
+      progress: progress,
       margin: EdgeInsets.fromLTRB(
         kPillSideGutter,
         statusTop + kPillSideGutter,
@@ -173,15 +197,19 @@ class PillSplitBar extends StatelessWidget implements PreferredSizeWidget {
     final trailing = this.trailing;
     final pinnedTrailing = trailing == null
         ? null
-        : SizedBox.square(
-            dimension: kGlassNavigationButtonSize,
+        : ConstrainedBox(
+            constraints: const BoxConstraints(
+              minWidth: kGlassNavigationButtonSize,
+              minHeight: kGlassNavigationButtonSize,
+              maxHeight: kGlassNavigationButtonSize,
+            ),
             child: trailing,
           );
 
     return _buildWithFade(
       fade: fade,
       child: pinnedChild,
-      builder: (context, t, content) {
+      builder: (context, t, _, content) {
         final showNav = showNavigation ?? SolDrawerButton.isShownIn(context);
         return SizedBox(
           height: preferredSize.height,
@@ -308,6 +336,9 @@ class PillSliverAppBar extends StatelessWidget {
   /// Lap the capsule's outline as a spinner.
   final bool loading;
 
+  /// Determinate progress (0..1) drawn along the capsule's outline.
+  final ValueListenable<double>? progress;
+
   /// The bar's single row of controls.
   final Widget child;
 
@@ -317,6 +348,7 @@ class PillSliverAppBar extends StatelessWidget {
     required this.statusTop,
     required this.child,
     this.loading = false,
+    this.progress,
   });
 
   @override
@@ -333,11 +365,13 @@ class PillSliverAppBar extends StatelessWidget {
       pinned: true,
       flexibleSpace: _buildWithFade(
         fade: fade,
+        progress: progress,
         child: child,
-        builder: (context, t, content) => PillBarSurface(
+        builder: (context, t, p, content) => PillBarSurface(
           t: t,
           statusTop: statusTop,
           loading: loading,
+          progress: p,
           child: content,
         ),
       ),
@@ -362,6 +396,9 @@ class PillAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// Lap the capsule's outline as a spinner.
   final bool loading;
 
+  /// Determinate progress (0..1) drawn along the capsule's outline.
+  final ValueListenable<double>? progress;
+
   final Widget child;
 
   const PillAppBar({
@@ -370,6 +407,7 @@ class PillAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.statusTop,
     required this.child,
     this.loading = false,
+    this.progress,
   });
 
   @override
@@ -379,11 +417,13 @@ class PillAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return _buildWithFade(
       fade: fade,
+      progress: progress,
       child: child,
-      builder: (context, t, content) => PillBarSurface(
+      builder: (context, t, p, content) => PillBarSurface(
         t: t,
         statusTop: statusTop,
         loading: loading,
+        progress: p,
         child: content,
       ),
     );

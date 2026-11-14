@@ -1951,6 +1951,7 @@ PillSliverAppBar buildPostDetailSliverAppBar({
   required SnPost post,
   required Widget trailing,
   required ValueListenable<double> fade,
+  bool loading = false,
   Widget leading = const AutoLeadingButton(),
 }) {
   final theme = Theme.of(context);
@@ -1959,6 +1960,7 @@ PillSliverAppBar buildPostDetailSliverAppBar({
   return PillSliverAppBar(
     fade: fade,
     statusTop: MediaQuery.paddingOf(context).top,
+    loading: loading,
     child: Row(
       children: [
         leading,
@@ -1992,6 +1994,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
   final ValueChanged<String>? onTranslate;
   final String? translatedText;
   final bool isTranslating;
+  final bool isRefreshing;
 
   const _PostDetailLargeScreenLayout({
     required this.post,
@@ -2001,6 +2004,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
     this.onTranslate,
     this.translatedText,
     this.isTranslating = false,
+    this.isRefreshing = false,
   });
 
   @override
@@ -2074,6 +2078,7 @@ class _PostDetailLargeScreenLayout extends HookConsumerWidget {
                                 post: post,
                                 trailing: trailing,
                                 fade: fade,
+                                loading: isRefreshing || isTranslating,
                               ),
                               SliverToBoxAdapter(
                                 child: Center(
@@ -2325,6 +2330,10 @@ class _ArticleDetailLayout extends HookConsumerWidget {
   /// text then scrolls underneath it.
   final double topInset;
 
+  /// Updated on every scroll tick with the article's 0..1 reading progress,
+  /// painted as a rounded outline along the host [PillAppBar].
+  final ValueNotifier<double>? readingProgress;
+
   const _ArticleDetailLayout({
     required this.post,
     required this.postId,
@@ -2334,6 +2343,7 @@ class _ArticleDetailLayout extends HookConsumerWidget {
     required this.onRefresh,
     required this.onUpdate,
     this.topInset = 0,
+    this.readingProgress,
   });
 
   @override
@@ -2385,6 +2395,12 @@ class _ArticleDetailLayout extends HookConsumerWidget {
       void onScroll() {
         final position = scrollController.position;
         final maxExtent = position.maxScrollExtent;
+        final progress = maxExtent <= 0
+            ? 0.0
+            : (position.pixels / maxExtent).clamp(0.0, 1.0);
+        if (readingProgress != null && readingProgress!.value != progress) {
+          readingProgress!.value = progress;
+        }
         // Finish-reading: hand the sidebar over to the replies. One-shot, so
         // switching back to the contents stays respected.
         if (maxExtent > 0 && position.pixels >= maxExtent - 200) {
@@ -2681,61 +2697,26 @@ class _ArticleDetailLayout extends HookConsumerWidget {
       );
     }
 
-    return Stack(
-      fit: StackFit.expand,
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: ExtendedRefreshIndicator(
-                onRefresh: () async => onRefresh(),
-                child: CustomScrollView(
-                  controller: scrollController,
-                  slivers: [
-                    // The pill floats over this column, so its band belongs to
-                    // the scroll content: the article starts below the capsule
-                    // and slides under it from there.
-                    if (topInset > 0) SliverGap(topInset),
-                    SliverToBoxAdapter(child: buildArticleColumn()),
-                    SliverGap(MediaQuery.of(context).padding.bottom + 48),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(flex: 1, child: buildSidebar()),
-          ],
-        ),
-        // Reading progress: a thin line across the whole body, directly under
-        // the scaffold app bar's band (the body starts at the viewport top).
-        Positioned(
-          top: topInset,
-          left: 0,
-          right: 0,
-          height: 3,
-          child: IgnorePointer(
-            key: const ValueKey('article-reading-progress'),
-            child: AnimatedBuilder(
-              animation: scrollController,
-              builder: (context, _) {
-                final position = scrollController.hasClients
-                    ? scrollController.position
-                    : null;
-                final maxExtent = position?.maxScrollExtent ?? 0;
-                final progress = (maxExtent <= 0 || position == null)
-                    ? 0.0
-                    : (position.pixels / maxExtent).clamp(0.0, 1.0);
-                return Align(
-                  alignment: Alignment.centerLeft,
-                  child: FractionallySizedBox(
-                    widthFactor: progress,
-                    child: Container(color: theme.colorScheme.primary),
-                  ),
-                );
-              },
+        Expanded(
+          flex: 2,
+          child: ExtendedRefreshIndicator(
+            onRefresh: () async => onRefresh(),
+            child: CustomScrollView(
+              controller: scrollController,
+              slivers: [
+                // The pill floats over this column, so its band belongs to
+                // the scroll content: the article starts below the capsule
+                // and slides under it from there.
+                if (topInset > 0) SliverGap(topInset),
+                SliverToBoxAdapter(child: buildArticleColumn()),
+                SliverGap(MediaQuery.of(context).padding.bottom + 48),
+              ],
             ),
           ),
         ),
+        Expanded(flex: 1, child: buildSidebar()),
       ],
     );
   }
@@ -2870,6 +2851,8 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
   /// under it. The webview behind the sheet keeps the full height.
   final double topInset;
 
+  final ValueChanged<bool>? onWebLoadingChanged;
+
   const _BlogPostDetailLayout({
     required this.post,
     required this.postId,
@@ -2880,6 +2863,7 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
     required this.onRefresh,
     required this.onUpdate,
     this.topInset = 0,
+    this.onWebLoadingChanged,
   });
 
   @override
@@ -2920,7 +2904,10 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
             maxPanelHeight,
           ],
           backgroundColor: theme.colorScheme.surface.withOpacity(0.97),
-          body: _BlogPostWebView(url: _getBlogUrl(post)),
+          body: _BlogPostWebView(
+            url: _getBlogUrl(post),
+            onLoadingChanged: onWebLoadingChanged,
+          ),
           child: Column(
             children: [
               Expanded(
@@ -3095,13 +3082,19 @@ class _BlogPostDetailLayout extends HookConsumerWidget {
 
 class _BlogPostWebView extends HookWidget {
   final String? url;
+  final ValueChanged<bool>? onLoadingChanged;
 
-  const _BlogPostWebView({required this.url});
+  const _BlogPostWebView({required this.url, this.onLoadingChanged});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isLoading = useState(url != null);
+
+    useEffect(() {
+      onLoadingChanged?.call(isLoading.value);
+      return null;
+    }, [isLoading.value]);
 
     if (url == null) {
       return ColoredBox(
@@ -3115,49 +3108,39 @@ class _BlogPostWebView extends HookWidget {
       );
     }
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        InAppWebView(
-          initialUrlRequest: URLRequest(url: WebUri(url!)),
-          initialSettings: InAppWebViewSettings(
-            javaScriptEnabled: true,
-            mediaPlaybackRequiresUserGesture: false,
-            allowsInlineMediaPlayback: true,
-            supportZoom: true,
-            useShouldOverrideUrlLoading: true,
-            preferredContentMode: UserPreferredContentMode.RECOMMENDED,
-          ),
-          onLoadStart: (_, _) {
-            isLoading.value = true;
-          },
-          onLoadStop: (_, _) {
-            isLoading.value = false;
-          },
-          onLoadError: (_, _, _, _) {
-            isLoading.value = false;
-          },
-          onLoadHttpError: (_, _, _, _) {
-            isLoading.value = false;
-          },
-          shouldOverrideUrlLoading: (_, navigationAction) async {
-            final target = navigationAction.request.url?.toString();
-            if (target != null && target != url) {
-              final uri = Uri.tryParse(target);
-              if (uri != null) {
-                launchUrl(uri, mode: LaunchMode.externalApplication);
-              }
-              return NavigationActionPolicy.CANCEL;
-            }
-            return NavigationActionPolicy.ALLOW;
-          },
-        ),
-        if (isLoading.value)
-          ColoredBox(
-            color: theme.colorScheme.surfaceContainerLowest,
-            child: const Center(child: CircularProgressIndicator()),
-          ),
-      ],
+    return InAppWebView(
+      initialUrlRequest: URLRequest(url: WebUri(url!)),
+      initialSettings: InAppWebViewSettings(
+        javaScriptEnabled: true,
+        mediaPlaybackRequiresUserGesture: false,
+        allowsInlineMediaPlayback: true,
+        supportZoom: true,
+        useShouldOverrideUrlLoading: true,
+        preferredContentMode: UserPreferredContentMode.RECOMMENDED,
+      ),
+      onLoadStart: (_, _) {
+        isLoading.value = true;
+      },
+      onLoadStop: (_, _) {
+        isLoading.value = false;
+      },
+      onLoadError: (_, _, _, _) {
+        isLoading.value = false;
+      },
+      onLoadHttpError: (_, _, _, _) {
+        isLoading.value = false;
+      },
+      shouldOverrideUrlLoading: (_, navigationAction) async {
+        final target = navigationAction.request.url?.toString();
+        if (target != null && target != url) {
+          final uri = Uri.tryParse(target);
+          if (uri != null) {
+            launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+          return NavigationActionPolicy.CANCEL;
+        }
+        return NavigationActionPolicy.ALLOW;
+      },
     );
   }
 }
@@ -3311,20 +3294,38 @@ class PostDetailBody extends HookConsumerWidget {
   /// keeps the default full-page navigation.
   final void Function(String)? onPostTap;
 
+  /// Notifies the host chrome when background work (translation or blog web
+  /// page load) is in flight so a scaffold-owned [PillAppBar] can spin its
+  /// rounded outline.
+  final ValueChanged<bool>? onLoadingChanged;
+
+  /// Driven by the article reading layout with 0..1 scroll progress for the
+  /// host [PillAppBar]'s rounded progress outline.
+  final ValueNotifier<double>? readingProgress;
+
   const PostDetailBody({
     super.key,
     required this.id,
     this.isEmbedded = false,
     this.topInset = 0,
     this.onPostTap,
+    this.onLoadingChanged,
+    this.readingProgress,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final postState = ref.watch(postStateProvider(id));
     final translating = useState(false);
+    final blogLoading = useState(false);
     final translatedText = useState<String?>(null);
     final currentLanguage = context.locale.toString();
+
+    final isBodyBusy = translating.value || blogLoading.value;
+    useEffect(() {
+      onLoadingChanged?.call(isBodyBusy);
+      return null;
+    }, [isBodyBusy]);
 
     Future<void> translatePost(String text) async {
       if (translatedText.value != null) {
@@ -3389,6 +3390,11 @@ class PostDetailBody extends HookConsumerWidget {
                         onTranslate: translatePost,
                         onRefresh: refreshPost,
                         topInset: topInset,
+                        onWebLoadingChanged: (loading) {
+                          if (context.mounted && blogLoading.value != loading) {
+                            blogLoading.value = loading;
+                          }
+                        },
                         onUpdate: (newItem) {
                           ref
                               .read(postStateProvider(id).notifier)
@@ -3407,6 +3413,7 @@ class PostDetailBody extends HookConsumerWidget {
                         onTranslate: translatePost,
                         translatedText: translatedText.value,
                         isTranslating: translating.value,
+                        isRefreshing: postState.isLoading,
                       ),
               )
             else if (useArticleReadingLayout)
@@ -3418,6 +3425,7 @@ class PostDetailBody extends HookConsumerWidget {
                 onTranslate: translatePost,
                 onRefresh: refreshPost,
                 topInset: topInset,
+                readingProgress: readingProgress,
                 onUpdate: (newItem) {
                   ref.read(postStateProvider(id).notifier).updatePost(newItem);
                 },
@@ -3437,6 +3445,7 @@ class PostDetailBody extends HookConsumerWidget {
                         post: postItem,
                         trailing: trailing,
                         fade: fade,
+                        loading: postState.isLoading || translating.value,
                       ),
                 onRefresh: () async {
                   refreshPost();
@@ -3474,10 +3483,16 @@ class PostDetailBody extends HookConsumerWidget {
           ],
         );
       },
-      loading: () => const ResponseLoadingWidget(),
-      error: (e, _) => ResponseErrorWidget(
-        error: e,
-        onRetry: () => ref.invalidate(postProvider(id)),
+      loading: () => Padding(
+        padding: EdgeInsets.only(top: topInset),
+        child: const ResponseLoadingWidget(),
+      ),
+      error: (e, _) => Padding(
+        padding: EdgeInsets.only(top: topInset),
+        child: ResponseErrorWidget(
+          error: e,
+          onRetry: () => ref.invalidate(postProvider(id)),
+        ),
       ),
     );
   }
@@ -3491,7 +3506,10 @@ class PostDetailScreen extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final post = ref.watch(postStateProvider(id)).asData?.value;
+    final postState = ref.watch(postStateProvider(id));
+    final post = postState.asData?.value;
+    final bodyLoading = useState(false);
+    final readingProgress = useValueNotifier(0.0);
     final title = post?.title?.trim();
     final hasTitle = title != null && title.isNotEmpty;
     final isBlog = post?.type == 2;
@@ -3506,18 +3524,21 @@ class PostDetailScreen extends HookConsumerWidget {
     }
 
     final statusTop = MediaQuery.paddingOf(context).top;
-    // Blog and article layouts own a body that scrolls behind a static header,
-    // so their pill is persistent: there is no single offset to track.
-    final hasPillBar = (isBlog || isArticleReading) && post != null;
+    // Keep the floating pill bar visible while the post is still loading or
+    // failed to load (matching the chat room skeleton), as well as for blog
+    // and article layouts whose bodies scroll behind a static header. Every
+    // other layout owns its sliver app bar inside the scroll view.
+    final hasPillBar = post == null || isBlog || isArticleReading;
+    final isPillLoading = postState.isLoading || bodyLoading.value;
 
     return AppScaffold(
       isNoBackground: false,
-      // Blog posts keep a static bar: their webview sheet needs persistent
-      // chrome. Every other layout owns its app bar inside the scroll view.
       appBarOverContent: hasPillBar,
       appBar: hasPillBar
           ? PillAppBar(
               statusTop: statusTop,
+              loading: isPillLoading,
+              progress: isArticleReading ? readingProgress : null,
               child: Row(
                 children: [
                   const AutoLeadingButton(),
@@ -3533,16 +3554,18 @@ class PostDetailScreen extends HookConsumerWidget {
                       ),
                     ),
                   ),
-                  _PostBarBookmarkButton(post: post),
-                  _PostBarShareButton(post: post),
-                  if (isArticleReading)
-                    _PostActionsMenu(
-                      post: post,
-                      onRefresh: refreshPost,
-                      onUpdate: (newItem) => ref
-                          .read(postStateProvider(id).notifier)
-                          .updatePost(newItem),
-                    ),
+                  if (post != null) ...[
+                    _PostBarBookmarkButton(post: post),
+                    _PostBarShareButton(post: post),
+                    if (isArticleReading)
+                      _PostActionsMenu(
+                        post: post,
+                        onRefresh: refreshPost,
+                        onUpdate: (newItem) => ref
+                            .read(postStateProvider(id).notifier)
+                            .updatePost(newItem),
+                      ),
+                  ],
                 ],
               ),
             )
@@ -3556,6 +3579,12 @@ class PostDetailScreen extends HookConsumerWidget {
         // The bar reserves `statusTop + kPillAppBarHeight`, and the body starts
         // at the viewport top, so that is the band its scroll views must clear.
         topInset: hasPillBar ? statusTop + kPillAppBarHeight : 0,
+        readingProgress: readingProgress,
+        onLoadingChanged: (loading) {
+          if (context.mounted && bodyLoading.value != loading) {
+            bodyLoading.value = loading;
+          }
+        },
       ),
     );
   }

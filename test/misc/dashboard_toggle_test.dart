@@ -198,11 +198,17 @@ void main() {
     await _pumpApp(tester, const {'app_dashboard_enabled': false});
 
     expect(find.byType(NavigationBar), findsOneWidget);
+    // Long-pressing the Explore destination no longer opens the entrance sheet;
+    // the entrances live behind the More action button in Explore's header.
     await tester.longPress(find.byIcon(Symbols.explore_rounded));
     await tester.pumpAndSettle();
+    expect(find.byIcon(Symbols.category), findsNothing);
 
-    // The entrances that used to sit in the explore app bar and in the account
-    // menu / creator hub now live in the long-press sheet.
+    await tester.tap(find.byIcon(Symbols.more_vert));
+    await tester.pumpAndSettle();
+
+    // The entrances that used to sit in the long-press sheet now live in
+    // Explore's top-right action sheet.
     expect(find.byIcon(Symbols.category), findsOneWidget);
     expect(find.byIcon(Symbols.shuffle), findsOneWidget);
     expect(find.byIcon(Symbols.footprint), findsOneWidget);
@@ -224,7 +230,7 @@ void main() {
     addTearDown(tester.view.reset);
 
     await _pumpApp(tester, const {'app_dashboard_enabled': false});
-    await tester.longPress(find.byIcon(Symbols.explore_rounded));
+    await tester.tap(find.byIcon(Symbols.more_vert));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byIcon(Symbols.footprint));
@@ -236,7 +242,7 @@ void main() {
     await _teardown(tester);
   });
 
-  testWidgets('long-pressing Explore in the rail opens its entrance sheet', (
+  testWidgets('the Explore header action opens its entrance sheet on wide', (
     tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
@@ -253,6 +259,10 @@ void main() {
     );
     expect(railExplore, findsOneWidget);
     await tester.longPress(railExplore);
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Symbols.category), findsNothing);
+
+    await tester.tap(find.byIcon(Symbols.more_vert));
     await tester.pumpAndSettle();
 
     expect(find.byIcon(Symbols.category), findsOneWidget);

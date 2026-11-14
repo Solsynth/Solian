@@ -24,7 +24,6 @@ import 'package:island/core/session_cookie.dart';
 import 'package:island/core/network/relay.dart';
 import 'package:island/shared/services/location_search_service.dart';
 import 'package:island/shared/widgets/app_wrapper.dart';
-import 'package:island/shared/widgets/glass_effects.dart';
 import 'package:island/firebase_options.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/auth_wiring.dart';

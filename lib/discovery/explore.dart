@@ -172,9 +172,10 @@ class ExploreScreen extends HookConsumerWidget {
 
     final userInfo = ref.watch(userInfoProvider);
 
-    // The tune action lives at the trailing edge of both headers: it opens
-    // the quick configuration sheet without leaving the feed.
-    final configButton = _buildConfigButton(
+    // The actions live at the trailing edge of both headers: the entrances
+    // sheet (categories/tags, shuffle, footprints, draft box) and the quick
+    // configuration sheet.
+    final trailingActions = _buildTrailingActions(
       context,
       selectedPublisherNames: selectedPublisherNames,
     );
@@ -190,7 +191,7 @@ class ExploreScreen extends HookConsumerWidget {
       currentFilter: exploreSettings.filter,
       isWide: isWide,
       onOpenPost: isWide ? openPost : null,
-      headerTrailing: configButton,
+      headerTrailing: trailingActions,
     );
 
     final composeFab = userInfo.value != null
@@ -218,7 +219,7 @@ class ExploreScreen extends HookConsumerWidget {
               hasSubscriptionFiltersApplied: hasSubscriptionFiltersApplied,
               handleFilterChange: handleFilterChange,
             ),
-            barTrailing: configButton,
+            barTrailing: trailingActions,
             feed: feed,
             onOpenFullPage: (id) =>
                 context.router.push(PostDetailRoute(id: id)),
@@ -284,6 +285,98 @@ class ExploreScreen extends HookConsumerWidget {
         );
       },
     ).padding(bottom: MediaQuery.of(context).padding.bottom);
+  }
+
+  /// The header's trailing actions: the explore entrances menu and the quick
+  /// configuration sheet.
+  Widget _buildTrailingActions(
+    BuildContext context, {
+    required ValueNotifier<List<String>> selectedPublisherNames,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildEntrancesButton(context),
+        _buildConfigButton(
+          context,
+          selectedPublisherNames: selectedPublisherNames,
+        ),
+      ],
+    );
+  }
+
+  /// Opens the explore entrances sheet (categories/tags, shuffle, footprints,
+  /// and draft box).
+  Widget _buildEntrancesButton(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Symbols.more_vert),
+      tooltip: 'more'.tr(),
+      onPressed: () => _showExploreEntrancesSheet(context),
+    );
+  }
+
+  void _showExploreEntrancesSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      showDragHandle: false,
+      constraints: const BoxConstraints(maxWidth: 480),
+      builder: (sheetContext) => SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                child: Text(
+                  'explore'.tr(),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                leading: const Icon(Symbols.category),
+                title: Text('categoriesAndTags'.tr()),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  context.router.push(PostCategoriesListRoute());
+                },
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                leading: const Icon(Symbols.shuffle),
+                title: Text('postShuffle'.tr()),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  context.router.push(const PostShuffleRoute());
+                },
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                leading: const Icon(Symbols.footprint),
+                title: Text('browseFootprints'.tr()),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  context.router.push(const BookmarksRoute());
+                },
+              ),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                leading: const Icon(Symbols.drafts),
+                title: Text('draftBox').tr(),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  context.router.push(const DraftBoxRoute());
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   /// The header's trailing action: the quick configuration sheet.

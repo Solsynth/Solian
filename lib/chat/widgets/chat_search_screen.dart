@@ -7,7 +7,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/accounts/relationship_pod.dart';
@@ -829,7 +828,6 @@ class SearchMessagesScreen extends HookConsumerWidget {
     final debounceTimer = useRef<Timer?>(null);
     final messagesNotifier = ref.read(messagesProvider(roomId).notifier);
     final client = ref.read(apiClientProvider);
-    final database = ref.read(databaseProvider);
 
     Future<void> performSearch(String query) async {
       final trimmedQuery = query.trim();

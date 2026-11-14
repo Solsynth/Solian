@@ -177,7 +177,7 @@ void main() {
   });
 
   testWidgets(
-    'non-glass material uses surface color with no border in light and dark mode',
+    'non-glass material uses surfaceContainer with no border in light and dark mode',
     (tester) async {
       Future<BoxDecoration> pumpWithBrightness(Brightness brightness) async {
         final theme = ThemeData(
@@ -225,7 +225,7 @@ void main() {
         ),
       );
       final lightDecoration = await pumpWithBrightness(Brightness.light);
-      expect(lightDecoration.color, lightTheme.colorScheme.surface);
+      expect(lightDecoration.color, lightTheme.colorScheme.surfaceContainer);
       expect(lightDecoration.border, isNull);
 
       final darkTheme = ThemeData(
@@ -236,7 +236,7 @@ void main() {
         ),
       );
       final darkDecoration = await pumpWithBrightness(Brightness.dark);
-      expect(darkDecoration.color, darkTheme.colorScheme.surface);
+      expect(darkDecoration.color, darkTheme.colorScheme.surfaceContainer);
       expect(darkDecoration.border, isNull);
     },
   );

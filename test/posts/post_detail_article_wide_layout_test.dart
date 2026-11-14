@@ -64,11 +64,11 @@ SnPost _article() {
     'content': [
       '## Scope of impact',
       '',
-      'Body text of the first section. ' * 8,
+      'Body text of the first section. ' * 80,
       '',
       '## Root cause',
       '',
-      'Body text of the second section.',
+      'Body text of the second section. ' * 80,
     ].join('\n'),
     'created_at': '2026-01-01T00:00:00Z',
     'updated_at': '2026-01-01T00:00:00Z',
@@ -171,19 +171,23 @@ void main() {
     );
   });
 
-  testWidgets('the reading progress line sits under the pill band', (
+  testWidgets('scrolling the article drives the rounded pill progress bar', (
     tester,
   ) async {
     final post = _article();
     await _pump(tester, post);
 
-    final line = tester.getRect(
-      find.byKey(const ValueKey('article-reading-progress')),
-    );
+    expect(find.byKey(const ValueKey('article-reading-progress')), findsNothing);
+    expect(find.byKey(const ValueKey('pill-progress-ring')), findsNothing);
+    expect(tester.widget<PillSurface>(find.byType(PillSurface)).progress, 0.0);
+
+    await tester.drag(find.byType(CustomScrollView).first, const Offset(0, -300));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('pill-progress-ring')), findsOneWidget);
     expect(
-      line.top,
-      _kStatusTop + kPillAppBarHeight,
-      reason: 'the line must not paint behind the pill',
+      tester.widget<PillSurface>(find.byType(PillSurface)).progress,
+      greaterThan(0.0),
     );
   });
 }
