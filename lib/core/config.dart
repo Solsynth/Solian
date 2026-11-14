@@ -547,7 +547,7 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       outgoingCallKitEnabled: prefs.getBool(kAppOutgoingCallKitEnabled) ?? true,
       weatherNoGeolocation: prefs.getBool(kAppWeatherNoGeolocation) ?? true,
       autoUploadAttachments: prefs.getBool(kAppAutoUploadAttachments) ?? true,
-      glassEffects: prefs.getBool(kAppGlassEffects) ?? true,
+      glassEffects: prefs.getBool(kAppGlassEffects) ?? false,
     );
   }
 
