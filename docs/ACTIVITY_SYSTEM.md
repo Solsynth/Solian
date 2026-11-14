@@ -8,7 +8,7 @@ The activity system consists of:
 
 1. **Desktop Presence Services** - Monitor idle status and now playing state
 2. **Activity RPC Server** - Discord-compatible server for third-party app integration
-3. **Server API** - REST endpoints to manage activities (`/stargate/activities`)
+3. **Server API** - Pulsar playback endpoints (`/pulsar/sessions`, `/pulsar/users/.../now-playing`)
 4. **WebSocket Updates** - Real-time presence updates via WebSocket
 
 ## Architecture
@@ -31,11 +31,11 @@ The activity system consists of:
 └───────────────────────────────┼────────────────────────────────┘
                                 │
                                 ▼
-                    ┌───────────────────────┐
-                    │   Server API          │
-                    │ POST /stargate/activities │
-                    │ DELETE /stargate/activities │
-                    └───────────────────────┘
+                    ┌──────────────────────────────┐
+                    │          Pulsar API          │
+                    │ POST /pulsar/sessions/now-playing │
+                    │ POST /pulsar/sessions/end    │
+                    └──────────────────────────────┘
 ```
 
 ## Activity Data Structure
@@ -44,53 +44,56 @@ Activities are submitted as JSON payloads with the following structure:
 
 ```json
 {
-  "type": 2,
+  "domain": "music",
   "manual_id": "desktop:now_playing:unique_id",
   "provider": "apple_music",
-  "reference_id": "123456789",
-  "queryable_terms": ["apple_music", "123456789", "song title", "artist name"],
+  "provider_key": "123456789",
   "title": "Song Title",
   "subtitle": "Artist Name",
   "caption": "Album Name",
-  "title_url": "https://music.apple.com/...",
-  "subtitle_url": "https://music.apple.com/...",
+  "artwork_url": "sha256:abc123...",
   "small_image": "sha256:abc123...",
   "large_image": "sha256:abc123...",
+  "progress_seconds": 120,
+  "duration_seconds": 240,
   "meta": {
     "source": "music",
     "provider": "apple_music",
-    "playback_rate": 1.0,
-    "duration_seconds": 240.5,
-    "position_seconds": 120.3
+    "playback_rate": 1.0
   },
   "lease_minutes": 5
 }
 ```
 
-### Activity Types
+### Activity Domains
 
-| Value | Type      |
-|-------|-----------|
-| 0     | Unknown   |
-| 1     | Gaming    |
-| 2     | Music     |
-| 3     | Workout   |
+| Value      | Meaning                         |
+|------------|---------------------------------|
+| `music`    | Music or podcast playback       |
+| `gaming`   | Game activity                   |
+| `video`    | Video playback                  |
+| `anime`    | Anime playback                  |
+| `book`     | Reading                         |
+| `custom`   | Anything else                   |
+
+Pulsar also stores the free-form domain on each session; the client maps
+`video`/`anime` to the entertainment presence glyph and `book` to reading.
 
 ### Key Fields
 
 | Field | Description |
 |-------|-------------|
-| `type` | Activity type (integer) |
-| `manual_id` | Unique identifier for the activity (used for updates/cleanup) |
+| `domain` | Activity kind (`music`, `gaming`, `video`, `anime`, `book`, `custom`) |
+| `manual_id` | Unique identifier for the session (used for updates/cleanup) |
 | `provider` | Content provider (e.g., `apple_music`, `spotify`) |
-| `reference_id` | Provider-specific content ID |
-| `queryable_terms` | Search terms for activity discovery |
+| `provider_key` | Provider-specific content ID |
 | `title` | Primary text (song name, game name, etc.) |
 | `subtitle` | Secondary text (artist, game details) |
 | `caption` | Tertiary text (album, stream info) |
-| `small_image` / `large_image` | Artwork URLs or `sha256:` references |
+| `small_image` / `large_image` | Artwork URLs; `artwork_url` is the canonical field |
+| `progress_seconds` / `duration_seconds` | Playback position and length |
 | `meta` | Provider-specific metadata |
-| `lease_minutes` | Activity lease duration (auto-expires) |
+| `lease_minutes` | Session lease duration (auto-expires) |
 
 ## Desktop Now Playing Service
 
@@ -266,27 +269,36 @@ The RPC server captures the last 50 packets with:
 
 ## API Endpoints
 
-### POST /stargate/activities
+### POST /pulsar/sessions/now-playing
 
-Create or update an activity.
+Create or refresh a live session. Pulsar upserts on `(account_id, manual_id)`,
+so renewals use the same call.
 
-**Query Parameters:**
-- `manualId` (optional): Activity identifier for updates
+**Request Body:** Pulsar session object (see structure above). `title` is
+required; `domain` defaults to `music`.
 
-**Request Body:** Activity data object (see structure above)
+### POST /pulsar/sessions/end
 
-### DELETE /stargate/activities
+End a live session.
 
-Remove an activity.
+**Request Body:**
 
-**Query Parameters:**
-- `manualId` (required): Activity identifier to remove
+```json
+{ "manual_id": "desktop:now_playing:unique_id", "auto_scrobble": false }
+```
 
-### GET /stargate/activities/:username
+`auto_scrobble` defaults to `false`; the Discord-RPC path must leave it off.
 
-Get activities for a user.
+### GET /pulsar/users/:username/now-playing
 
-**Response:** Array of activity objects
+Get the active sessions for one account.
+
+**Response:** Array of Pulsar session objects.
+
+### GET /pulsar/presence/activities?account_ids=…
+
+Batch form used by the friend overview. Comma-separated or repeated
+`account_ids`; at most 200 per request. Only active sessions are returned.
 
 ## WebSocket Events
 
@@ -304,12 +316,17 @@ Sent when idle state changes.
 
 ### account.presence.activities.updated
 
-Received when another user's activities change.
+Received when a live session changes. Pulsar sends one `session` object (or
+`null` when the session ends); the client also accepts Stargate's legacy
+`activities` array.
 
 ```json
 {
   "type": "account.presence.activities.updated",
-  "data": { "account_id": "..." }
+  "data": {
+    "account_id": "...",
+    "session": { "id": "...", "domain": "music", "title": "..." }
+  }
 }
 ```
 

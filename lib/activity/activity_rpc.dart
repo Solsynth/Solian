@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
+import 'package:island/activity/pulsar_activity.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island_desktop_presence/activity_rpc_transport.dart';
 import 'package:logging/logging.dart';
@@ -441,7 +442,10 @@ class ServerStateNotifier extends Notifier<ServerState> {
               'lease_minutes': kPresenceActivityLease,
             };
 
-            await apiClient.post('/stargate/activities', data: activityData);
+            await apiClient.post(
+              '/pulsar/sessions/now-playing',
+              data: pulsarNowPlayingBody(activityData),
+            );
             setCurrentActivity(appId, activityData);
           } catch (e) {
             Logger.root.info('Failed to set remote activity status: $e');
@@ -477,9 +481,9 @@ class ServerStateNotifier extends Notifier<ServerState> {
         final currentId = currentActivityManualId;
         if (currentId != null && currentId == appId) {
           try {
-            await apiClient.delete(
-              '/stargate/activities',
-              queryParameters: {'manualId': currentId},
+            await apiClient.post(
+              '/pulsar/sessions/end',
+              data: {'manual_id': currentId},
             );
             setCurrentActivity(null, null);
           } catch (e) {
@@ -588,8 +592,8 @@ class ServerStateNotifier extends Notifier<ServerState> {
     if (state.currentActivityData != null) {
       try {
         await apiClient.post(
-          '/stargate/activities',
-          data: state.currentActivityData,
+          '/pulsar/sessions/now-playing',
+          data: pulsarNowPlayingBody(state.currentActivityData!),
         );
         Logger.root.info('Activity lease renewed');
       } catch (e) {
@@ -616,11 +620,10 @@ Future<List<SnPresenceActivity>> presenceActivities(
   String uname,
 ) async {
   final apiClient = ref.watch(apiClientProvider);
-  final response = await apiClient.get('/stargate/activities/$uname');
-  final data = response.data as List<dynamic>;
-  final activities = data
-      .map((json) => SnPresenceActivity.fromJson(json))
-      .toList();
+  final response = await apiClient.get(
+    '/pulsar/users/${Uri.encodeComponent(uname)}/now-playing',
+  );
+  final activities = pulsarActivitiesFromJson(response.data);
 
   if (activities.isNotEmpty) {
     final accountId = activities.first.accountId;

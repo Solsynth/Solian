@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:island/activity/pulsar_activity.dart';
 import 'package:island/accounts/widgets/account/friends_overview.dart';
 import 'package:island/accounts/widgets/friend_status_toast.dart';
 import 'package:island/core/config.dart';
@@ -223,14 +224,28 @@ class FriendStatusListener {
     final accountId = data['account_id'] as String?;
     if (accountId == null) return;
 
-    final activitiesJson = data['activities'] as List<dynamic>?;
-    if (activitiesJson == null) return;
-
-    final newActivities = activitiesJson
-        .map(
-          (json) => SnPresenceActivity.fromJson(json as Map<String, dynamic>),
-        )
-        .toList();
+    final activitiesJson = data['activities'];
+    final sessionJson = data['session'];
+    final List<SnPresenceActivity> newActivities;
+    if (activitiesJson is List) {
+      newActivities = [
+        for (final json in activitiesJson)
+          if (json is Map)
+            SnPresenceActivity.fromJson(Map<String, dynamic>.from(json)),
+      ];
+    } else if (sessionJson is Map) {
+      // Pulsar publishes one live session per change; Stargate publishes the
+      // legacy list. Accept both so the cache/toast path does not depend on
+      // which service originated the packet.
+      newActivities = [
+        pulsarActivityFromJson(Map<String, dynamic>.from(sessionJson)),
+      ];
+    } else if (data.containsKey('activities') || data.containsKey('session')) {
+      // A null session is Pulsar's "session ended" packet.
+      newActivities = const [];
+    } else {
+      return;
+    }
 
     final previousActivities = _cache.getActivities(accountId);
 

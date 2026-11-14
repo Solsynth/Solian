@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/theme.dart';
+import 'package:island/activity/pulsar_activity.dart';
 import 'package:island/accounts/utils/account_status_utils.dart';
 import 'package:island/accounts/widgets/account/account_pfc.dart';
 import 'package:island/core/network.dart';
@@ -21,9 +23,50 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'friends_overview.g.dart';
 
+/// Replaces the activities embedded in Stargate's friend overview with the
+/// caller's current Pulsar sessions. The friend/status part still comes from
+/// Stargate because Pulsar has no social graph; presence itself is read from
+/// its canonical owner.
+Future<List<SnFriendOverviewItem>> _withPulsarActivities(
+  Dio apiClient,
+  List<SnFriendOverviewItem> friends,
+) async {
+  if (friends.isEmpty) return friends;
+
+  final accountIds = <String>{
+    for (final friend in friends)
+      if (friend.account.id.isNotEmpty) friend.account.id,
+  }.toList();
+  if (accountIds.isEmpty) return friends;
+
+  try {
+    final byAccount = <String, List<SnPresenceActivity>>{};
+    for (var start = 0; start < accountIds.length; start += 100) {
+      final end = start + 100 > accountIds.length
+          ? accountIds.length
+          : start + 100;
+      final response = await apiClient.get(
+        '/pulsar/presence/activities',
+        queryParameters: {
+          'account_ids': accountIds.sublist(start, end).join(','),
+        },
+      );
+      byAccount.addAll(pulsarActivitiesByAccount(response.data));
+    }
+    return [
+      for (final friend in friends)
+        friend.copyWith(activities: byAccount[friend.account.id] ?? const []),
+    ];
+  } catch (_) {
+    // Older deployments have no Pulsar route; keep the Stargate snapshot.
+    return friends;
+  }
+}
+
 @riverpod
 Future<List<SnFriendOverviewItem>> friendsOverview(Ref ref) async {
   final client = ref.watch(solarNetworkClientProvider);
+  final apiClient = ref.watch(apiClientProvider);
   final websocket = ref.watch(websocketProvider);
   final subscription = websocket.dataStream.listen((packet) {
     if (packet.type == 'account.status.updated' ||
@@ -34,7 +77,7 @@ Future<List<SnFriendOverviewItem>> friendsOverview(Ref ref) async {
   ref.onDispose(subscription.cancel);
 
   final friends = await client.accounts.getFriendsOverview();
-  return friends;
+  return _withPulsarActivities(apiClient, friends);
 }
 
 final friendsOverviewExpandedProvider =
@@ -54,12 +97,13 @@ final friendsOverviewExpandedProvider =
         queryParameters: {'includeOffline': true},
       );
 
-      return (response.data as List<dynamic>)
+      final friends = (response.data as List<dynamic>)
           .map(
             (json) =>
                 SnFriendOverviewItem.fromJson(json as Map<String, dynamic>),
           )
           .toList();
+      return _withPulsarActivities(apiClient, friends);
     });
 
 class FriendsOverviewWidget extends HookConsumerWidget {
