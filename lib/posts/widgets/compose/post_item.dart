@@ -1004,25 +1004,96 @@ class _ForwardedReferenceCard extends HookConsumerWidget {
                       renderingPadding: EdgeInsets.zero,
                     ),
                   ),
-                  if (referencePost.content != null &&
-                      referencePost.content!.isNotEmpty)
+                  if (referencePost.type == 1)
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                      child: MarkdownTextContent(
-                        textStyle: TextStyle(
-                          fontSize:
-                              Theme.of(
-                                context,
-                              ).textTheme.bodyMedium!.fontSize! *
-                              0.9,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        content: referencePost.content!,
-                        isSelectable: false,
-                        noMentionChip: referencePost.fediverseUri != null,
+                      padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+                      child: buildPostArticlePreviewCard(
+                        context,
+                        referencePost,
+                        padding: EdgeInsets.zero,
                       ),
+                    )
+                  else if (referencePost.type == 2)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+                      child: buildPostBlogPreviewCard(
+                        context,
+                        referencePost,
+                        padding: EdgeInsets.zero,
+                      ),
+                    )
+                  else
+                    Builder(
+                      builder: (context) {
+                        final preview = buildTruncatedPostPreview(
+                          referencePost,
+                        );
+                        final hasTitle =
+                            referencePost.title?.isNotEmpty ?? false;
+                        final hasDescription =
+                            referencePost.description?.isNotEmpty ?? false;
+                        final hasContent =
+                            referencePost.content?.isNotEmpty ?? false;
+                        if (!hasTitle &&
+                            !hasDescription &&
+                            !hasContent &&
+                            !preview.isTruncated) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (hasTitle)
+                                Text(
+                                  referencePost.title!,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: theme.colorScheme.onSurface,
+                                  ),
+                                ).padding(top: 4, bottom: 2),
+                              if (hasDescription)
+                                Text(
+                                  referencePost.description!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ).padding(bottom: 4),
+                              if (hasContent)
+                                MarkdownTextContent(
+                                  textStyle: TextStyle(
+                                    fontSize:
+                                        Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium!.fontSize! *
+                                        0.9,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                  content: preview.content,
+                                  isSelectable: false,
+                                  attachments: referencePost.attachments,
+                                  noMentionChip:
+                                      referencePost.fediverseUri != null,
+                                ),
+                              if (preview.isTruncated)
+                                PostTruncateHint(
+                                  margin: const EdgeInsets.only(top: 6),
+                                  backgroundColor:
+                                      theme.colorScheme.surfaceContainerHighest,
+                                ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
-                  if (referencePost.attachments.isNotEmpty)
+                  if (referencePost.type != 1 &&
+                      referencePost.type != 2 &&
+                      referencePost.attachments.isNotEmpty)
                     referencePost.attachments.length == 1
                         ? FullBleedSingleAttachment(
                             file: referencePost.attachments.first,

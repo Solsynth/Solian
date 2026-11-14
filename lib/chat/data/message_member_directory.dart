@@ -44,6 +44,7 @@ class MessageMemberDirectory {
   /// re-running the repair for ids that resolved; a genuinely deleted account
   /// (unrecoverable) is simply absent from the room-member list.
   final Set<String> _repairedAccountIds = <String>{};
+  final Map<String, Future<void>> _pendingSingleRepairs = {};
   bool _repairInFlight = false;
 
   static const int _repairMaxMessages = 100;
@@ -209,7 +210,39 @@ class MessageMemberDirectory {
     );
   }
 
-  Future<void> _repairSenders({required List<String> memberIds}) async {
+  /// Repairs the sender for a single [message] (e.g. a quoted/referenced
+  /// message that may not be present in [_timeline.timelineMessages]).
+  Future<void> repairSenderForMessage(LocalChatMessage message) {
+    if (!_ref.mounted) return Future.value();
+    final sender = message.sender;
+    if (sender != null && (sender.accountId == 'system' || !isBare(sender))) {
+      return Future.value();
+    }
+    final memberId = sender?.id ?? message.senderId;
+    if (memberId.isEmpty || memberId == 'system') return Future.value();
+    if (_repairedAccountIds.contains(memberId)) return Future.value();
+
+    final existing = _pendingSingleRepairs[memberId];
+    if (existing != null) return existing;
+
+    final future = () async {
+      try {
+        await _repairSenders(
+          memberIds: [memberId],
+          extraSamples: {memberId: message},
+        );
+      } finally {
+        _pendingSingleRepairs.remove(memberId);
+      }
+    }();
+    _pendingSingleRepairs[memberId] = future;
+    return future;
+  }
+
+  Future<void> _repairSenders({
+    required List<String> memberIds,
+    Map<String, LocalChatMessage> extraSamples = const {},
+  }) async {
     final resolvedByMemberId = <String, SnChatMember>{};
 
     try {
@@ -262,9 +295,11 @@ class MessageMemberDirectory {
           accountIds[memberId] = existing.accountId;
           continue;
         }
-        final sample = _timeline.timelineMessages
-            .where((message) => message.senderId == memberId)
-            .firstOrNull;
+        final sample =
+            _timeline.timelineMessages
+                .where((message) => message.senderId == memberId)
+                .firstOrNull ??
+            extraSamples[memberId];
         if (sample == null) continue;
         memberForMessage[memberId] = sample;
         final local = await _repository.getLocalMessage(sample.id);

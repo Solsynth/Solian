@@ -82,6 +82,26 @@ class ReferencedChatMessageCache
     _store(messageId, AsyncData(message));
   }
 
+  /// Re-normalizes cached referenced messages when the member directory
+  /// repairs or updates sender records, without emitting if nothing changed.
+  void reNormalize(LocalChatMessage Function(LocalChatMessage) normalize) {
+    if (state.isEmpty) return;
+    Map<String, AsyncValue<LocalChatMessage?>>? next;
+    for (final entry in state.entries) {
+      final current = entry.value.value;
+      if (current == null) continue;
+      final normalized = normalize(current);
+      if (identical(normalized, current) && normalized.sender == current.sender) {
+        continue;
+      }
+      next ??= Map<String, AsyncValue<LocalChatMessage?>>.of(state);
+      next[entry.key] = AsyncData(normalized);
+    }
+    if (next != null) {
+      state = next;
+    }
+  }
+
   void _store(String messageId, AsyncValue<LocalChatMessage?> value) {
     final next = Map<String, AsyncValue<LocalChatMessage?>>.of(state)
       ..remove(messageId);
@@ -1138,6 +1158,9 @@ class MessagesNotifier extends _$MessagesNotifier
     _messages = normalized;
     _refreshLatestObservedRoomSequence(normalized);
     state = AsyncValue.data(_filterActiveMessages(normalized));
+    ref
+        .read(referencedChatMessageCacheProvider(roomId).notifier)
+        .reNormalize(_memberDirectory.normalizeMessage);
   }
 
   void _subscribeToOutbox() {
@@ -1768,9 +1791,12 @@ class MessagesNotifier extends _$MessagesNotifier
           .read(chatOutboxProvider.notifier)
           .markFinalized(roomId, messageWithSequence);
     }
+    final normalizedForQuote = _memberDirectory.normalizeMessage(
+      messageWithSequence,
+    );
     ref
         .read(referencedChatMessageCacheProvider(roomId).notifier)
-        .put(messageWithSequence, messageId: messageWithSequence.id);
+        .put(normalizedForQuote, messageId: normalizedForQuote.id);
     _observeRoomSequence(roomSequence, message.createdAt);
     // The room list renders preview and unread state from the summary, and
     // only its notify-aware fold decides whether this message raises the
@@ -1786,9 +1812,12 @@ class MessagesNotifier extends _$MessagesNotifier
   @override
   void onMessageChanged(LocalChatMessage message, int? roomSequence) {
     final messageWithSequence = _applyRoomSequence(message, roomSequence);
+    final normalizedForQuote = _memberDirectory.normalizeMessage(
+      messageWithSequence,
+    );
     ref
         .read(referencedChatMessageCacheProvider(roomId).notifier)
-        .put(messageWithSequence, messageId: messageWithSequence.id);
+        .put(normalizedForQuote, messageId: normalizedForQuote.id);
     _observeRoomSequence(roomSequence, message.createdAt);
     if (messageWithSequence.status == MessageStatus.sent &&
         messageWithSequence.type != 'placeholder') {
@@ -1817,9 +1846,12 @@ class MessagesNotifier extends _$MessagesNotifier
   @override
   void onMessageRemoved(LocalChatMessage message, int? roomSequence) {
     final messageWithSequence = _applyRoomSequence(message, roomSequence);
+    final normalizedForQuote = _memberDirectory.normalizeMessage(
+      messageWithSequence,
+    );
     ref
         .read(referencedChatMessageCacheProvider(roomId).notifier)
-        .put(messageWithSequence, messageId: messageWithSequence.id);
+        .put(normalizedForQuote, messageId: normalizedForQuote.id);
     _observeRoomSequence(roomSequence, message.createdAt);
     if (messageWithSequence.type == 'placeholder') {
       _pendingMessages.remove(messageWithSequence.id);
@@ -2407,12 +2439,38 @@ class MessagesNotifier extends _$MessagesNotifier
     loadInitial();
   }
 
+  bool _needsSenderRepair(LocalChatMessage message) {
+    final sender = message.sender;
+    if (sender == null) {
+      return message.senderId.isNotEmpty && message.senderId != 'system';
+    }
+    if (sender.accountId == 'system') return false;
+    return _memberDirectory.isBare(sender);
+  }
+
+  Future<LocalChatMessage> _ensureNormalizedMessageSender(
+    LocalChatMessage message,
+  ) async {
+    var resolved = _memberDirectory.normalizeMessage(message);
+    if (_needsSenderRepair(resolved)) {
+      await _memberDirectory.repairSenderForMessage(resolved);
+      resolved = _memberDirectory.normalizeMessage(resolved);
+    }
+    if (!_needsSenderRepair(resolved)) {
+      _messageCache.put(resolved);
+    }
+    return resolved;
+  }
+
   Future<LocalChatMessage?> fetchMessageById(String messageId) async {
     final cached = _messageCache.get(messageId);
-    if (cached != null) return cached;
+    if (cached != null) {
+      return _ensureNormalizedMessageSender(cached);
+    }
 
     if (_messageCache.hasPendingFetch(messageId)) {
-      return _messageCache.getPendingFetch(messageId)!;
+      final pending = await _messageCache.getPendingFetch(messageId);
+      return pending == null ? null : _ensureNormalizedMessageSender(pending);
     }
 
     final fetchFuture = _fetchMessageByIdInternal(messageId);
@@ -2424,10 +2482,13 @@ class MessagesNotifier extends _$MessagesNotifier
     Logger.root.info('Fetching message by id $messageId from DB/API');
     try {
       final localMessage = await _repository.getLocalMessage(messageId);
-      if (localMessage != null) return localMessage;
+      if (localMessage != null) {
+        return await _ensureNormalizedMessageSender(localMessage);
+      }
 
       final remoteMessage = await _repository.fetchRemoteMessage(messageId);
       if (remoteMessage == null) return null;
+      _memberDirectory.upsert(remoteMessage.sender);
       final message = LocalChatMessage.fromRemoteMessage(
         remoteMessage,
         MessageStatus.sent,
@@ -2440,7 +2501,7 @@ class MessagesNotifier extends _$MessagesNotifier
       if (remoteMessage.type == 'voice') {
         _prefetchVoiceForRemoteMessage(remoteMessage);
       }
-      return message;
+      return await _ensureNormalizedMessageSender(message);
     } catch (e) {
       if (e is DioException) return null;
       rethrow;

@@ -736,6 +736,64 @@ void main() {
       },
     );
 
+    test(
+      'referencedChatMessageCache repairs bare sender on resolve and re-normalizes on timeline repair',
+      () async {
+        final bareAccount = SnAccount(
+          id: 'account-1',
+          name: '',
+          nick: '',
+          language: 'en',
+          isSuperuser: false,
+          automatedId: null,
+          profile: SnAccountProfile(
+            id: 'profile-1',
+            experience: 0,
+            level: 1,
+            levelingProgress: 0,
+            picture: null,
+            background: null,
+            verification: null,
+            createdAt: DateTime.utc(2026),
+            updatedAt: DateTime.utc(2026),
+            deletedAt: null,
+          ),
+          perkSubscription: null,
+          activatedAt: null,
+          createdAt: DateTime.utc(2026),
+          updatedAt: DateTime.utc(2026),
+          deletedAt: null,
+        );
+        final bareSender = member('room-1').copyWith(account: bareAccount);
+        final withBareSender = LocalChatMessage.fromRemoteMessage(
+          message('room-1').copyWith(sender: bareSender),
+          MessageStatus.sent,
+        );
+        await database.saveMessageWithSender(withBareSender);
+
+        final adapter = _MembersRepairAdapter(
+          members: [member('room-1').toJson()],
+        );
+        container.read(apiClientProvider).httpClientAdapter = adapter;
+
+        // Ensure messagesProvider('room-1') is initialized.
+        await container.read(messagesProvider('room-1').future);
+
+        // Resolving the referenced message repairs its bare sender instead of
+        // returning a fallback UUID nick.
+        await container
+            .read(referencedChatMessageCacheProvider('room-1').notifier)
+            .resolve('message-1');
+
+        final cached = container
+            .read(referencedChatMessageCacheProvider('room-1'))['message-1']
+            ?.value;
+        expect(cached, isNotNull);
+        expect(cached!.sender, isNotNull);
+        expect(cached.sender!.account.nick, 'Test User');
+      },
+    );
+
     test('burst of concurrent ws arrivals keeps every message', () async {
       final notifier = container.read(messagesProvider('room-1').notifier);
       final now = DateTime.utc(2026, 1, 1, 12);

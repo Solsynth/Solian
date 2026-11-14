@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -1770,23 +1772,25 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
           borderRadius: bubbleShape.borderRadius,
         ),
         clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+        child: _BubbleColumn(
           children: [
             if (showsReply)
-              MessageQuoteWidget(
-                message: message,
-                textColor: textColor,
-                isReply: true,
-                borderRadius: topCorners,
+              _BubbleStretchBand(
+                child: MessageQuoteWidget(
+                  message: message,
+                  textColor: textColor,
+                  isReply: true,
+                  borderRadius: topCorners,
+                ),
               ),
             if (showsForward)
-              MessageQuoteWidget(
-                message: message,
-                textColor: textColor,
-                isReply: false,
-                borderRadius: showsReply ? BorderRadius.zero : topCorners,
+              _BubbleStretchBand(
+                child: MessageQuoteWidget(
+                  message: message,
+                  textColor: textColor,
+                  isReply: false,
+                  borderRadius: showsReply ? BorderRadius.zero : topCorners,
+                ),
               ),
             if (!isRedirect && remoteMessage.attachments.isNotEmpty)
               ClipRRect(
@@ -1912,6 +1916,137 @@ class MessageItemDisplayBubble extends HookConsumerWidget {
       ),
     );
   }
+}
+
+class _BubbleColumnParentData extends ContainerBoxParentData<RenderBox> {
+  bool stretch = false;
+}
+
+/// Marks a [_BubbleColumn] child (such as a reply/forward quote band) to
+/// stretch to the widest sibling's width without expanding the bubble itself.
+class _BubbleStretchBand extends ParentDataWidget<_BubbleColumnParentData> {
+  const _BubbleStretchBand({required super.child});
+
+  @override
+  void applyParentData(RenderObject renderObject) {
+    final parentData = renderObject.parentData! as _BubbleColumnParentData;
+    if (!parentData.stretch) {
+      parentData.stretch = true;
+      renderObject.parent?.markNeedsLayout();
+    }
+  }
+
+  @override
+  Type get debugTypicalAncestorWidgetClass => _BubbleColumn;
+}
+
+class _BubbleColumn extends MultiChildRenderObjectWidget {
+  const _BubbleColumn({required super.children});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderBubbleColumn();
+}
+
+class _RenderBubbleColumn extends RenderBox
+    with
+        ContainerRenderObjectMixin<RenderBox, _BubbleColumnParentData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, _BubbleColumnParentData> {
+  @override
+  void setupParentData(RenderBox child) {
+    if (child.parentData is! _BubbleColumnParentData) {
+      child.parentData = _BubbleColumnParentData();
+    }
+  }
+
+  @override
+  void performLayout() {
+    final maxWidth = constraints.maxWidth;
+    final childConstraints = BoxConstraints(maxWidth: maxWidth);
+
+    var widest = constraints.minWidth;
+    var child = firstChild;
+    while (child != null) {
+      child.layout(childConstraints, parentUsesSize: true);
+      widest = math.max(widest, child.size.width);
+      child = childAfter(child);
+    }
+
+    final bubbleWidth = math.min(maxWidth, widest);
+
+    var totalHeight = 0.0;
+    child = firstChild;
+    while (child != null) {
+      final parentData = child.parentData! as _BubbleColumnParentData;
+      if (parentData.stretch && child.size.width < bubbleWidth) {
+        child.layout(
+          BoxConstraints(minWidth: bubbleWidth, maxWidth: bubbleWidth),
+          parentUsesSize: true,
+        );
+      }
+      parentData.offset = Offset(0, totalHeight);
+      totalHeight += child.size.height;
+      child = childAfter(child);
+    }
+
+    size = constraints.constrain(Size(bubbleWidth, totalHeight));
+  }
+
+  @override
+  double computeMinIntrinsicWidth(double height) {
+    var width = 0.0;
+    var child = firstChild;
+    while (child != null) {
+      width = math.max(width, child.getMinIntrinsicWidth(height));
+      child = childAfter(child);
+    }
+    return width;
+  }
+
+  @override
+  double computeMaxIntrinsicWidth(double height) {
+    var width = 0.0;
+    var child = firstChild;
+    while (child != null) {
+      width = math.max(width, child.getMaxIntrinsicWidth(height));
+      child = childAfter(child);
+    }
+    return width;
+  }
+
+  @override
+  double computeMinIntrinsicHeight(double width) {
+    var height = 0.0;
+    var child = firstChild;
+    while (child != null) {
+      height += child.getMinIntrinsicHeight(width);
+      child = childAfter(child);
+    }
+    return height;
+  }
+
+  @override
+  double computeMaxIntrinsicHeight(double width) {
+    var height = 0.0;
+    var child = firstChild;
+    while (child != null) {
+      height += child.getMaxIntrinsicHeight(width);
+      child = childAfter(child);
+    }
+    return height;
+  }
+
+  @override
+  double? computeDistanceToActualBaseline(TextBaseline baseline) =>
+      defaultComputeDistanceToFirstActualBaseline(baseline);
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) =>
+      defaultHitTestChildren(result, position: position);
+
+  @override
+  void paint(PaintingContext context, Offset offset) =>
+      defaultPaint(context, offset);
 }
 
 /// A bubble row with its sender avatar drawn in the gutter beside it. The

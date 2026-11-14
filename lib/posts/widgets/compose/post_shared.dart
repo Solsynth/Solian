@@ -396,6 +396,20 @@ String _truncateRegularPostBody(String content) {
   return '$truncated...';
 }
 
+/// Resolves [post]'s markdown and clamps its body to the standard preview
+/// budget (420 characters or 8 lines), returning the preview text and whether
+/// truncation occurred (either server-side or client-side).
+({String content, bool isTruncated}) buildTruncatedPostPreview(SnPost post) {
+  final resolved = resolvePostMarkdown(post);
+  final shouldClamp =
+      (post.content?.isNotEmpty ?? false) &&
+      _shouldClampRegularPostBody(resolved);
+  final preview = shouldClamp
+      ? _truncateRegularPostBody(resolved)
+      : (post.isTruncated ? '$resolved...' : resolved);
+  return (content: preview, isTruncated: post.isTruncated || shouldClamp);
+}
+
 /// Whether [post] reads better in an attention modal than on the full detail
 /// page: a short regular post that carries nothing the wide page is needed for
 /// — no media, chain, embed or collection, and a body short enough that the
@@ -414,7 +428,7 @@ bool postFitsAttentionModal(SnPost post) {
   return !_shouldClampRegularPostBody(resolvePostMarkdown(post));
 }
 
-Widget _buildArticlePreviewCard(
+Widget buildPostArticlePreviewCard(
   BuildContext context,
   SnPost post, {
   EdgeInsetsGeometry padding = const EdgeInsets.only(top: 4),
@@ -469,7 +483,7 @@ Widget _buildArticlePreviewCard(
   );
 }
 
-Widget _buildBlogPreviewCard(
+Widget buildPostBlogPreviewCard(
   BuildContext context,
   SnPost post, {
   EdgeInsetsGeometry padding = const EdgeInsets.only(top: 4),
@@ -1266,8 +1280,14 @@ class CompactPostRow extends ConsumerWidget {
 class PostTruncateHint extends StatelessWidget {
   final EdgeInsets? margin;
   final bool withArrow;
+  final Color? backgroundColor;
 
-  const PostTruncateHint({super.key, this.margin, this.withArrow = false});
+  const PostTruncateHint({
+    super.key,
+    this.margin,
+    this.withArrow = false,
+    this.backgroundColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1275,7 +1295,9 @@ class PostTruncateHint extends StatelessWidget {
       margin: margin ?? EdgeInsets.only(top: 8),
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        color:
+            backgroundColor ??
+            Theme.of(context).colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(SolRadius.pill),
       ),
       child: Row(
@@ -1444,26 +1466,14 @@ class ReferencedPostWidget extends HookConsumerWidget {
                     // Referenced post content using PostHeader
                     Expanded(
                       child: referencePost.type == 1
-                          ? _buildArticlePreviewCard(context, referencePost)
+                          ? buildPostArticlePreviewCard(context, referencePost)
                           : referencePost.type == 2
-                          ? _buildBlogPreviewCard(context, referencePost)
+                          ? buildPostBlogPreviewCard(context, referencePost)
                           : Builder(
                               builder: (context) {
-                                final referenceContent = resolvePostMarkdown(
+                                final preview = buildTruncatedPostPreview(
                                   referencePost,
                                 );
-                                final shouldTruncateReferenceBody =
-                                    (referencePost.content?.isNotEmpty ??
-                                        false) &&
-                                    _shouldClampRegularPostBody(
-                                      referenceContent,
-                                    );
-                                final referencePreviewContent =
-                                    shouldTruncateReferenceBody
-                                    ? _truncateRegularPostBody(referenceContent)
-                                    : (referencePost.isTruncated
-                                          ? '$referenceContent...'
-                                          : referenceContent);
 
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1496,7 +1506,7 @@ class ReferencedPostWidget extends HookConsumerWidget {
                                     if (referencePost.content?.isNotEmpty ??
                                         false)
                                       MarkdownTextContent(
-                                        content: referencePreviewContent,
+                                        content: preview.content,
                                         textStyle: const TextStyle(
                                           fontSize: 14,
                                         ),
@@ -1508,8 +1518,7 @@ class ReferencedPostWidget extends HookConsumerWidget {
                                         noMentionChip:
                                             referencePost.fediverseUri != null,
                                       ).padding(top: 4),
-                                    if (referencePost.isTruncated ||
-                                        shouldTruncateReferenceBody)
+                                    if (preview.isTruncated)
                                       const PostTruncateHint(
                                         margin: EdgeInsets.only(
                                           top: 8,
@@ -2208,7 +2217,7 @@ class PostBody extends ConsumerWidget {
               left: renderingPadding.left,
               right: renderingPadding.right,
             ),
-            child: _buildArticlePreviewCard(
+            child: buildPostArticlePreviewCard(
               context,
               item,
               padding: EdgeInsets.zero,
@@ -2221,7 +2230,7 @@ class PostBody extends ConsumerWidget {
               left: renderingPadding.left,
               right: renderingPadding.right,
             ),
-            child: _buildBlogPreviewCard(
+            child: buildPostBlogPreviewCard(
               context,
               item,
               padding: EdgeInsets.zero,
