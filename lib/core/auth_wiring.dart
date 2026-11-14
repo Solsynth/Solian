@@ -1,6 +1,7 @@
 import 'package:solar_network_foundation/solar_network_foundation.dart';
 
 import 'package:island/core/network.dart';
+import 'package:island/core/passkey_ceremony.dart';
 import 'package:island/shared/widgets/alert.dart';
 
 /// Binds the shared elevation flow (`solar_network_foundation`) to Island's
@@ -18,5 +19,11 @@ authHostOverrides() {
       (ref) => ref.watch(solarNetworkClientProvider),
     ),
     authErrorReporterProvider.overrideWithValue(showErrorAlert),
+    // The elevation sheet never lists a passkey as a pickable factor: Stargate
+    // settles it through the challenge's own assertion endpoints, so the host
+    // runs that ceremony here.
+    authPasskeyCeremonyProvider.overrideWith(
+      (ref) => passkeyCeremony(ref.watch(solarNetworkClientProvider)),
+    ),
   ];
 }
