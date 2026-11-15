@@ -1,6 +1,5 @@
-import com.android.build.api.dsl.ApplicationExtension
-import com.android.build.api.dsl.LibraryExtension
-import com.android.build.gradle.BaseExtension
+import com.android.build.api.variant.ApplicationAndroidComponentsExtension
+import com.android.build.api.variant.LibraryAndroidComponentsExtension
 
 allprojects {
     repositories {
@@ -27,20 +26,16 @@ subprojects {
     }
 }
 subprojects {
+    // finalizeDsl runs after the plugin's build script sets its own compileSdk
+    // but before AGP consumes the DSL, so it can't be "too late".
     plugins.withId("com.android.library") {
-        extensions.findByName("android")?.let { ext ->
-            if (ext is BaseExtension) {
-                ext.compileSdkVersion(37)
-            }
-        }
+        extensions.getByType(LibraryAndroidComponentsExtension::class.java)
+            .finalizeDsl { it.compileSdk = 37 }
     }
 
     plugins.withId("com.android.application") {
-        extensions.findByName("android")?.let { ext ->
-            if (ext is BaseExtension) {
-                ext.compileSdkVersion(37)
-            }
-        }
+        extensions.getByType(ApplicationAndroidComponentsExtension::class.java)
+            .finalizeDsl { it.compileSdk = 37 }
     }
 }
 

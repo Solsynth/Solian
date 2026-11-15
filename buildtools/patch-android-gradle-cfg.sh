@@ -3,9 +3,8 @@
 set -e
 
 # Target Android compileSdk for all patched plugin modules.
-# Override on CI with:  MAX_COMPILE_SDK=36 ./patch-android-gradle-cfg.sh
+# Override on CI with:  MAX_COMPILE_SDK=37 ./patch-android-gradle-cfg.sh
 : "${MAX_COMPILE_SDK:=37}"
-MAX_COMPILE_SDK="$(printf '%d' "$MAX_COMPILE_SDK")"   # coerce/int, guards against junk input
 
 PUB_CACHE="${PUB_CACHE:-${HOME}/.pub-cache/hosted/pub.dev}"
 export LC_ALL=C
@@ -26,12 +25,15 @@ replace_in_file() {
 
 echo "Patching Flutter plugin compileSdk versions to ${MAX_COMPILE_SDK} in ${PUB_CACHE}"
 
-# Groovy DSL — only touch files that declare a *lower* compileSdk.
-# The guard avoids gratuitous rewrites (and mtime churn) for already-correct files.
+# Groovy DSL — only touch files that declare a compileSdk at all.
+# Patterns must cover every declaration style found in pub cache:
+#   compileSdkVersion 34 | compileSdkVersion = 34 | compileSdk 34 |
+#   compileSdk = 34 | compileSdk=34 (FlutterFire local-config.gradle)
 while IFS= read -r file; do
   if grep -E 'compileSdk(Version)?[[:space:]]*([=:][[:space:]]*)?[0-9]+' "$file" >/dev/null; then
-    replace_in_file "s/compileSdkVersion[[:space:]]+[0-9]+/compileSdkVersion ${MAX_COMPILE_SDK}/g" "$file"
-    replace_in_file "s/compileSdk[[:space:]]+[=:][[:space:]]*[0-9]+/compileSdk = ${MAX_COMPILE_SDK}/g" "$file"
+    replace_in_file "s/compileSdkVersion([[:space:]]*([=:][[:space:]]*)?)[0-9]+/compileSdkVersion\1${MAX_COMPILE_SDK}/g" "$file"
+    replace_in_file "s/compileSdkVersion([[:space:]]*\\([[:space:]]*)[0-9]+([[:space:]]*\\))/compileSdkVersion\1${MAX_COMPILE_SDK}\2/g" "$file"
+    replace_in_file "s/compileSdk([[:space:]]*([=:][[:space:]]*)?)[0-9]+/compileSdk\1${MAX_COMPILE_SDK}/g" "$file"
     patched_gradle=$((patched_gradle + 1))
   fi
 done < <(find "$PUB_CACHE" -type f -name "*.gradle" 2>/dev/null)
@@ -39,12 +41,12 @@ done < <(find "$PUB_CACHE" -type f -name "*.gradle" 2>/dev/null)
 # Kotlin DSL
 while IFS= read -r file; do
   if grep -E 'compileSdk(Version)?[[:space:]]*([=:][[:space:]]*)?[0-9]+' "$file" >/dev/null; then
-    replace_in_file "s/compileSdk[[:space:]]*=[[:space:]]*[0-9]+/compileSdk = ${MAX_COMPILE_SDK}/g" "$file"
-    replace_in_file "s/compileSdkVersion\([[:space:]]*[0-9]+[[:space:]]*\)/compileSdkVersion(${MAX_COMPILE_SDK})/g" "$file"
+    replace_in_file "s/compileSdkVersion([[:space:]]*([=:][[:space:]]*)?)[0-9]+/compileSdkVersion\1${MAX_COMPILE_SDK}/g" "$file"
+    replace_in_file "s/compileSdkVersion([[:space:]]*\\([[:space:]]*)[0-9]+([[:space:]]*\\))/compileSdkVersion\1${MAX_COMPILE_SDK}\2/g" "$file"
+    replace_in_file "s/compileSdk([[:space:]]*([=:][[:space:]]*)?)[0-9]+/compileSdk\1${MAX_COMPILE_SDK}/g" "$file"
     patched_gradle_kts=$((patched_gradle_kts + 1))
   fi
 done < <(find "$PUB_CACHE" -type f -name "*.gradle.kts" 2>/dev/null)
-
 echo "Done: patched $patched_gradle *.gradle, $patched_gradle_kts *.gradle.kts to ${MAX_COMPILE_SDK}."
 
 # Pre-cache openmls native libraries if missing, to bypass GitHub release download 504 timeouts.
