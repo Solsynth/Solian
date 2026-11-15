@@ -408,11 +408,18 @@ class MlsMessageHandler {
               _groupsRecoveringEpoch.remove(mlsGroupId);
               // Try processing queued messages
               await _processPendingMessages(mlsGroupId);
+              try {
+                result = await engine.processMessage(
+                  groupIdBytes: groupIdBytes,
+                  messageBytes: ciphertextBytes,
+                );
+              } catch (_) {}
             }
           }
 
           // If epoch recovery failed, try external join
           if (!epochRecovered &&
+              result == null &&
               messageEpoch != null &&
               messageEpoch > localEpoch) {
             // Check if the error is a deserialization error - treat as unrecoverable
@@ -449,6 +456,12 @@ class MlsMessageHandler {
                   success: true,
                 ),
               );
+              try {
+                result = await engine.processMessage(
+                  groupIdBytes: groupIdBytes,
+                  messageBytes: ciphertextBytes,
+                );
+              } catch (_) {}
             } else {
               _mlsLogWarn('External join failed for $mlsGroupId: $e');
               eventBus.fire(
@@ -483,22 +496,26 @@ class MlsMessageHandler {
           // Reset recovery flag after all recovery attempts complete
           _groupsRecoveringEpoch.remove(mlsGroupId);
 
-          // Return null since we queued this message for later processing
-          return null;
+          if (result == null) {
+            // Return null since we queued this message for later processing
+            return null;
+          }
+        } else {
+          if (!_isMissingGroupError(e)) rethrow;
+
+          _mlsLogWarn(
+            'MLS group missing while decrypting room $mlsGroupId, re-bootstrapping and retrying...',
+          );
+          final recovered = await _groupManager.ensureGroupAvailable(
+            mlsGroupId,
+          );
+          if (!recovered) return null;
+
+          result = await engine.processMessage(
+            groupIdBytes: groupIdBytes,
+            messageBytes: ciphertextBytes,
+          );
         }
-
-        if (!_isMissingGroupError(e)) rethrow;
-
-        _mlsLogWarn(
-          'MLS group missing while decrypting room $mlsGroupId, re-bootstrapping and retrying...',
-        );
-        final recovered = await _groupManager.ensureGroupAvailable(mlsGroupId);
-        if (!recovered) return null;
-
-        result = await engine.processMessage(
-          groupIdBytes: groupIdBytes,
-          messageBytes: ciphertextBytes,
-        );
       }
 
       switch (result.messageType) {
@@ -541,6 +558,10 @@ class MlsMessageHandler {
             // Still update epoch even if ratchet tree fails
             await _groupManager.handleEpochChanged(mlsGroupId, newEpoch);
           }
+          await _processPendingMessages(mlsGroupId);
+          eventBus.fire(
+            MlsEpochChangedEvent(mlsGroupId: mlsGroupId, newEpoch: newEpoch),
+          );
           return const {'_mls_control_processed': true};
 
         case ProcessedMessageType.proposal:

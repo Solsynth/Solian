@@ -296,10 +296,23 @@ class MlsGroupManager {
           ? Map<String, dynamic>.from(serverState['meta'] as Map)
           : const <String, dynamic>{};
       final bootstrapDeviceId = serverMeta['bootstrap_device_id']?.toString();
-      if (!force && bootstrapDeviceId != deviceId) {
+      final serverGroupInfo = serverState['group_info']?.toString();
+      if (!force &&
+          bootstrapDeviceId != null &&
+          bootstrapDeviceId != deviceId) {
+        _mlsLogInfo(
+          'Group $mlsGroupId already bootstrapped by device $bootstrapDeviceId; '
+          'attempting external join...',
+        );
+        if (serverGroupInfo != null && serverGroupInfo.isNotEmpty) {
+          final joined = await joinGroupExternal(mlsGroupId, roomId: roomId);
+          if (joined) {
+            return await getGroupState(mlsGroupId);
+          }
+        }
         throw StateError(
           'MLS group is already bootstrapped by another device. Waiting for '
-          'a Welcome instead of creating divergent group state.',
+          'a Welcome or GroupInfo instead of creating divergent group state.',
         );
       }
 
@@ -308,6 +321,11 @@ class MlsGroupManager {
       );
 
       _mlsLogInfo('Creating MLS group for room $mlsGroupId...');
+
+      // Ensure any stale local group with the same ID is cleared before creation
+      try {
+        await engine.deleteGroup(groupIdBytes: groupIdBytes);
+      } catch (_) {}
 
       // Create the group - OpenMLS stores it in its encrypted database
       await engine.createGroup(
@@ -347,8 +365,9 @@ class MlsGroupManager {
 
       _logEpochTransition(mlsGroupId, 0, epoch.toInt(), 'bootstrap');
 
+      final resolvedRoomId = _resolveRoomId(mlsGroupId, roomId);
       final membershipReady = await _notifyGroupJoined(
-        roomId: _resolveRoomId(mlsGroupId, roomId),
+        roomId: resolvedRoomId,
         epoch: epoch.toInt(),
       );
       if (!membershipReady) {
@@ -360,12 +379,30 @@ class MlsGroupManager {
         throw StateError('Failed to publish initial MLS GroupInfo.');
       }
 
-      if (invitedMembers != null && invitedMembers.isNotEmpty) {
-        await addMembersAndFanoutWelcome(
-          mlsGroupId,
-          invitedMembers,
-          chatRoomId: roomId ?? mlsGroupId,
-        );
+      var membersToInvite = invitedMembers;
+      if ((membersToInvite == null || membersToInvite.isEmpty) &&
+          resolvedRoomId != null) {
+        try {
+          membersToInvite = await _fetchAllChatRoomMembers(resolvedRoomId);
+        } catch (e) {
+          _mlsLogWarn(
+            'Could not fetch room members during bootstrap for $resolvedRoomId: $e',
+          );
+        }
+      }
+
+      if (membersToInvite != null && membersToInvite.isNotEmpty) {
+        try {
+          await addMembersAndFanoutWelcome(
+            mlsGroupId,
+            membersToInvite,
+            chatRoomId: resolvedRoomId,
+          );
+        } catch (e) {
+          _mlsLogWarn(
+            'Non-fatal: could not add initial members during bootstrap for $mlsGroupId: $e',
+          );
+        }
       }
 
       return await getGroupState(mlsGroupId);
@@ -508,11 +545,15 @@ class MlsGroupManager {
       final engineService = await MlsEngineService.getInstance();
       final engine = engineService.engine;
       final signerBytes = await _identityManager.getOrCreateSignerBytes();
+      final currentDeviceId = await _identityManager.getOrCreateDeviceId();
       final groupIdBytes = utf8.encode(mlsGroupId);
-      // 1. Fetch KeyPackages for each member
+      // 1. Fetch KeyPackages for each member (excluding our own current device)
       final List<Uint8List> keyPackages = [];
       final addedDeviceIdsByAccount = <String, List<String>>{};
-      for (final memberId in memberAccountIds) {
+      final seenDeviceIds = <String>{
+        ?currentDeviceId,
+      };
+      for (final memberId in memberAccountIds.toSet()) {
         final devices = await _identityManager.getDeviceKeyPackages(memberId);
         for (final device in devices) {
           final kpBase64 = device['key_package'] as String?;
@@ -520,7 +561,8 @@ class MlsGroupManager {
           if (kpBase64 != null &&
               kpBase64.isNotEmpty &&
               deviceId != null &&
-              deviceId.isNotEmpty) {
+              deviceId.isNotEmpty &&
+              seenDeviceIds.add(deviceId)) {
             keyPackages.add(base64Decode(kpBase64));
             addedDeviceIdsByAccount
                 .putIfAbsent(memberId, () => [])
@@ -816,60 +858,17 @@ class MlsGroupManager {
     try {
       _mlsLog('Processing reshare for group $mlsGroupId');
 
-      final isActive = await ensureGroupAvailable(mlsGroupId);
-      if (!isActive) {
-        _mlsLogWarn('Group $mlsGroupId not available for reshare');
-        return false;
-      }
-
-      final kpStatus = await _identityManager.getKeyPackageStatus();
-      if (kpStatus == null) {
-        _mlsLogWarn('No key package status available');
-        return false;
-      }
-      final devicesNeedingKp = kpStatus.devicesNeedingKps
-          .where((d) => d['mls_group_id'] == mlsGroupId)
-          .toList();
-
-      if (devicesNeedingKp.isEmpty) {
-        _mlsLog('No devices need key packages for group $mlsGroupId');
-        return true;
-      }
-
       final engineService = await MlsEngineService.getInstance();
       final engine = engineService.engine;
       final groupIdBytes = utf8.encode(mlsGroupId);
+      final isActive = await engine.groupIsActive(groupIdBytes: groupIdBytes);
 
-      for (final device in devicesNeedingKp) {
-        final deviceId = device['device_id']?.toString();
-        if (deviceId == null) continue;
-
-        _mlsLog('Adding device $deviceId to group $mlsGroupId');
-
-        final keyPackages = await _identityManager.getDeviceKeyPackages(
-          deviceId,
-        );
-        if (keyPackages.isEmpty) {
-          _mlsLogWarn('No key packages available for device $deviceId');
-          continue;
+      if (!isActive) {
+        final joined = await joinGroupExternal(mlsGroupId);
+        if (!joined) {
+          await ensureGroupAvailable(mlsGroupId);
         }
-
-        final kpBytes = keyPackages.first['key_package_bytes'] as String?;
-        if (kpBytes == null) continue;
-
-        final kp = base64Decode(kpBytes);
-
-        final signerBytes = await _identityManager.getOrCreateSignerBytes();
-        await engine.addMembers(
-          groupIdBytes: groupIdBytes,
-          signerBytes: signerBytes,
-          keyPackagesBytes: [kp],
-        );
-
-        _mlsLog('Added device $deviceId to group $mlsGroupId');
       }
-
-      await commitPending(mlsGroupId);
 
       await _stargateClient.post(
         '/e2ee/mls/devices/me/reshare-required/$mlsGroupId/complete',
@@ -958,13 +957,14 @@ class MlsGroupManager {
       final groupInfoBase64 = data['group_info']?.toString();
       final ratchetTreeBase64 = data['ratchet_tree']?.toString();
 
-      if (groupInfoBase64 == null) {
-        _mlsLogWarn('Missing group_info in response');
+      if (groupInfoBase64 == null || groupInfoBase64.isEmpty) {
+        _mlsLogWarn('Missing or empty group_info in response');
         return false;
       }
 
       final groupInfoBytes = base64Decode(groupInfoBase64);
-      final ratchetTreeBytes = ratchetTreeBase64 != null
+      final ratchetTreeBytes =
+          (ratchetTreeBase64 != null && ratchetTreeBase64.isNotEmpty)
           ? base64Decode(ratchetTreeBase64)
           : null;
 
@@ -981,6 +981,10 @@ class MlsGroupManager {
       }
 
       final myCredentialIdentity = utf8.encode(identity);
+
+      try {
+        await engine.deleteGroup(groupIdBytes: utf8.encode(mlsGroupId));
+      } catch (_) {}
 
       final joinResult = await engine.joinGroupExternalCommit(
         config: MlsGroupConfig.defaultConfig(ciphersuite: defaultCiphersuite),

@@ -191,15 +191,10 @@ class MlsStatePopupNotifier extends Notifier<void> {
       return;
     }
 
-    for (var i = 0; i < needed; i++) {
-      if (serial != _activeSerial) return;
-      _mlsLog('Uploading key package ${i + 1}/$needed');
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (serial != _activeSerial) return;
-      if (mlsDeviceId != null) {
-        _mlsLog('Refilling device: $mlsDeviceId');
-      }
-    }
+    try {
+      await identityManager.checkAndRefillKeyPackages();
+    } catch (_) {}
+    if (serial != _activeSerial) return;
 
     _completeAndDismiss(
       serial: serial,

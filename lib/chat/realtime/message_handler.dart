@@ -219,7 +219,10 @@ class RealtimeMessageHandler {
     }
 
     final decrypted = (_e2eeService?.isE2eeRoom == true)
-        ? remoteMessage
+        ? await _e2eeService!.decryptMessageAndApply(
+            remoteMessage,
+            existingDbContent: existing.content,
+          )
         : remoteMessage;
 
     // Build updated message

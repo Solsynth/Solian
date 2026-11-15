@@ -392,6 +392,35 @@ class MessageSyncService {
           .where((m) => !_discontiguousMessageIds.contains(m.id))
           .toList();
     }
+
+    if (_e2eeService?.isE2eeRoom == true && messages.isNotEmpty) {
+      final updatedCached = <LocalChatMessage>[];
+      final decryptedToSave = <LocalChatMessage>[];
+      for (final msg in messages) {
+        if ((msg.content == null || msg.content!.isEmpty) &&
+            msg.meta['e2ee_is_encrypted'] == true &&
+            msg.deletedAt == null) {
+          final decryptedRemote = await _decryptIfNeeded(msg.toRemoteMessage());
+          if (decryptedRemote != null &&
+              decryptedRemote.content != null &&
+              decryptedRemote.content!.isNotEmpty) {
+            final updatedLocal = _mergeMessageData(
+              LocalChatMessage.fromRemoteMessage(decryptedRemote, msg.status),
+              msg,
+            );
+            updatedCached.add(updatedLocal);
+            decryptedToSave.add(updatedLocal);
+            continue;
+          }
+        }
+        updatedCached.add(msg);
+      }
+      messages = updatedCached;
+      if (decryptedToSave.isNotEmpty) {
+        await _repository.saveMessages(decryptedToSave);
+      }
+    }
+
     _cache.putAll(messages);
 
     // Merge with pending messages if at the top
@@ -487,6 +516,14 @@ class MessageSyncService {
       }
     }
 
+    final mergedMeta = Map<String, dynamic>.from(existing.meta)
+      ..addAll(incoming.meta);
+    if (mergedMeta['e2ee_decrypted_content'] == null &&
+        existing.meta['e2ee_decrypted_content'] != null) {
+      mergedMeta['e2ee_decrypted_content'] =
+          existing.meta['e2ee_decrypted_content'];
+    }
+
     // Rebuild with merged data
     return LocalChatMessage(
       id: incoming.id,
@@ -507,7 +544,7 @@ class MessageSyncService {
       updatedAt: incoming.updatedAt ?? existing.updatedAt,
       deletedAt: incoming.deletedAt ?? existing.deletedAt,
       type: incoming.type,
-      meta: incoming.meta,
+      meta: mergedMeta,
       membersMentioned: incoming.membersMentioned,
       editedAt: incoming.editedAt ?? existing.editedAt,
       attachments:
@@ -515,8 +552,10 @@ class MessageSyncService {
           ? existing.attachments
           : incoming.attachments,
       reactions: incoming.reactions,
-      repliedMessageId: incoming.repliedMessageId,
-      forwardedMessageId: incoming.forwardedMessageId,
+      repliedMessageId: incoming.repliedMessageId ?? existing.repliedMessageId,
+      threadId: incoming.threadId ?? existing.threadId,
+      forwardedMessageId:
+          incoming.forwardedMessageId ?? existing.forwardedMessageId,
       localAttachments: incoming.localAttachments ?? existing.localAttachments,
     );
   }
@@ -574,7 +613,19 @@ class MessageSyncService {
   }
 
   Future<SnChatMessage?> _decryptIfNeeded(SnChatMessage message) async {
-    return message;
+    final e2ee = _e2eeService;
+    if (e2ee == null || !e2ee.isE2eeRoom) return message;
+    final isEncrypted =
+        message.meta['e2ee_is_encrypted'] == true ||
+        (message.meta['e2ee_ciphertext']?.toString().isNotEmpty == true);
+    if (!isEncrypted) return message;
+    final existing = await _repository.getLocalMessage(message.id);
+    final pending = _pendingCache.getByClientId(message.clientMessageId);
+    return e2ee.decryptMessageAndApply(
+      message,
+      existingDbContent: existing?.content,
+      pendingContent: pending?.content,
+    );
   }
 
   bool _needsAttachmentRefresh(

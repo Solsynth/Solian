@@ -27,6 +27,7 @@ void _mlsLogWarn(dynamic msg) {
 class MlsClient {
   final MlsStorage _storage;
   Future<void>? _initialization;
+  Future<void>? _ongoingEnvelopeSync;
   late final MlsIdentityManager _identityManager;
   late final MlsGroupManager _groupManager;
   late final MlsMessageHandler _messageHandler;
@@ -90,6 +91,21 @@ class MlsClient {
   }
 
   Future<void> _fetchAndProcessPendingEnvelopes(String deviceId) async {
+    if (_ongoingEnvelopeSync != null) {
+      return _ongoingEnvelopeSync!;
+    }
+    final task = _fetchAndProcessPendingEnvelopesImpl(deviceId);
+    _ongoingEnvelopeSync = task;
+    try {
+      await task;
+    } finally {
+      if (identical(_ongoingEnvelopeSync, task)) {
+        _ongoingEnvelopeSync = null;
+      }
+    }
+  }
+
+  Future<void> _fetchAndProcessPendingEnvelopesImpl(String deviceId) async {
     try {
       final envelopes = await getPendingEnvelopes(deviceId);
       if (envelopes.isEmpty) return;
@@ -122,14 +138,28 @@ class MlsClient {
             }
           } else if (envelopeType == MlsEnvelopeType.commit.value ||
               envelopeType == MlsEnvelopeType.proposal.value) {
-            final result = await decryptMessage(
-              messageId: envelopeId,
-              mlsGroupId: mlsGroupId,
-              ciphertext: ciphertext,
-              encryptionHeader: envelope['header']?.toString(),
-              encryptionScheme: 'chat.mls.v2',
+            final meta = envelope['meta'] is Map
+                ? Map<String, dynamic>.from(envelope['meta'] as Map)
+                : const <String, dynamic>{};
+            final commitEpoch = (meta['epoch'] as num?)?.toInt();
+            final currentEpoch = await _groupManager.getCurrentEpoch(
+              mlsGroupId,
             );
-            processed = result?['_mls_control_processed'] == true;
+            if (commitEpoch != null &&
+                currentEpoch >= commitEpoch &&
+                currentEpoch > 0) {
+              // Group already reached or passed this commit's epoch
+              processed = true;
+            } else {
+              final result = await decryptMessage(
+                messageId: envelopeId,
+                mlsGroupId: mlsGroupId,
+                ciphertext: ciphertext,
+                encryptionHeader: envelope['header']?.toString(),
+                encryptionScheme: 'chat.mls.v2',
+              );
+              processed = result?['_mls_control_processed'] == true;
+            }
           } else {
             _mlsLogWarn(
               'Leaving unsupported envelope $envelopeId unacknowledged '
@@ -173,6 +203,8 @@ class MlsClient {
     String? repliedMessageId,
     String? forwardedMessageId,
     String? threadId,
+    String? surveyId,
+    String? fundId,
   }) async {
     return _messageHandler.encryptMessage(
       mlsGroupId: mlsGroupId,
@@ -182,6 +214,8 @@ class MlsClient {
       repliedMessageId: repliedMessageId,
       forwardedMessageId: forwardedMessageId,
       threadId: threadId,
+      surveyId: surveyId,
+      fundId: fundId,
     );
   }
 
@@ -347,8 +381,10 @@ class MlsClient {
         }
       } else if (packet.type == 'e2ee.envelope') {
         _mlsLog('Received e2ee.envelope packet, processing pending envelopes');
-        fetchAndProcessPendingEnvelopes();
-      } else if (packet.type == 'e2ee.group.reset') {
+        await initialize();
+        await fetchAndProcessPendingEnvelopes();
+      } else if (packet.type == 'e2ee.group.reset' ||
+          packet.type == 'e2ee.group_reset') {
         _mlsLog('Received e2ee.group.reset packet');
         final data = packet.data;
         if (data != null) {

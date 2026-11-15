@@ -397,7 +397,8 @@ class ChatOutboxNotifier extends Notifier<Map<String, List<ChatOutboxEntry>>> {
     final pendingCache = ref.read(chatPendingMessageCacheProvider);
     final e2eeService = E2eeMessageService(
       ref: ref,
-      mlsGroupId: mlsGroupId,
+      mlsGroupId:
+          mlsGroupId ?? (encryptionMode == 3 ? 'room:${request.roomId}' : null),
       isE2eeRoom: encryptionMode == 3,
     );
     final sender = MessageSender(

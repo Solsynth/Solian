@@ -220,13 +220,68 @@ class AppDatabase {
       _webMessageStore[id];
 
   Future<int> saveMessage(LocalChatMessage message) async {
-    _webMessageStore[message.id] = message;
-    final sender = message.sender;
+    var toSave = message;
+    final existing = _webMessageStore[message.id];
+    if (existing != null &&
+        message.deletedAt == null &&
+        message.isDeleted != true) {
+      final preservedContent =
+          (message.content != null && message.content!.isNotEmpty)
+          ? message.content
+          : existing.content;
+      final mergedMeta = Map<String, dynamic>.from(existing.meta)
+        ..addAll(message.meta);
+      if (mergedMeta['e2ee_decrypted_content'] == null &&
+          existing.meta['e2ee_decrypted_content'] != null) {
+        mergedMeta['e2ee_decrypted_content'] =
+            existing.meta['e2ee_decrypted_content'];
+      }
+      if (preservedContent != message.content ||
+          (message.repliedMessageId == null &&
+              existing.repliedMessageId != null) ||
+          (message.forwardedMessageId == null &&
+              existing.forwardedMessageId != null) ||
+          (message.threadId == null && existing.threadId != null)) {
+        toSave = LocalChatMessage(
+          id: message.id,
+          roomId: message.roomId,
+          senderId: message.senderId,
+          sender: message.sender ?? existing.sender,
+          data: message.data,
+          createdAt: message.createdAt,
+          clientMessageId: message.clientMessageId ?? existing.clientMessageId,
+          nonce: message.nonce ?? existing.nonce,
+          status: message.status,
+          content: preservedContent,
+          isDeleted: message.isDeleted ?? existing.isDeleted,
+          updatedAt: message.updatedAt ?? existing.updatedAt,
+          deletedAt: message.deletedAt,
+          type: message.type,
+          meta: mergedMeta,
+          membersMentioned: message.membersMentioned,
+          editedAt: message.editedAt ?? existing.editedAt,
+          attachments:
+              message.attachments.isEmpty && existing.attachments.isNotEmpty
+              ? existing.attachments
+              : message.attachments,
+          reactions: message.reactions,
+          repliedMessageId:
+              message.repliedMessageId ?? existing.repliedMessageId,
+          threadId: message.threadId ?? existing.threadId,
+          forwardedMessageId:
+              message.forwardedMessageId ?? existing.forwardedMessageId,
+          localAttachments:
+              message.localAttachments ?? existing.localAttachments,
+        );
+      }
+    }
+    _webMessageStore[toSave.id] = toSave;
+    final sender = toSave.sender;
     if (sender != null && !_webChatMemberStore.containsKey(sender.id)) {
       _webChatMemberStore[sender.id] = sender;
       _webChatMemberJsonStore[sender.id] = sender.toJson();
     }
-    _webMessageJsonStore[message.id] = _messageToJson(message);
+    _webMessageJsonStore[toSave.id] = _messageToJson(toSave);
     return 1;
   }
 

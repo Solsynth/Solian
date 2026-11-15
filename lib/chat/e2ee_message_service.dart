@@ -117,6 +117,7 @@ class E2eeMessageService {
     required List<String> attachmentIds,
     String? repliedMessageId,
     String? forwardedMessageId,
+    String? threadId,
     SnChatMessage? threadingTo,
     String? surveyId,
     String? fundId,
@@ -131,7 +132,9 @@ class E2eeMessageService {
       messageType: MlsMessageType.fromString(normalizedMessageType),
       repliedMessageId: repliedMessageId,
       forwardedMessageId: forwardedMessageId,
-      threadId: threadingTo?.id,
+      threadId: threadId ?? threadingTo?.id,
+      surveyId: surveyId,
+      fundId: fundId,
     );
 
     final plaintextEnvelope =
@@ -172,6 +175,76 @@ class E2eeMessageService {
       Logger.root.fine('E2EE decrypt failed for ${message.id}: $e');
       return null;
     }
+  }
+
+  /// Decrypts an E2EE message and applies all decrypted envelope fields
+  /// (`content`, `replied_message_id`, `forwarded_message_id`, `thread_id`,
+  /// `attachments_id`, `survey_id`, `fund_id`, `e2ee_decrypted_content`)
+  /// back onto the returned [SnChatMessage].
+  Future<SnChatMessage> decryptMessageAndApply(
+    SnChatMessage message, {
+    String? existingDbContent,
+    String? pendingContent,
+  }) async {
+    if (!_isE2eeRoom || _mlsGroupId == null || _mlsGroupId.isEmpty) {
+      return message;
+    }
+
+    if (message.content != null && message.content!.isNotEmpty) {
+      final updatedMeta = Map<String, dynamic>.from(message.meta);
+      updatedMeta['e2ee_decrypted_content'] = message.content;
+      return message.copyWith(meta: updatedMeta);
+    }
+
+    final existingDecrypted = message.meta['e2ee_decrypted_content']
+        ?.toString();
+    if (existingDecrypted != null && existingDecrypted.isNotEmpty) {
+      return message.copyWith(content: existingDecrypted);
+    }
+
+    final decrypted = await decryptMessage(message);
+    if (decrypted != null && decrypted['_mls_control_processed'] != true) {
+      final content = decrypted['content']?.toString();
+      final repliedMessageId =
+          decrypted['replied_message_id']?.toString() ??
+          message.repliedMessageId;
+      final forwardedMessageId =
+          decrypted['forwarded_message_id']?.toString() ??
+          message.forwardedMessageId;
+      final threadId = decrypted['thread_id']?.toString() ?? message.threadId;
+      final updatedMeta = Map<String, dynamic>.from(message.meta);
+      if (content != null && content.isNotEmpty) {
+        updatedMeta['e2ee_decrypted_content'] = content;
+      }
+      if (decrypted['attachments_id'] != null) {
+        updatedMeta['attachments_id'] = decrypted['attachments_id'];
+      }
+      if (decrypted['replied_message_id'] != null) {
+        updatedMeta['replied_message_id'] = decrypted['replied_message_id'];
+      }
+      if (decrypted['forwarded_message_id'] != null) {
+        updatedMeta['forwarded_message_id'] = decrypted['forwarded_message_id'];
+      }
+      if (decrypted['survey_id'] != null) {
+        updatedMeta['survey_id'] = decrypted['survey_id'];
+      }
+      if (decrypted['fund_id'] != null) {
+        updatedMeta['fund_id'] = decrypted['fund_id'];
+      }
+      return message.copyWith(
+        content: content ?? message.content,
+        repliedMessageId: repliedMessageId,
+        forwardedMessageId: forwardedMessageId,
+        threadId: threadId,
+        meta: updatedMeta,
+      );
+    }
+
+    return preserveSenderPlaintext(
+      message,
+      existingDbContent: existingDbContent,
+      pendingContent: pendingContent,
+    );
   }
 
   // ── Sender plaintext preservation ──────────────────────────────────

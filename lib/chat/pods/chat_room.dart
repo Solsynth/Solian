@@ -388,8 +388,10 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           if (message.type == 'system.e2ee.enabled') {
             await _markRoomE2eeEnabled(db, message);
           }
+          final processedMessage =
+              await _decryptSyncMessage(message, db) ?? message;
           var localMessage = LocalChatMessage.fromRemoteMessage(
-            message,
+            processedMessage,
             MessageStatus.sent,
           );
           final existingMsg = await _fetchMessageFromDb(db, message.id, roomId);
@@ -407,12 +409,12 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
           // already handled this message.
           if (existingMsg == null) {
             if (_shouldPlayForegroundRoomMessageSfx(
-              message,
+              processedMessage,
               currentUserId: currentUserId,
             )) {
               playMessageSfxRef(ref);
             }
-            eventBus.fire(ChatMessageNewEvent(message));
+            eventBus.fire(ChatMessageNewEvent(processedMessage));
           }
         }
       case 'messages.update':
@@ -617,16 +619,17 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
     if (existingMsg == null) return;
 
+    final processedUpdate = await _decryptSyncMessage(message, db) ?? message;
     final existingRemote = existingMsg.toRemoteMessage();
     final updatePayload = LocalChatMessage.fromRemoteMessage(
-      message,
+      processedUpdate,
       MessageStatus.sent,
     ).toRemoteMessage();
 
     final updatedRemote = _mergeUpdatedRemoteMessage(
       existingRemote,
       updatePayload,
-      editedAt: message.createdAt,
+      editedAt: processedUpdate.createdAt,
     );
 
     await db.saveMessageWithSender(
@@ -826,6 +829,23 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
     final isEncrypted = message.meta['e2ee_is_encrypted'] == true;
     if (!isEncrypted) return message;
 
+    // Check if message already has content in DB - use it directly
+    final existing = await db.getMessageById(message.id);
+    if (existing != null &&
+        existing.content != null &&
+        existing.content!.isNotEmpty) {
+      final updatedMeta = Map<String, dynamic>.of(message.meta);
+      updatedMeta['e2ee_decrypted_content'] = existing.content;
+      return message.copyWith(
+        content: existing.content,
+        meta: updatedMeta,
+        repliedMessageId: message.repliedMessageId ?? existing.repliedMessageId,
+        forwardedMessageId:
+            message.forwardedMessageId ?? existing.forwardedMessageId,
+        threadId: message.threadId ?? existing.threadId,
+      );
+    }
+
     // Global sync must not start OpenMLS for rooms the user has not opened.
     // Keep the encrypted message cached; opening the room performs MLS setup
     // and fetches/decrypts its message history.
@@ -833,20 +853,14 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
 
     // Get mlsGroupId from room
     final room = await db.getChatRoomById(message.chatRoomId);
-    final mlsGroupId = room?.mlsGroupId;
+    final mlsGroupId =
+        room?.mlsGroupId ??
+        (room?.encryptionMode == 3 ? 'room:${message.chatRoomId}' : null);
     if (mlsGroupId == null) {
       Logger.root.fine(
-        'No mlsGroupId for room ${message.chatRoomId}, skipping decrypt',
+        'No mlsGroupId for room ${message.chatRoomId}, keeping encrypted message cached',
       );
-      return null;
-    }
-
-    // Check if message already has content in DB - use it directly
-    final existing = await db.getMessageById(message.id);
-    if (existing != null &&
-        existing.content != null &&
-        existing.content!.isNotEmpty) {
-      return message.copyWith(content: existing.content);
+      return message;
     }
 
     // Check if it's our own message by device ID
@@ -870,11 +884,11 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
             if (decryptedContent != null && decryptedContent.isNotEmpty) {
               return message.copyWith(content: decryptedContent);
             }
-            // No plaintext available - skip this message
+            // Keep encrypted row in DB so existing local content is preserved
             Logger.root.fine(
-              'Skipping sync for own message ${message.id} - no plaintext',
+              'Own message ${message.id} synced without plaintext - preserving cached state',
             );
-            return null;
+            return message;
           }
         }
       } catch (e) {
@@ -894,15 +908,38 @@ class ChatGlobalSyncNotifier extends _$ChatGlobalSyncNotifier {
       );
       if (result != null) {
         final content = result['content']?.toString();
+        final updatedMeta = Map<String, dynamic>.of(message.meta);
         if (content != null && content.isNotEmpty) {
-          return message.copyWith(content: content);
+          updatedMeta['e2ee_decrypted_content'] = content;
         }
+        if (result['attachments_id'] is List) {
+          updatedMeta['attachments_id'] = result['attachments_id'];
+        }
+        if (result['survey_id'] != null) {
+          updatedMeta['survey_id'] = result['survey_id'];
+        }
+        if (result['fund_id'] != null) {
+          updatedMeta['fund_id'] = result['fund_id'];
+        }
+        return message.copyWith(
+          content: (content != null && content.isNotEmpty)
+              ? content
+              : message.content,
+          meta: updatedMeta,
+          repliedMessageId:
+              result['replied_message_id']?.toString() ??
+              message.repliedMessageId,
+          forwardedMessageId:
+              result['forwarded_message_id']?.toString() ??
+              message.forwardedMessageId,
+          threadId: result['thread_id']?.toString() ?? message.threadId,
+        );
       }
     } catch (e) {
       Logger.root.fine('Failed to decrypt sync message ${message.id}: $e');
     }
 
-    return null;
+    return message;
   }
 
   /// Perform global sync to fetch messages from all chat rooms

@@ -221,12 +221,12 @@ class MessagesNotifier extends _$MessagesNotifier
     if (operation != null) await operation;
   }
 
-  late final MessageCache _messageCache;
-  late final PendingMessageCache _pendingCache;
-  late final MessageRepository _repository;
-  late final MessageSyncService _syncService;
-  late final MessageSender _sender;
-  late final RealtimeMessageHandler _realtime;
+  late MessageCache _messageCache;
+  late PendingMessageCache _pendingCache;
+  late MessageRepository _repository;
+  late MessageSyncService _syncService;
+  late MessageSender _sender;
+  late RealtimeMessageHandler _realtime;
 
   MessageFilter get _activeFilter => MessageFilter(
     searchQuery: _searchQuery,
@@ -731,6 +731,7 @@ class MessagesNotifier extends _$MessagesNotifier
     StreamSubscription<MlsExternalJoinStartedEvent>? e2eeStartSub;
     StreamSubscription<MlsExternalJoinCompletedEvent>? e2eeCompleteSub;
     StreamSubscription<MlsRecoveryFailedEvent>? e2eeFailedSub;
+    StreamSubscription<MlsEpochChangedEvent>? e2eeEpochSub;
     StreamSubscription<ChatTypingEvent>? typingProgressSub;
     var disposed = false;
 
@@ -746,6 +747,7 @@ class MessagesNotifier extends _$MessagesNotifier
       e2eeStartSub?.cancel();
       e2eeCompleteSub?.cancel();
       e2eeFailedSub?.cancel();
+      e2eeEpochSub?.cancel();
       typingProgressSub?.cancel();
       _outboxSubscription?.cancel();
       _outboxSubscription = null;
@@ -777,7 +779,33 @@ class MessagesNotifier extends _$MessagesNotifier
       throw Exception('Room not found');
     }
     _roomEncryptionMode = room.encryptionMode;
-    _mlsGroupId = room.mlsGroupId;
+    _mlsGroupId =
+        room.mlsGroupId ?? (room.encryptionMode == 3 ? 'room:$roomId' : null);
+    _syncService = MessageSyncService(
+      roomId,
+      _repository,
+      _messageCache,
+      _pendingCache,
+      e2eeService: _e2eeService,
+    );
+    _sender = MessageSender(
+      ref,
+      roomId,
+      _repository,
+      _pendingCache,
+      e2eeService: _e2eeService,
+      fileEncryptKey: _fileEncryptKey,
+    );
+    _realtime = RealtimeMessageHandler(
+      ref,
+      roomId,
+      _repository,
+      _syncService,
+      _pendingCache,
+      _messageCache,
+      e2eeService: _e2eeService,
+      sink: this,
+    );
     await _memberDirectory.hydrate(room);
 
     if (disposed || !ref.mounted) {
@@ -803,7 +831,8 @@ class MessagesNotifier extends _$MessagesNotifier
         }
 
         if (disposed || !ref.mounted) return;
-        if (room.mlsGroupId == null) {
+        final activeGroupId = _mlsGroupId;
+        if (activeGroupId == null) {
           Logger.root.info(
             'Room $roomId has encryption mode 3 but no mlsGroupId - skipping MLS bootstrap',
           );
@@ -812,11 +841,11 @@ class MessagesNotifier extends _$MessagesNotifier
             if (disposed || !ref.mounted) return;
             // Check current epoch for logging purposes
             final currentEpoch = await mlsClient.getCurrentEpoch(
-              room.mlsGroupId!,
+              activeGroupId,
             );
             if (disposed || !ref.mounted) return;
             Logger.root.fine(
-              'Current MLS epoch for room $roomId (group: ${room.mlsGroupId}): $currentEpoch',
+              'Current MLS epoch for room $roomId (group: $activeGroupId): $currentEpoch',
             );
 
             // Note: epoch=0 is NORMAL for newly created MLS groups.
@@ -824,10 +853,13 @@ class MessagesNotifier extends _$MessagesNotifier
             // We should NOT force re-bootstrap based on epoch alone.
             // Instead, let bootstrapGroup decide if a group needs to be created.
             await mlsClient.bootstrapGroup(
-              room.mlsGroupId!,
+              activeGroupId,
               roomId: roomId,
               force: false,
             );
+            if (!disposed && ref.mounted) {
+              await _redecryptUndecryptedMessages();
+            }
           } catch (e) {
             Logger.root.severe(
               'Failed to bootstrap MLS group for room $roomId: $e',
@@ -868,7 +900,13 @@ class MessagesNotifier extends _$MessagesNotifier
       if (event.mlsGroupId != _mlsGroupId) return;
       if (event.success) {
         _e2eeRecoveryState = E2eeRecoveryState.idle;
+        unawaited(_redecryptUndecryptedMessages());
       }
+    });
+
+    e2eeEpochSub = eventBus.on<MlsEpochChangedEvent>().listen((event) {
+      if (event.mlsGroupId != _mlsGroupId) return;
+      unawaited(_redecryptUndecryptedMessages());
     });
 
     e2eeFailedSub = eventBus.on<MlsRecoveryFailedEvent>().listen((event) async {
@@ -2478,19 +2516,68 @@ class MessagesNotifier extends _$MessagesNotifier
     return fetchFuture;
   }
 
+  Future<void> _redecryptUndecryptedMessages() async {
+    if (!_isE2eeRoom || !ref.mounted) return;
+    final current = List<LocalChatMessage>.of(_currentMessages);
+    var changed = false;
+
+    for (var i = 0; i < current.length; i++) {
+      final msg = current[i];
+      if (msg.isDeleted == true) continue;
+      if (msg.meta['e2ee_is_encrypted'] != true) continue;
+      if (msg.content != null && msg.content!.isNotEmpty) continue;
+
+      final remote = msg.toRemoteMessage();
+      final decrypted = await _e2eeService.decryptMessageAndApply(remote);
+      if (decrypted.content != null && decrypted.content!.isNotEmpty) {
+        final updatedLocal = LocalChatMessage.fromRemoteMessage(
+          decrypted,
+          msg.status,
+        );
+        await _repository.saveMessage(updatedLocal);
+        current[i] = updatedLocal;
+        changed = true;
+      }
+    }
+
+    if (changed && ref.mounted) {
+      _emitMessages(current);
+    }
+  }
+
   Future<LocalChatMessage?> _fetchMessageByIdInternal(String messageId) async {
     Logger.root.info('Fetching message by id $messageId from DB/API');
     try {
       final localMessage = await _repository.getLocalMessage(messageId);
       if (localMessage != null) {
+        if (_isE2eeRoom &&
+            localMessage.isDeleted != true &&
+            localMessage.meta['e2ee_is_encrypted'] == true &&
+            (localMessage.content == null || localMessage.content!.isEmpty)) {
+          final decryptedRemote = await _e2eeService.decryptMessageAndApply(
+            localMessage.toRemoteMessage(),
+          );
+          if (decryptedRemote.content != null &&
+              decryptedRemote.content!.isNotEmpty) {
+            final updatedLocal = LocalChatMessage.fromRemoteMessage(
+              decryptedRemote,
+              localMessage.status,
+            );
+            await _repository.saveMessage(updatedLocal);
+            return await _ensureNormalizedMessageSender(updatedLocal);
+          }
+        }
         return await _ensureNormalizedMessageSender(localMessage);
       }
 
       final remoteMessage = await _repository.fetchRemoteMessage(messageId);
       if (remoteMessage == null) return null;
       _memberDirectory.upsert(remoteMessage.sender);
+      final processedRemote = _isE2eeRoom
+          ? await _e2eeService.decryptMessageAndApply(remoteMessage)
+          : remoteMessage;
       final message = LocalChatMessage.fromRemoteMessage(
-        remoteMessage,
+        processedRemote,
         MessageStatus.sent,
       );
 

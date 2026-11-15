@@ -13,11 +13,54 @@ class MlsEngineService {
   static MlsEngine? _engine;
   static bool _initialized = false;
   static Completer<void>? _initCompleter;
+  static Future<void> _engineQueue = Future<void>.value();
+  static final Map<String, Future<void>> _groupQueues = {};
 
   MlsEngineService._();
 
   /// Whether an MLS room has requested the native engine in this process.
   static bool get isReady => _initialized && _engine != null;
+
+  /// Serializes native OpenMLS SQLite operations so concurrent async tasks
+  /// never interleave FFI transactions on the same database handle.
+  Future<T> runSerialized<T>(Future<T> Function(MlsEngine engine) action) {
+    final completer = Completer<T>();
+    final previous = _engineQueue;
+    _engineQueue = previous.catchError((_) {}).then((_) async {
+      try {
+        final result = await action(engine);
+        completer.complete(result);
+      } catch (e, st) {
+        completer.completeError(e, st);
+      }
+    });
+    return completer.future;
+  }
+
+  /// Serializes multi-step group lifecycle workflows (bootstrap, external join,
+  /// welcome, commit processing) per MLS group ID.
+  static Future<T> runForGroup<T>(
+    String mlsGroupId,
+    Future<T> Function() action,
+  ) {
+    final completer = Completer<T>();
+    final previous = _groupQueues[mlsGroupId] ?? Future<void>.value();
+    final current = previous.catchError((_) {}).then((_) async {
+      try {
+        final result = await action();
+        completer.complete(result);
+      } catch (e, st) {
+        completer.completeError(e, st);
+      }
+    });
+    _groupQueues[mlsGroupId] = current;
+    current.whenComplete(() {
+      if (identical(_groupQueues[mlsGroupId], current)) {
+        _groupQueues.remove(mlsGroupId);
+      }
+    });
+    return completer.future;
+  }
 
   static Future<MlsEngineService> getInstance() async {
     if (_instance != null && _initialized && _engine != null) {

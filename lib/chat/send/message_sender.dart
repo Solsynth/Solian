@@ -404,17 +404,28 @@ class MessageSender {
       );
 
       // Build and send payload
-      final remoteMessage = await _sendToServer(
-        payload: {
-          'content': pending.content,
-          'attachments_id': cloudAttachments.map((a) => a.id).toList(),
-          'client_message_id': pending.clientMessageId,
-          'meta': pending.meta,
-        },
+      final clientMessageId = pending.clientMessageId ?? const Uuid().v4();
+      final (:payload, :plaintextEnvelope) = await _buildPayload(
+        clientMessageId: clientMessageId,
+        content: pending.content ?? '',
+        attachmentIds: cloudAttachments.map((a) => a.id).toList(),
+        repliedMessageId: pending.repliedMessageId,
+        forwardedMessageId: pending.forwardedMessageId,
+        threadId: pending.threadId,
       );
 
+      final remoteMessage = await _sendToServer(payload: payload);
+
+      final withPlaintext = _e2eeService?.isE2eeRoom == true
+          ? E2eeMessageService.preserveSenderPlaintext(
+              remoteMessage,
+              plaintextEnvelope: plaintextEnvelope,
+              pendingContent: pending.content,
+            )
+          : remoteMessage;
+
       final sent = LocalChatMessage.fromRemoteMessage(
-        remoteMessage,
+        withPlaintext,
         MessageStatus.sent,
       );
 
@@ -616,8 +627,15 @@ class MessageSender {
     SnChatMessage? replyingTo,
     SnChatMessage? forwardingTo,
     SnChatMessage? threadingTo,
+    String? repliedMessageId,
+    String? forwardedMessageId,
+    String? threadId,
     List<Map<String, dynamic>>? embeds,
   }) async {
+    final resolvedRepliedId = repliedMessageId ?? replyingTo?.id;
+    final resolvedForwardedId = forwardedMessageId ?? forwardingTo?.id;
+    final resolvedThreadId = threadId ?? threadingTo?.id;
+
     if (_e2eeService?.isE2eeRoom == true) {
       // For E2EE, we need to extract survey and fund IDs for the encrypted payload
       String? surveyId;
@@ -633,8 +651,9 @@ class MessageSender {
         messageType: isEditing ? 'messages.update' : 'text',
         content: content,
         attachmentIds: attachmentIds,
-        repliedMessageId: replyingTo?.id,
-        forwardedMessageId: forwardingTo?.id,
+        repliedMessageId: resolvedRepliedId,
+        forwardedMessageId: resolvedForwardedId,
+        threadId: resolvedThreadId,
         threadingTo: threadingTo,
         surveyId: surveyId,
         fundId: fundId,
@@ -649,9 +668,9 @@ class MessageSender {
     final payload = {
       'content': content,
       'attachments_id': attachmentIds,
-      'replied_message_id': replyingTo?.id,
-      'thread_id': threadingTo?.id,
-      'forwarded_message_id': forwardingTo?.id,
+      'replied_message_id': resolvedRepliedId,
+      'thread_id': resolvedThreadId,
+      'forwarded_message_id': resolvedForwardedId,
       if (embeds != null && embeds.isNotEmpty) 'embeds': embeds,
       'meta': meta,
       'client_message_id': clientMessageId,

@@ -186,7 +186,8 @@ class E2eeProcessor {
       final headerBytes = base64Decode(headerStr);
       final headerJson = utf8.decode(headerBytes);
       final header = jsonDecode(headerJson) as Map<String, dynamic>;
-      final senderDeviceId = header['deviceId']?.toString();
+      final senderDeviceId =
+          header['device_id']?.toString() ?? header['deviceId']?.toString();
 
       return senderDeviceId != null &&
           _currentDeviceId != null &&
