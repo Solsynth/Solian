@@ -5,6 +5,7 @@
 //  Created by LittleSheep on 2026/1/3.
 //
 
+import AppIntents
 import WidgetKit
 import SwiftUI
 
@@ -97,15 +98,88 @@ struct NotableDay: Codable {
     
     enum CodingKeys: String, CodingKey {
         case date
+        case startDate = "start_date"
         case localName = "local_name"
         case globalName = "global_name"
+        case name
         case countryCode = "country_code"
         case localizableKey = "localizable_key"
         case holidays
     }
+
+    init(
+        date: String,
+        localName: String,
+        globalName: String,
+        countryCode: String?,
+        localizableKey: String?,
+        holidays: [Int]?
+    ) {
+        self.date = date
+        self.localName = localName
+        self.globalName = globalName
+        self.countryCode = countryCode
+        self.localizableKey = localizableKey
+        self.holidays = holidays
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let rawDate = try container.decodeIfPresent(String.self, forKey: .date)
+            ?? container.decodeIfPresent(String.self, forKey: .startDate)
+            ?? ""
+        let rawGlobal = try container.decodeIfPresent(String.self, forKey: .globalName)
+            ?? container.decodeIfPresent(String.self, forKey: .name)
+            ?? ""
+        let rawLocal = try container.decodeIfPresent(String.self, forKey: .localName)
+            ?? rawGlobal
+
+        self.date = Self.projectedDateString(from: rawDate)
+        self.localName = rawLocal.isEmpty ? rawGlobal : rawLocal
+        self.globalName = rawGlobal
+        self.countryCode = try container.decodeIfPresent(String.self, forKey: .countryCode)
+        self.localizableKey = try container.decodeIfPresent(String.self, forKey: .localizableKey)
+        self.holidays = try container.decodeIfPresent([Int].self, forKey: .holidays)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(date, forKey: .date)
+        try container.encode(localName, forKey: .localName)
+        try container.encode(globalName, forKey: .globalName)
+        try container.encodeIfPresent(countryCode, forKey: .countryCode)
+        try container.encodeIfPresent(localizableKey, forKey: .localizableKey)
+        try container.encodeIfPresent(holidays, forKey: .holidays)
+    }
+
+    private static func parseISO8601(_ value: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = formatter.date(from: value) {
+            return date
+        }
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.date(from: value)
+    }
+
+    private static func projectedDateString(from rawDate: String) -> String {
+        guard let parsed = parseISO8601(rawDate) else { return rawDate }
+        let calendar = Calendar.current
+        let currentYear = calendar.component(.year, from: Date())
+        let parsedYear = calendar.component(.year, from: parsed)
+        if parsedYear == currentYear {
+            return rawDate
+        }
+        var components = calendar.dateComponents([.month, .day, .hour, .minute, .second], from: parsed)
+        components.year = currentYear
+        guard let projected = calendar.date(from: components) else { return rawDate }
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.string(from: projected)
+    }
     
     var notableDate: Date? {
-        ISO8601DateFormatter().date(from: date)
+        Self.parseISO8601(date)
     }
     
     var isToday: Bool {
@@ -115,11 +189,38 @@ struct NotableDay: Codable {
     }
 }
 
+struct NotableDaysResponse: Codable {
+    let notableDays: [NotableDay]?
+
+    enum CodingKeys: String, CodingKey {
+        case notableDays = "notable_days"
+    }
+}
+
 class CheckInService {
     private let networkService = WidgetNetworkService()
     
     func fetchCheckInResult() async throws -> CheckInResult? {
-        return try await networkService.makeRequest(path: "/stargate/accounts/me/check-in")
+        return try await networkService.makeRequest(path: "/stargate/accounts/me/check-in?version=2")
+    }
+
+    func claimCheckIn() async throws -> CheckInResult? {
+        return try await networkService.makeRequest(
+            path: "/stargate/accounts/me/check-in?version=2",
+            method: "POST"
+        )
+    }
+}
+
+@available(iOS 17.0, *)
+struct ClaimCheckInIntent: AppIntent {
+    static var title: LocalizedStringResource = "Claim Daily Check-In"
+    static var description = IntentDescription("Claim today's Solar Network check-in directly from the widget.")
+
+    func perform() async throws -> some IntentResult {
+        _ = try await CheckInService().claimCheckIn()
+        WidgetCenter.shared.reloadTimelines(ofKind: "SolianCheckInWidget")
+        return .result()
     }
 }
 
@@ -127,7 +228,29 @@ class NotableDayService {
     private let networkService = WidgetNetworkService()
     
     func fetchRecentNotableDay() async throws -> NotableDay? {
-        try await networkService.makeRequest(path: "/stargate/notable/me/recent")
+        let now = Date()
+        let year = Calendar.current.component(.year, from: now)
+        let path = "/stargate/notable-days?region=CN&year=\(year)&take=50"
+
+        let days: [NotableDay]
+        if let wrapped: NotableDaysResponse = try await networkService.makeRequest(path: path),
+           let list = wrapped.notableDays {
+            days = list
+        } else if let direct: [NotableDay] = try? await networkService.makeRequest(path: path) {
+            days = direct
+        } else {
+            return nil
+        }
+
+        let startOfToday = Calendar.current.startOfDay(for: now)
+        return days
+            .compactMap { day -> (NotableDay, Date)? in
+                guard let date = day.notableDate, date >= startOfToday else { return nil }
+                return (day, date)
+            }
+            .sorted { $0.1 < $1.1 }
+            .first?
+            .0
     }
 }
 
@@ -153,8 +276,8 @@ struct Provider: TimelineProvider {
     func getSnapshot(in context: Context, completion: @escaping (CheckInEntry) -> ()) {
         Task {
             print("[WidgetKit] [Provider] Getting snapshot...")
-            async let checkInResult = try? await apiService.fetchCheckInResult()
-            async let notableDay = try? await NotableDayService().fetchRecentNotableDay()
+            async let checkInResult = apiService.fetchCheckInResult()
+            async let notableDay = NotableDayService().fetchRecentNotableDay()
             
             let result = try? await checkInResult
             let day = try? await notableDay
@@ -462,36 +585,56 @@ struct CheckInWidgetEntryView: View {
     
     @ViewBuilder
     private func NotCheckedInView(notableDay: NotableDay?) -> some View {
-        Link(destination: URL(string: "solian://dashboard")!) {
-            VStack(alignment: .leading, spacing: isAccessory ? 2 : 8) {
+        VStack(alignment: .leading, spacing: isAccessory ? 2 : 8) {
+            Link(destination: URL(string: "solian://dashboard")!) {
                 HStack(spacing: 8) {
                     Image(systemName: "flame.fill")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.orange)
                         .font(isAccessory ? .caption : .title3)
                     Text(NSLocalizedString("checkIn", comment: "Check In"))
                         .font(isAccessory ? .caption2 : .headline)
                         .fontWeight(.bold)
                     Spacer()
                 }
-                
-                if !isAccessory {
-                    Text(NSLocalizedString("tapToCheckIn", comment: "Tap to check in today"))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    if let notableDay = notableDay {
-                        NotableDayView(notableDay: notableDay)
+            }
+
+            if !isAccessory {
+                if #available(iOS 17.0, *) {
+                    Button(intent: ClaimCheckInIntent()) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.caption)
+                            Text(NSLocalizedString("checkIn", comment: "Check In"))
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                        .background(Color.orange.opacity(0.18))
+                        .foregroundColor(.orange)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
-                    
-                    Spacer()
-                    
-                    WidgetFooter()
-                } else if let notableDay = notableDay {
+                    .buttonStyle(.plain)
+                } else {
+                    Link(destination: URL(string: "solian://dashboard")!) {
+                        Text(NSLocalizedString("tapToCheckIn", comment: "Tap to check in today"))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                if let notableDay = notableDay {
                     NotableDayView(notableDay: notableDay)
                 }
+
+                Spacer()
+
+                WidgetFooter()
+            } else if let notableDay = notableDay {
+                NotableDayView(notableDay: notableDay)
             }
-            .padding(isAccessory ? 0 : (family == .systemSmall ? 6 : 12))
         }
+        .padding(isAccessory ? 0 : (family == .systemSmall ? 6 : 12))
     }
     
     @ViewBuilder

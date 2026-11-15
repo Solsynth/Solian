@@ -70,13 +70,14 @@ enum LocalCommunicationNotification {
         content.userInfo = userInfo
 
         let senderName = (meta["sender_name"] as? String) ?? title
+        let senderId = (meta["sender_id"] as? String) ?? (meta["account_id"] as? String)
         let sender = INPerson(
-            personHandle: INPersonHandle(value: "@\(senderName)", type: .unknown),
+            personHandle: INPersonHandle(value: senderId ?? "@\(senderName)", type: .unknown),
             nameComponents: PersonNameComponents(nickname: senderName),
             displayName: senderName,
             image: senderImage(from: arguments["senderImagePath"] as? String),
             contactIdentifier: nil,
-            customIdentifier: nil
+            customIdentifier: senderId
         )
         let intent = INSendMessageIntent(
             recipients: nil,
@@ -95,6 +96,7 @@ enum LocalCommunicationNotification {
         enrichedContent.threadIdentifier = threadId
         enrichedContent.categoryIdentifier = "CHAT_MESSAGE"
         enrichedContent.userInfo = content.userInfo
+        enrichedContent.relevanceScore = 0.8
         enrichedContent.attachments = notificationAttachments(
             from: arguments["attachmentPaths"] as? [String] ?? []
         )

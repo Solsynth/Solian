@@ -26,7 +26,8 @@ enum SharedConstants {
         static let messages = "/messager/chat/%@/messages"
         static let sendMessage = "/messager/chat/%@/messages"
         static let chatRooms = "/messager/chat"
-        static let searchPosts = "/sphere/timeline"
+        static let timeline = "/sphere/timeline"
+        static let searchPosts = "/sphere/posts"
     }
 }
 

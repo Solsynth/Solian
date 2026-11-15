@@ -204,8 +204,8 @@ struct NotificationProvider: TimelineProvider {
     func getSnapshot(in context: Context, completion: @escaping (NotificationEntry) -> ()) {
         Task {
             print("[WidgetKit] [NotificationProvider] Getting snapshot...")
-            async let notifications = try? await notificationService.fetchRecentNotifications(take: 5)
-            async let unreadCount = try? await notificationService.fetchUnreadCount()
+            async let notifications = notificationService.fetchRecentNotifications(take: 5)
+            async let unreadCount = notificationService.fetchUnreadCount()
             
             let notifs = try? await notifications
             let unread = (try? await unreadCount) ?? 0

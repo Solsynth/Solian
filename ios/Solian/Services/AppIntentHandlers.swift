@@ -6,6 +6,7 @@
 //
 
 import AppIntents
+import CoreSpotlight
 
 // MARK: - Token Helper
 
@@ -126,6 +127,11 @@ struct ChatRoomEntityQuery: EntityQuery {
     }
 
     func entities(matching string: String) async throws -> [ChatRoomEntity] {
+        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            return try await Self.fetchRooms()
+        }
+
         guard let token = AppIntentCredential.getToken() else {
             throw AppIntentError.networkError("Not logged in")
         }
@@ -133,7 +139,7 @@ struct ChatRoomEntityQuery: EntityQuery {
 
         async let currentAccountTask = Self.fetchCurrentAccount(token: token, serverUrl: serverUrl)
         let rooms = try await NetworkService.shared.searchChatRooms(
-            query: string,
+            query: trimmed,
             token: token,
             serverUrl: serverUrl
         )
@@ -170,6 +176,11 @@ struct ChatRoomEntityQuery: EntityQuery {
             )
         }
         cache.setItems(entities)
+        if #available(iOS 18.0, *) {
+            Task {
+                try? await CSSearchableIndex.default().indexAppEntities(entities)
+            }
+        }
         return entities
     }
 
@@ -206,6 +217,9 @@ struct ChatRoomEntityQuery: EntityQuery {
                 if let nick = member.nick, !nick.isEmpty {
                     return nick
                 }
+                if let username = member.username, !username.isEmpty {
+                    return username
+                }
                 return nil
             }
 
@@ -221,6 +235,18 @@ struct ChatRoomEntityQuery: EntityQuery {
         }
 
         return nil
+    }
+}
+
+@available(iOS 18.0, *)
+extension ChatRoomEntity: IndexedEntity {
+    var attributeSet: CSSearchableItemAttributeSet {
+        let attributes = CSSearchableItemAttributeSet()
+        attributes.title = name ?? AppIntentL10n.string("intent_chat_room_fallback_format", String(id.prefix(8)))
+        attributes.contentDescription = type == 1
+            ? AppIntentL10n.string("intent_chat_room_kind_direct")
+            : AppIntentL10n.string("intent_chat_room_kind_group")
+        return attributes
     }
 }
 
@@ -251,6 +277,53 @@ struct PostEntity: AppEntity {
     }
 }
 
+@available(iOS 18.0, *)
+extension PostEntity: IndexedEntity {
+    var attributeSet: CSSearchableItemAttributeSet {
+        let attributes = CSSearchableItemAttributeSet()
+        attributes.title = authorName ?? AppIntentL10n.string("intent_post_title")
+        attributes.contentDescription = content
+        if let authorName, !authorName.isEmpty {
+            attributes.authorNames = [authorName]
+        }
+        return attributes
+    }
+}
+
+// MARK: - Chat Message Entity
+
+@available(iOS 16.0, *)
+struct ChatMessageEntity: AppEntity {
+    let id: String
+    let chatRoomId: String
+    let senderName: String
+    let content: String
+
+    static var typeDisplayRepresentation: TypeDisplayRepresentation {
+        TypeDisplayRepresentation(name: "intent_message_parameter")
+    }
+
+    static var defaultQuery = ChatMessageEntityQuery()
+
+    var displayRepresentation: DisplayRepresentation {
+        DisplayRepresentation(
+            title: "\(senderName)",
+            subtitle: "\(content)"
+        )
+    }
+}
+
+@available(iOS 16.0, *)
+struct ChatMessageEntityQuery: EntityQuery {
+    func entities(for identifiers: [String]) async throws -> [ChatMessageEntity] {
+        []
+    }
+
+    func suggestedEntities() async throws -> [ChatMessageEntity] {
+        []
+    }
+}
+
 @available(iOS 16.0, *)
 struct PostEntityQuery: EntityQuery {
     private static var cache = EntityCache<PostEntity>()
@@ -276,9 +349,9 @@ struct PostEntityQuery: EntityQuery {
             PostEntity(
                 id: post.id,
                 content: post.content,
-                authorName: post.author?.name,
+                authorName: post.author?.nick ?? post.author?.name,
                 authorPictureURL: post.author?.picture?.url,
-                createdAt: post.createdAt
+                createdAt: post.createdAt ?? ""
             )
         }
     }
@@ -298,12 +371,17 @@ struct PostEntityQuery: EntityQuery {
             PostEntity(
                 id: post.id,
                 content: post.content,
-                authorName: post.author?.name,
+                authorName: post.author?.nick ?? post.author?.name,
                 authorPictureURL: post.author?.picture?.url,
-                createdAt: post.createdAt
+                createdAt: post.createdAt ?? ""
             )
         }
         cache.setItems(entities)
+        if #available(iOS 18.0, *) {
+            Task {
+                try? await CSSearchableIndex.default().indexAppEntities(entities)
+            }
+        }
         return entities
     }
 }
@@ -371,7 +449,7 @@ struct ComposePostIntent: AppIntent {
     static var openAppWhenRun = true
 
     func perform() async throws -> some IntentResult & OpensIntent {
-        try AppIntentNavigation.queueDeepLink(path: "")
+        try AppIntentNavigation.queueDeepLink(path: "compose")
         return .result(value: AppIntentL10n.string("intent_open_compose_result"))
     }
 }
@@ -392,7 +470,7 @@ struct SearchContentIntent: AppIntent {
         Summary("intent_search_summary \(\.$query)")
     }
 
-    func perform() async throws -> some IntentResult & ProvidesDialog {
+    func perform() async throws -> some IntentResult & ReturnsValue<[PostEntity]> & ProvidesDialog {
         guard let query = query, !query.isEmpty else {
             throw AppIntentError.requiredParameter(AppIntentL10n.string("intent_search_query_parameter"))
         }
@@ -404,33 +482,31 @@ struct SearchContentIntent: AppIntent {
         do {
             let posts = try await NetworkService.shared.searchPosts(
                 query: query,
-                limit: 3,
+                limit: 5,
                 token: token,
                 serverUrl: serverUrl
             )
 
-            if posts.isEmpty {
+            let entities = posts.map { post in
+                PostEntity(
+                    id: post.id,
+                    content: post.content,
+                    authorName: post.author?.nick ?? post.author?.name,
+                    authorPictureURL: post.author?.picture?.url,
+                    createdAt: post.createdAt ?? ""
+                )
+            }
+
+            if entities.isEmpty {
                 let message = AppIntentL10n.string("intent_search_result", query)
                 return .result(
-                    value: message,
+                    value: [],
                     dialog: "\(message)"
                 )
             }
 
-            let lines = posts.enumerated().map { index, post in
-                let title = post.content?
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                    .replacingOccurrences(of: "\n", with: " ")
-                    .prefix(60)
-                    .description
-                    ?? AppIntentL10n.string("intent_post_fallback_format", String(post.id.prefix(8)))
-                let author = post.author?.name ?? AppIntentL10n.string("intent_unknown_sender")
-                return "\(index + 1). \(title) (\(author))"
-            }
-            let message = lines.joined(separator: "\n")
-
             return .result(
-                value: message,
+                value: entities,
                 dialog: "\(AppIntentL10n.string("intent_search_result", query))"
             )
         } catch {
@@ -480,7 +556,7 @@ struct ViewNotificationsIntent: AppIntent {
     static var openAppWhenRun = true
 
     func perform() async throws -> some IntentResult & OpensIntent {
-        try AppIntentNavigation.queueDeepLink(path: "")
+        try AppIntentNavigation.queueDeepLink(path: "notifications")
         return .result(value: AppIntentL10n.string("intent_notifications_result"))
     }
 }
@@ -494,7 +570,7 @@ struct CheckNotificationsIntent: AppIntent {
     static var isDiscoverable = true
     static var openAppWhenRun = false
 
-    func perform() async throws -> some IntentResult & ProvidesDialog {
+    func perform() async throws -> some IntentResult & ReturnsValue<Int> & ProvidesDialog {
         guard let token = AppIntentCredential.getToken() else {
             throw AppIntentError.networkError("Not logged in")
         }
@@ -513,7 +589,7 @@ struct CheckNotificationsIntent: AppIntent {
             }
 
             return .result(
-                value: message,
+                value: count,
                 dialog: "\(message)"
             )
         } catch {
@@ -547,17 +623,31 @@ struct SendMessageIntent: AppIntent {
         Summary("intent_send_message_summary \(\.$message) \(\.$chatRoom)")
     }
 
-    func perform() async throws -> some IntentResult & ProvidesDialog {
+    func perform() async throws -> some IntentResult & ReturnsValue<String> & ProvidesDialog {
         guard let token = AppIntentCredential.getToken() else {
             throw AppIntentError.networkError("Not logged in")
         }
         let serverUrl = AppIntentCredential.getServerUrl()
+        let roomLabel = chatRoom.name ?? chatRoom.id
+
+        if #available(iOS 18.0, *) {
+            try await requestConfirmation(
+                actionName: .send,
+                dialog: IntentDialog("\(AppIntentL10n.string("intent_send_message_summary", message, roomLabel))")
+            )
+        } else {
+            try await requestConfirmation(
+                result: .result(
+                    dialog: "\(AppIntentL10n.string("intent_send_message_summary", message, roomLabel))"
+                )
+            )
+        }
 
         do {
             try await NetworkService.shared.sendMessage(channelId: chatRoom.id, content: message, token: token, serverUrl: serverUrl)
 
             return .result(
-                value: AppIntentL10n.string("intent_send_message_result", chatRoom.name ?? chatRoom.id),
+                value: AppIntentL10n.string("intent_send_message_result", roomLabel),
                 dialog: "\(AppIntentL10n.string("intent_send_message_success"))"
             )
         } catch {
@@ -592,7 +682,7 @@ struct ReadMessagesIntent: AppIntent {
         Summary("intent_read_messages_summary \(\.$chatRoom)")
     }
 
-    func perform() async throws -> some IntentResult & ProvidesDialog {
+    func perform() async throws -> some IntentResult & ReturnsValue<[ChatMessageEntity]> & ProvidesDialog {
         guard let token = AppIntentCredential.getToken() else {
             throw AppIntentError.networkError("Not logged in")
         }
@@ -611,19 +701,25 @@ struct ReadMessagesIntent: AppIntent {
 
             if messages.isEmpty {
                 return .result(
-                    value: AppIntentL10n.string("intent_read_messages_none", chatRoom.name ?? chatRoom.id),
+                    value: [],
                     dialog: "\(AppIntentL10n.string("intent_read_messages_none_dialog"))"
                 )
             }
 
-            let formattedMessages = messages.compactMap { message -> String? in
-                let senderName = message.sender?.account?.name ?? AppIntentL10n.string("intent_unknown_sender")
-                let content = message.content ?? ""
-                return "\(senderName): \(content)"
-            }.joined(separator: "\n")
+            let entities = messages.enumerated().map { index, message in
+                let senderName = message.sender?.displayName ?? AppIntentL10n.string("intent_unknown_sender")
+                let content = message.content?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let displayContent = content.isEmpty ? "[\(message.type ?? "attachment")]" : content
+                return ChatMessageEntity(
+                    id: message.id ?? "\(chatRoom.id)-\(index)",
+                    chatRoomId: chatRoom.id,
+                    senderName: senderName,
+                    content: displayContent
+                )
+            }
 
             return .result(
-                value: formattedMessages,
+                value: entities,
                 dialog: "\(AppIntentL10n.string("intent_read_messages_found", messages.count))"
             )
         } catch {
@@ -641,7 +737,7 @@ struct CheckUnreadChatsIntent: AppIntent {
     static var isDiscoverable = true
     static var openAppWhenRun = false
 
-    func perform() async throws -> some IntentResult & ProvidesDialog {
+    func perform() async throws -> some IntentResult & ReturnsValue<Int> & ProvidesDialog {
         guard let token = AppIntentCredential.getToken() else {
             throw AppIntentError.networkError("Not logged in")
         }
@@ -660,7 +756,7 @@ struct CheckUnreadChatsIntent: AppIntent {
             }
 
             return .result(
-                value: message,
+                value: count,
                 dialog: "\(message)"
             )
         } catch {
