@@ -37,6 +37,11 @@ class BlockContentEditor extends ConsumerStatefulWidget {
   ConsumerState<BlockContentEditor> createState() => _BlockContentEditorState();
 }
 
+/// Editor height cap inside host scrollables: tall enough for roughly a
+/// dozen paragraph blocks, past which the editor scrolls internally instead
+/// of pushing the whole compose form.
+const double _maxEditorHeight = 320;
+
 class _BlockContentEditorState extends ConsumerState<BlockContentEditor> {
   BlockMentionAutocomplete? _autocomplete;
   StreamSubscription? _transactionSub;
@@ -75,6 +80,9 @@ class _BlockContentEditorState extends ConsumerState<BlockContentEditor> {
 
   @override
   Widget build(BuildContext context) {
+    // Host flows (paste upload) need provider access; keep the state's
+    // reference current on every build.
+    widget.state.editorRef = ref;
     // Host flows (the cloud image picker sheet) need a context; keep the
     // state's reference current on every build.
     widget.state.editorContext = context;
@@ -101,9 +109,16 @@ class _BlockContentEditorState extends ConsumerState<BlockContentEditor> {
           }
           // The editor hosts an internal Overlay that requires finite
           // constraints. Inside a host scrollable (compose form/card) the
-          // height is unbounded, so give the editor a generous fixed height
-          // and let it scroll internally; the host can still scroll to it.
-          return SizedBox(height: 480, child: editor);
+          // height is unbounded, so cap the editor with an IntrinsicHeight:
+          // it hugs its content (one line empty) and stops growing at
+          // [_maxEditorHeight], scrolling internally past that.
+          return ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: 56,
+              maxHeight: _maxEditorHeight,
+            ),
+            child: IntrinsicHeight(child: editor),
+          );
         },
       ),
     );
