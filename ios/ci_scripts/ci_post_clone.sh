@@ -7,9 +7,22 @@ set -e
 cd "$CI_PRIMARY_REPOSITORY_PATH"
 
 echo "=== Installing Flutter SDK ==="
-# Clone the stable Flutter SDK from Git into the home folder
-git clone https://github.com/flutter/flutter.git --depth 1 -b stable $HOME/flutter
+# `stable` is a moving branch: at 3.50.0 its Dart 3.14.0 violates the
+# `sdks: dart: ">=3.13.0 <3.14.0"` pin in pubspec.lock, and
+# liquid_glass_renderer only publishes `<3.14.0`. Build the exact release the
+# repo pins in .mise.toml instead, so Xcode Cloud and `mise exec` agree.
+FLUTTER_VERSION=$(sed -n 's/^flutter *= *"\([0-9][^"]*\)".*$/\1/p' .mise.toml | head -n 1)
+if [ -z "$FLUTTER_VERSION" ]; then
+  echo "Could not read the Flutter version from .mise.toml"
+  exit 1
+fi
+echo "Pinned Flutter version: $FLUTTER_VERSION"
+
+# A shallow clone of the release tag resolves to "<version>-0-g<hash>", which
+# the Flutter tool accepts (a branch clone would report a non-release version).
+git clone https://github.com/flutter/flutter.git --depth 1 -b "$FLUTTER_VERSION" "$HOME/flutter"
 export PATH="$PATH:$HOME/flutter/bin"
+flutter --version
 
 # Pre-cache iOS artifacts and fetch dependencies
 flutter precache --ios
