@@ -57,13 +57,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.3"
-  appflowy_editor:
-    dependency: "direct main"
-    description:
-      path: "socommon/packages/appflowy_editor"
-      relative: true
-    source: path
-    version: "6.2.0"
   archive:
     dependency: "direct main"
     description:
@@ -1614,6 +1607,13 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  island_editor:
+    dependency: "direct main"
+    description:
+      path: "socommon/packages/island_editor"
+      relative: true
+    source: path
+    version: "6.2.0"
   island_plugin_foundation:
     dependency: "direct main"
     description:

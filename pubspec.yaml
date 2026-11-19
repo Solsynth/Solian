@@ -46,8 +46,8 @@ dependencies:
     path: socommon/packages/island_desktop_presence
   solar_network_foundation:
     path: socommon/packages/solar_network_foundation
-  appflowy_editor:
-    path: socommon/packages/appflowy_editor
+  island_editor:
+    path: socommon/packages/island_editor
   file_picker: ^13.3.3
   solsynth_express:
     path: socommon/packages/solsynth_express

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:appflowy_editor/appflowy_editor.dart';
+import 'package:island_editor/island_editor.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
