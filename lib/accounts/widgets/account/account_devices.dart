@@ -125,7 +125,15 @@ class ExpandedSessions extends _$ExpandedSessions {
 // ---------------------------------------------------------------------------
 
 const double _kRowGutter = 16;
-const double _kGroupMaxWidth = 720;
+
+/// Horizontal padding inside a sheet.
+///
+/// Bottom sheets are capped at 640dp by `BottomSheetThemeData`, so the sheet
+/// is often far narrower than the window it floats in. Measuring the window
+/// here (via `MediaQuery.sizeOf`) made the gutter ~220dp on desktop and
+/// squeezed every row into a sliver, so the gutter is the sheet-local ink
+/// margin instead.
+const EdgeInsets _kPageGutter = EdgeInsets.symmetric(horizontal: _kRowGutter);
 
 /// Status green that survives both themes.
 ///
@@ -135,14 +143,6 @@ Color _liveColor(BuildContext context) =>
     Theme.of(context).brightness == Brightness.dark
         ? const Color(0xFF6FD39A)
         : const Color(0xFF2E7D48);
-
-EdgeInsets _pageGutter(BuildContext context, {double vertical = 0}) {
-  final width = MediaQuery.sizeOf(context).width;
-  final gutter = width > _kGroupMaxWidth + 40
-      ? (width - _kGroupMaxWidth) / 2
-      : _kRowGutter;
-  return EdgeInsets.symmetric(horizontal: gutter, vertical: vertical);
-}
 
 IconData _platformIcon(int platform) {
   return switch (platform) {
@@ -952,7 +952,7 @@ class _DeviceDetailSheet extends HookConsumerWidget {
       }
     }
 
-    final gutter = _pageGutter(context);
+    const gutter = _kPageGutter;
 
     return SheetScaffold(
       titleText: device.deviceLabel ?? device.deviceName,
@@ -1422,7 +1422,7 @@ class AccountSessionSheet extends HookConsumerWidget {
       child: Column(
         children: [
           Padding(
-            padding: _pageGutter(context),
+            padding: _kPageGutter,
             child: TabBar(
               controller: tabController,
               dividerColor: Colors.transparent,
@@ -1599,7 +1599,7 @@ class _DevicesTabState extends State<_DevicesTab> {
         final nativeDevices = data.items.where((d) => d.platform != 1).toList();
         final webDevices = data.items.where((d) => d.platform == 1).toList();
         final isLoadingMore = data.isLoading && data.items.isNotEmpty;
-        final gutter = _pageGutter(context);
+        const gutter = _kPageGutter;
 
         return ExtendedRefreshIndicator(
           onRefresh: () =>
@@ -1737,7 +1737,7 @@ class _SessionsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gutter = _pageGutter(context);
+    const gutter = _kPageGutter;
 
     return authSessions.when(
       data: (data) => Column(
@@ -1798,7 +1798,7 @@ class _SessionsTab extends StatelessWidget {
     List<SnAuthSession> sessions,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    final gutter = _pageGutter(context);
+    const gutter = _kPageGutter;
     final browserSessions = sessions
         .where((s) => s.category == 'browser')
         .toList();
