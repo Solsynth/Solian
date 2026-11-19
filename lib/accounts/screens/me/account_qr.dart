@@ -12,7 +12,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/material.dart' as legacy_material;
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
@@ -954,10 +953,10 @@ class _TransferRequestSheetState extends State<_TransferRequestSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final dropdownDecoration = legacy_material.InputDecoration(
+    final dropdownDecoration = InputDecoration(
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(vertical: 14),
-      border: legacy_material.OutlineInputBorder(
+      border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
       ),
     );

@@ -3,7 +3,6 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/material.dart' as legacy_material;
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:island/shared/hooks/material_hooks.dart';
@@ -880,10 +879,10 @@ class _CreateFundSheetState extends ConsumerState<CreateFundSheet> {
                   DropdownButtonFormField2<String>(
                     isExpanded: true,
                     valueListenable: ValueNotifier(selectedCurrency),
-                    decoration: legacy_material.InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'currency'.tr(),
                       contentPadding: const EdgeInsets.symmetric(vertical: 9),
-                      border: legacy_material.OutlineInputBorder(
+                      border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
@@ -1547,10 +1546,10 @@ class _CreateTransferSheetState extends ConsumerState<CreateTransferSheet> {
                   DropdownButtonFormField2<String>(
                     isExpanded: true,
                     valueListenable: ValueNotifier(selectedCurrency),
-                    decoration: legacy_material.InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'currency'.tr(),
                       contentPadding: const EdgeInsets.symmetric(vertical: 9),
-                      border: legacy_material.OutlineInputBorder(
+                      border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),

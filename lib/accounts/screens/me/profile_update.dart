@@ -5,7 +5,6 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/material.dart' as legacy_material;
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -298,10 +297,10 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                         FocusManager.instance.primaryFocus?.unfocus(),
                   ),
                   DropdownButtonFormField2<String>(
-                    decoration: legacy_material.InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'language'.tr(),
                       helperText: 'accountLanguageHint'.tr(),
-                      border: legacy_material.InputBorder.none,
+                      border: InputBorder.none,
                     ),
                     items: [
                       ...kServerSupportedLanguages.values.map(
@@ -327,10 +326,10 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                     ),
                   ),
                   DropdownButtonFormField2<String>(
-                    decoration: legacy_material.InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'region'.tr(),
                       helperText: 'accountRegionHint'.tr(),
-                      border: legacy_material.InputBorder.none,
+                      border: InputBorder.none,
                     ),
                     items: [
                       ...kServerSupportedRegions.map(
@@ -749,9 +748,9 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                         ),
                       ),
                       DropdownButtonFormField2<String>(
-                        decoration: legacy_material.InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'colorType'.tr(),
-                          border: legacy_material.InputBorder.none,
+                          border: InputBorder.none,
                         ),
                         items: [
                           DropdownItem(
@@ -822,9 +821,9 @@ class AccountUpdateProfileScreen extends HookConsumerWidget {
                         ),
                       if (usernameColorType.value == 'gradient') ...[
                         DropdownButtonFormField2<String>(
-                          decoration: legacy_material.InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'gradientDirection'.tr(),
-                            border: legacy_material.InputBorder.none,
+                            border: InputBorder.none,
                           ),
                           items: [
                             DropdownItem(

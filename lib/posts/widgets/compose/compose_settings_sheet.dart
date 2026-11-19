@@ -245,9 +245,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
           // Categories field
           DropdownButtonFormField2<SnPostCategory>(
             isExpanded: true,
-            decoration: legacy_material.InputDecoration(
+            decoration: InputDecoration(
               contentPadding: const EdgeInsets.symmetric(vertical: 9),
-              border: legacy_material.OutlineInputBorder(
+              border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
@@ -346,9 +346,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
           if (publisherCollections != null && publisherCollections.hasValue)
             DropdownButtonFormField2<SnPostCollection>(
               isExpanded: true,
-              decoration: legacy_material.InputDecoration(
+              decoration: InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(vertical: 9),
-                border: legacy_material.OutlineInputBorder(
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
@@ -467,9 +467,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
           // Language selection
           DropdownButtonFormField2<String?>(
             isExpanded: true,
-            decoration: legacy_material.InputDecoration(
+            decoration: InputDecoration(
               contentPadding: const EdgeInsets.symmetric(vertical: 9),
-              border: legacy_material.OutlineInputBorder(
+              border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
@@ -501,9 +501,9 @@ class ComposeSettingsSheet extends HookConsumerWidget {
           // Language selection            // Realm selection
           DropdownButtonFormField2<SnRealm?>(
             isExpanded: true,
-            decoration: legacy_material.InputDecoration(
+            decoration: InputDecoration(
               contentPadding: const EdgeInsets.symmetric(vertical: 9),
-              border: legacy_material.OutlineInputBorder(
+              border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
@@ -621,10 +621,10 @@ class ComposeSettingsSheet extends HookConsumerWidget {
 
           DropdownButtonFormField2<int>(
             isExpanded: true,
-            decoration: legacy_material.InputDecoration(
+            decoration: InputDecoration(
               labelText: 'postVisibility'.tr(),
               contentPadding: const EdgeInsets.symmetric(vertical: 9),
-              border: legacy_material.OutlineInputBorder(
+              border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
