@@ -448,7 +448,10 @@ class _PostComposeEditor extends HookConsumerWidget {
       );
     }
 
-    final title = originalPost != null
+    // The pane's title is the composer's name, not the session's mode: it
+    // sits in a card beside the feed as a place, not as a page announcing
+    // that an existing post is being edited (the page chrome still says so).
+    final title = originalPost != null && chrome == PostComposeChrome.page
         ? 'postEditing'.tr()
         : 'postCompose'.tr();
 
