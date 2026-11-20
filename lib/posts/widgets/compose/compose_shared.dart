@@ -67,7 +67,7 @@ class ComposeState {
   final ValueNotifier<List<String>> collectionIds;
   Timer? _autoSaveTimer;
 
-  /// Solar block editor (AppFlowy-based, Notion-like) over markdown blocks,
+  /// Solar block editor (Island Editor-based, Notion-like) over markdown blocks,
   /// created lazily by [ensureEditorLoaded]. Edits flow editor → markdown
   /// into [contentController]; external writes to [contentController]
   /// (draft restore, placeholder insertion, imports) re-import through

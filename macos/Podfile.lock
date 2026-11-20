@@ -21,14 +21,14 @@ PODS:
   - Firebase/Messaging (12.19.3):
     - Firebase/CoreOnly
     - FirebaseMessaging (~> 12.19.0)
-  - firebase_analytics (13.0.1):
+  - firebase_analytics (13.1.0):
     - firebase_core
-    - FirebaseAnalytics (= 12.19.0)
+    - FirebaseAnalytics (~> 12.19.0)
     - FlutterMacOS
-  - firebase_core (5.1.0):
+  - firebase_core (5.2.0):
     - Firebase/CoreOnly (~> 12.19.0)
     - FlutterMacOS
-  - firebase_messaging (17.0.1):
+  - firebase_messaging (17.1.0):
     - Firebase/CoreOnly (~> 12.19.0)
     - Firebase/Messaging (~> 12.19.0)
     - firebase_core
@@ -89,7 +89,7 @@ PODS:
     - FlutterMacOS
     - WebRTC-SDK (= 150.7871.04)
   - FlutterMacOS (1.0.0)
-  - gal (1.0.0):
+  - gal (3.0.1):
     - Flutter
     - FlutterMacOS
   - geocoding_darwin (0.0.1):
@@ -162,7 +162,7 @@ PODS:
   - just_audio (0.0.1):
     - Flutter
     - FlutterMacOS
-  - livekit_client (2.13.2):
+  - livekit_client (2.14.0):
     - flutter_webrtc
     - FlutterMacOS
     - WebRTC-SDK (= 150.7871.04)
@@ -391,9 +391,9 @@ SPEC CHECKSUMS:
   file_saver: 41061028a994eb4fc9a53c5d7ce13d61d03b6ac3
   file_selector_macos: 3af0fddc391c32a6a3956a7d3898ca3a86057a4f
   Firebase: e3c5ab38229ae085490d02398d97b9f5374bbe6e
-  firebase_analytics: 9d692694c40f2082dc550a57ad78078e05a778e3
-  firebase_core: 9110fee1401856a71278a7439e427e003a23d2e1
-  firebase_messaging: 49922e404ef175b83c45536e1e784290ab3381da
+  firebase_analytics: fd5977ba91f517fac57d530f30a47b8b2a9413da
+  firebase_core: 30a4fe384d41850a765d4e9b3f80ad865f6bf460
+  firebase_messaging: 4332ed5682154d398a7d3b3cf3698a770396d92b
   FirebaseAnalytics: e9f8c369447e453da23f0455a06e4910bad10de0
   FirebaseCore: ab948de5d99e69aeed3cd6f5ace263ce795b2559
   FirebaseCoreInternal: 656b1c2fd5a1c5976183dc54b73deda78fb26ee3
@@ -407,7 +407,7 @@ SPEC CHECKSUMS:
   flutter_timezone: d272288c69082ad571630e0d17140b3d6b93dc0c
   flutter_webrtc: c7754800cea651bdfa9e8608fdb99b33a0880858
   FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
-  gal: baecd024ebfd13c441269ca7404792a7152fde89
+  gal: 49b4e48d0ffca13a414561eff9716a990c6260b6
   geocoding_darwin: 968545604e6896deeef55517d53a81b3b9801971
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
   GoogleAppMeasurement: f2f676480e4c97936df934aa181bc29caea46975
@@ -418,7 +418,7 @@ SPEC CHECKSUMS:
   irondash_engine_context: 893c7d96d20ce361d7e996f39d360c4c2f9869ba
   island_desktop_presence: 2360e0ca57129a334b22a67b4ba876861f680ba7
   just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
-  livekit_client: c80bedf4e839fe23e2ce2b0615519029603b6e2a
+  livekit_client: 8ac004009f4c813a2999de1d0932b0faf45659fd
   local_auth_darwin: c3ee6cce0a8d56be34c8ccb66ba31f7f180aaebb
   media_kit_libs_macos_video: 85a23e549b5f480e72cae3e5634b5514bc692f65
   media_kit_video: fa6564e3799a0a28bff39442334817088b7ca758

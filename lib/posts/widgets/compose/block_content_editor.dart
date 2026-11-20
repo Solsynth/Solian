@@ -9,7 +9,7 @@ import 'package:island/posts/widgets/compose/block_mention_autocomplete.dart';
 import 'package:island/posts/widgets/compose/compose_shared.dart';
 
 /// The Solian compose content editor: the shared [SolarBlockEditor]
-/// (AppFlowy-based, Notion-like) over the markdown-backed
+/// (Island Editor-based, Notion-like) over the markdown-backed
 /// [ComposeState.contentController].
 ///
 /// Edits flow editor → [SolarEditorController.onChange] → markdown →

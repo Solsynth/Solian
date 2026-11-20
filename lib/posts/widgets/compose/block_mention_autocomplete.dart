@@ -181,25 +181,46 @@ class BlockMentionAutocomplete {
       left: left,
       top: top,
       width: width,
-      child: Material(
-        elevation: 6,
-        borderRadius: BorderRadius.circular(10),
-        clipBehavior: Clip.antiAlias,
-        color: theme.colorScheme.surfaceContainerHigh,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: maxHeight),
-          child: ListView.builder(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            itemCount: _suggestions.length,
-            itemBuilder: (context, index) {
-              final suggestion = _suggestions[index];
-              return _MentionTile(
-                suggestion: suggestion,
-                selected: index == _highlighted,
-                onTap: () => _select(suggestion),
-              );
-            },
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 140),
+        curve: Curves.easeOutCubic,
+        builder: (context, value, child) => Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, (1 - value) * 4),
+            child: Transform.scale(
+              scale: 0.97 + 0.03 * value,
+              alignment: Alignment.topCenter,
+              child: child,
+            ),
+          ),
+        ),
+        child: Material(
+          elevation: 6,
+          borderRadius: BorderRadius.circular(10),
+          clipBehavior: Clip.antiAlias,
+          color: theme.colorScheme.surfaceContainerHigh,
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 130),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: maxHeight),
+              child: ListView.builder(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                itemCount: _suggestions.length,
+                itemBuilder: (context, index) {
+                  final suggestion = _suggestions[index];
+                  return _MentionTile(
+                    suggestion: suggestion,
+                    selected: index == _highlighted,
+                    onTap: () => _select(suggestion),
+                  );
+                },
+              ),
+            ),
           ),
         ),
       ),
