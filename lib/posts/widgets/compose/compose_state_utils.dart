@@ -59,11 +59,15 @@ class ComposeStateUtils {
   /// Call once per composer build, after the content-priming effects have
   /// run (initial state / draft restore), so the editor starts from the
   /// restored text.
+  ///
+  /// Keyed by [state]: a composer that swapped its state (a different post,
+  /// a different request) must boot the editor for the new one, otherwise
+  /// the content field has no editor to render and cannot receive input.
   static void useEditorBootstrap(ComposeState state) {
     useEffect(() {
       state.ensureEditorLoaded();
       return null;
-    }, []);
+    }, [state]);
   }
 
   /// Loads initial state from provided parameters.

@@ -155,7 +155,7 @@ class PostComposeScreen extends HookConsumerWidget {
 /// The route page wraps it in a scaffold; a wide page's pane wraps it in its
 /// own floating card. Either way the host decides when the form goes away, and
 /// leaving it always saves the draft.
-class PostComposePane extends HookConsumerWidget {
+class PostComposePane extends StatelessWidget {
   final SnPost? originalPost;
   final PostComposeInitialState? initialState;
   final SnPost? replyingTo;
@@ -179,49 +179,182 @@ class PostComposePane extends HookConsumerWidget {
   });
 
   @override
+  Widget build(BuildContext context) {
+    final postId = ComposeLogic.serverBackedPostId(originalPost);
+    // Editing opens on the server's own copy, the same way
+    // [ArticleEditScreen] does: a record read off the feed can carry an
+    // abridged body ([SnPost.isTruncated]) and, in lists, only the ids of the
+    // post it replies to or chains onto. Both have to be whole before the
+    // editor starts, because the editing session's document is seeded once.
+    //
+    // Seeding it from the caller's copy and swapping it when the fetch landed
+    // is what broke editing: the swap built a fresh state whose editor was
+    // never booted, so the content field rendered as an inert, empty box.
+    if (postId == null) {
+      return _PostComposeEditor(
+        originalPost: originalPost,
+        initialState: initialState,
+        replyingTo: replyingTo,
+        forwardingTo: forwardingTo,
+        chainingTo: chainingTo,
+        chrome: chrome,
+        onFinished: onFinished,
+      );
+    }
+
+    // The page chrome owns the whole viewport, so its close pops the route —
+    // `onFinished(false)` only reports to a pane host. The pane chrome's pill
+    // is not drawn before the form exists, so these states carry their own
+    // way out either way.
+    void close() {
+      if (chrome == PostComposeChrome.page) {
+        context.router.maybePop();
+      } else {
+        onFinished(false);
+      }
+    }
+
+    return Consumer(
+      builder: (context, ref, _) {
+        final fullPost = ref.watch(postProvider(postId));
+        final post = fullPost.value;
+        if (post == null) {
+          if (fullPost.hasError) {
+            return _PostComposeLoadFailed(
+              onRetry: () => ref.invalidate(postProvider(postId)),
+              onClose: close,
+            );
+          }
+          return _PostComposeLoading(onClose: close);
+        }
+        return _PostComposeEditor(
+          originalPost: post,
+          initialState: initialState,
+          replyingTo: replyingTo,
+          forwardingTo: forwardingTo,
+          chainingTo: chainingTo,
+          chrome: chrome,
+          onFinished: onFinished,
+        );
+      },
+    );
+  }
+}
+
+/// Placeholder while an edit waits for the post's full body. Keeps a close
+/// affordance: the composer's own pill is not drawn until the form exists.
+class _PostComposeLoading extends StatelessWidget {
+  final VoidCallback onClose;
+
+  const _PostComposeLoading({required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        const Center(child: CircularProgressIndicator()),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: IconButton(
+            icon: const Icon(Symbols.close),
+            tooltip: 'close'.tr(),
+            onPressed: onClose,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The composer could not obtain the post it was asked to edit.
+class _PostComposeLoadFailed extends StatelessWidget {
+  final VoidCallback onRetry;
+  final VoidCallback onClose;
+
+  const _PostComposeLoadFailed({
+    required this.onRetry,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Symbols.error,
+            size: 40,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const Gap(SolSpace.md),
+          Text('failedToLoadPost'.tr()),
+          const Gap(SolSpace.md),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextButton(onPressed: onClose, child: Text('close'.tr())),
+              TextButton(onPressed: onRetry, child: Text('retry'.tr())),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The composer itself, once [PostComposePane] has the post it authors.
+class _PostComposeEditor extends HookConsumerWidget {
+  final SnPost? originalPost;
+  final PostComposeInitialState? initialState;
+  final SnPost? replyingTo;
+  final SnPost? forwardingTo;
+  final SnPost? chainingTo;
+  final PostComposeChrome chrome;
+  final ValueChanged<bool> onFinished;
+
+  const _PostComposeEditor({
+    this.originalPost,
+    this.initialState,
+    this.replyingTo,
+    this.forwardingTo,
+    this.chainingTo,
+    this.chrome = PostComposeChrome.page,
+    required this.onFinished,
+  });
+
+  @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(composeStorageProvider);
     final prompted = useState(false);
     final showPreview = useState(false);
     final isDragging = useState(false);
 
-    final fullPostData =
-        originalPost != null &&
-            ComposeLogic.serverBackedPostId(originalPost!) != null
-        ? ref.watch(postProvider(originalPost!.id))
-        : const AsyncValue.data(null);
-
-    final effectiveOriginalPost = fullPostData.when(
-      data: (fullPost) => fullPost ?? originalPost,
-      loading: () => originalPost,
-      error: (_, _) => originalPost,
-    );
-
     final repliedPost =
-        replyingTo ??
-        initialState?.replyingTo ??
-        effectiveOriginalPost?.repliedPost;
+        replyingTo ?? initialState?.replyingTo ?? originalPost?.repliedPost;
     final forwardedPost =
         forwardingTo ??
         initialState?.forwardingTo ??
-        effectiveOriginalPost?.forwardedPost;
+        originalPost?.forwardedPost;
     final chainedPost =
-        chainingTo ??
-        initialState?.chainingTo ??
-        effectiveOriginalPost?.chainedPost;
+        chainingTo ?? initialState?.chainingTo ?? originalPost?.chainedPost;
 
+    // Keyed by the request, never by the post payload: the editor owns the
+    // live document, so any later copy of the post that reaches this widget
+    // (a refresh, a realtime update) must not replace the state under it.
     final ComposeState state = useMemoized(
       () => ComposeLogic.createState(
-        originalPost: effectiveOriginalPost,
+        originalPost: originalPost,
         forwardedPost: forwardedPost,
         repliedPost: repliedPost,
         cloudDraftId: initialState?.cloudDraftId,
         postType: 0,
       ),
       [
-        effectiveOriginalPost,
-        forwardedPost,
-        repliedPost,
+        originalPost?.id,
+        repliedPost?.id,
+        forwardedPost?.id,
         initialState?.cloudDraftId,
       ],
     );
@@ -263,9 +396,7 @@ class PostComposePane extends HookConsumerWidget {
     useEffect(() {
       final database = ref.read(databaseProvider);
       final isNewPost =
-          effectiveOriginalPost == null &&
-          repliedPost == null &&
-          forwardedPost == null;
+          originalPost == null && repliedPost == null && forwardedPost == null;
       if (isNewPost) {
         state.startAutoSave(
           (composeState) => ComposeLogic.saveDraftWithoutUploadWithDatabase(
@@ -275,7 +406,7 @@ class PostComposePane extends HookConsumerWidget {
         );
       }
       return null;
-    }, [state, effectiveOriginalPost, repliedPost, forwardedPost]);
+    }, [state, originalPost, repliedPost, forwardedPost]);
 
     useEffect(
       () {
@@ -306,7 +437,7 @@ class PostComposePane extends HookConsumerWidget {
       await ComposeLogic.submitInBackground(
         ref,
         state,
-        originalPost: effectiveOriginalPost,
+        originalPost: originalPost,
         repliedPost: repliedPost,
         forwardedPost: forwardedPost,
         chainedPost: chainedPost,
@@ -317,7 +448,7 @@ class PostComposePane extends HookConsumerWidget {
       );
     }
 
-    final title = effectiveOriginalPost != null
+    final title = originalPost != null
         ? 'postEditing'.tr()
         : 'postCompose'.tr();
 
@@ -345,11 +476,11 @@ class PostComposePane extends HookConsumerWidget {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : Icon(
-                  effectiveOriginalPost != null
+                  originalPost != null
                       ? Symbols.edit
                       : Symbols.upload,
                 ),
-          tooltip: effectiveOriginalPost != null
+          tooltip: originalPost != null
               ? 'postUpdate'.tr()
               : 'postPublish'.tr(),
         );
@@ -373,7 +504,7 @@ class PostComposePane extends HookConsumerWidget {
                   )
                 : PostComposeForm(
                     key: const ValueKey('compose'),
-                    originalPost: effectiveOriginalPost,
+                    originalPost: originalPost,
                     initialState: initialState,
                     providedState: state,
                     onSubmitRequest: performSubmit,

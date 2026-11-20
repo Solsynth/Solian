@@ -70,11 +70,30 @@ class _BlockContentEditorState extends ConsumerState<BlockContentEditor> {
     );
   }
 
+  void _releaseAutocomplete() {
+    _transactionSub?.cancel();
+    _transactionSub = null;
+    _autocomplete?.dispose();
+    _autocomplete = null;
+  }
+
+  @override
+  void didUpdateWidget(BlockContentEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A composer can hand over a different state (a new request reusing this
+    // element). Follow its editor instead of the one it replaced.
+    if (oldWidget.state != widget.state) {
+      oldWidget.state.editorLoaded.removeListener(_onEditorLoaded);
+      widget.state.editorLoaded.addListener(_onEditorLoaded);
+      _releaseAutocomplete();
+      _onEditorLoaded();
+    }
+  }
+
   @override
   void dispose() {
     widget.state.editorLoaded.removeListener(_onEditorLoaded);
-    _transactionSub?.cancel();
-    _autocomplete?.dispose();
+    _releaseAutocomplete();
     super.dispose();
   }
 
@@ -86,41 +105,50 @@ class _BlockContentEditorState extends ConsumerState<BlockContentEditor> {
     // Host flows (the cloud image picker sheet) need a context; keep the
     // state's reference current on every build.
     widget.state.editorContext = context;
-    final controller = widget.state.solarEditorController;
-    if (controller == null) {
-      return const SizedBox(height: 48);
-    }
 
-    final editor = SolarBlockEditor(
-      controller: controller,
-      editable: widget.enabled,
-      shrinkWrap: widget.shrinkWrap,
-      // Route keys through the mention popup first: while it is open,
-      // arrows/enter/escape navigate it instead of the document.
-      onKeyEvent: (event) => _autocomplete?.handleKey(event),
-    );
+    // The composer creates its editor from a hook effect, so this field can
+    // build before the controller exists. Rebuilding on [editorLoaded] swaps
+    // the placeholder for the editable surface as soon as it appears.
+    return ValueListenableBuilder<bool>(
+      valueListenable: widget.state.editorLoaded,
+      builder: (context, _, _) {
+        final controller = widget.state.solarEditorController;
+        if (controller == null) {
+          return const SizedBox(height: 48);
+        }
 
-    return Padding(
-      padding: widget.padding,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.hasBoundedHeight) {
-            return editor;
-          }
-          // The editor hosts an internal Overlay that requires finite
-          // constraints. Inside a host scrollable (compose form/card) the
-          // height is unbounded, so cap the editor with an IntrinsicHeight:
-          // it hugs its content (one line empty) and stops growing at
-          // [_maxEditorHeight], scrolling internally past that.
-          return ConstrainedBox(
-            constraints: const BoxConstraints(
-              minHeight: 56,
-              maxHeight: _maxEditorHeight,
-            ),
-            child: IntrinsicHeight(child: editor),
-          );
-        },
-      ),
+        final editor = SolarBlockEditor(
+          controller: controller,
+          editable: widget.enabled,
+          shrinkWrap: widget.shrinkWrap,
+          // Route keys through the mention popup first: while it is open,
+          // arrows/enter/escape navigate it instead of the document.
+          onKeyEvent: (event) => _autocomplete?.handleKey(event),
+        );
+
+        return Padding(
+          padding: widget.padding,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.hasBoundedHeight) {
+                return editor;
+              }
+              // The editor hosts an internal Overlay that requires finite
+              // constraints. Inside a host scrollable (compose form/card) the
+              // height is unbounded, so cap the editor with an IntrinsicHeight:
+              // it hugs its content (one line empty) and stops growing at
+              // [_maxEditorHeight], scrolling internally past that.
+              return ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minHeight: 56,
+                  maxHeight: _maxEditorHeight,
+                ),
+                child: IntrinsicHeight(child: editor),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
