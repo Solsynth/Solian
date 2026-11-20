@@ -265,9 +265,6 @@ PODS:
     - Flutter
   - url_launcher_ios (0.0.1):
     - Flutter
-  - video_thumbnail (0.0.1):
-    - Flutter
-    - libwebp
   - wakelock_plus (0.0.1):
     - Flutter
   - WebRTC-SDK (150.7871.04)
@@ -329,7 +326,6 @@ DEPENDENCIES:
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
   - super_native_extensions (from `.symlinks/plugins/super_native_extensions/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
-  - video_thumbnail (from `.symlinks/plugins/video_thumbnail/ios`)
   - wakelock_plus (from `.symlinks/plugins/wakelock_plus/ios`)
 
 SPEC REPOS:
@@ -463,8 +459,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/super_native_extensions/ios"
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
-  video_thumbnail:
-    :path: ".symlinks/plugins/video_thumbnail/ios"
   wakelock_plus:
     :path: ".symlinks/plugins/wakelock_plus/ios"
 
@@ -542,7 +536,6 @@ SPEC CHECKSUMS:
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   super_native_extensions: b763c02dc3a8fd078389f410bf15149179020cb4
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
-  video_thumbnail: b637e0ad5f588ca9945f6e2c927f73a69a661140
   wakelock_plus: d4ca1e4e4bc9de42cb55d57b5bdc158af318e3c6
   WebRTC-SDK: 71bce2be85c3082d24bbfd1a9930ea07d0c494c1
 

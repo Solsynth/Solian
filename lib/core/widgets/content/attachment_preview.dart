@@ -4,7 +4,6 @@ import 'package:cross_file/cross_file.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:island/core/services/image.dart';
 import 'package:island/core/utils/share_utils.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
@@ -560,46 +559,18 @@ class AttachmentPreview extends HookConsumerWidget {
                       ? Image.network(file.path)
                       : Image.file(File(file.path));
                 case UniversalFileType.video:
+                  // Web cannot read frames back from a local blob URL: drawing
+                  // it into a canvas is blocked as cross-origin. The file card
+                  // is the fallback there.
                   if (!kIsWeb) {
-                    final thumbnailFuture = useMemoized(
-                      () => VideoThumbnail.thumbnailData(
-                        video: file.path,
-                        imageFormat: ImageFormat.JPEG,
-                        maxWidth: 320,
-                        quality: 50,
+                    return _LocalVideoThumbnail(
+                      path: file.path,
+                      fallback: _LocalFileCard(
+                        file: file,
+                        name: _getDisplayName(),
+                        mimeType: mimeType,
+                        icon: fallbackIcon,
                       ),
-                      [file.path],
-                    );
-                    return FutureBuilder<Uint8List?>(
-                      future: thumbnailFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData && snapshot.data != null) {
-                          return Stack(
-                            children: [
-                              Image.memory(snapshot.data!),
-                              Positioned.fill(
-                                child: Center(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: colorScheme
-                                          .surfaceContainerHighest
-                                          .withValues(alpha: 0.85),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Symbols.play_arrow_rounded,
-                                      color: colorScheme.onSurfaceVariant,
-                                      size: 32,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        }
-                        return const Center(child: CircularProgressIndicator());
-                      },
                     );
                   }
                   break;
@@ -607,156 +578,24 @@ class AttachmentPreview extends HookConsumerWidget {
                   break;
               }
 
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      fallbackIcon,
-                      size: 28,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const Gap(10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      _getDisplayName(),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const Gap(6),
-                  FutureBuilder<int>(
-                    future: file.length(),
-                    builder: (context, snapshot) {
-                      final sizeText =
-                          snapshot.hasData ? formatFileSize(snapshot.data!) : null;
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.6),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (mimeType.isNotEmpty)
-                              Text(
-                                mimeType,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            if (mimeType.isNotEmpty && sizeText != null) ...[
-                              const Gap(6),
-                              Container(
-                                width: 3,
-                                height: 3,
-                                decoration: BoxDecoration(
-                                  color: colorScheme.outlineVariant,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const Gap(6),
-                            ],
-                            if (sizeText != null)
-                              Text(
-                                sizeText,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontSize: 10,
-                                ),
-                              ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ).padding(vertical: 28);
+              return _LocalFileCard(
+                file: file,
+                name: _getDisplayName(),
+                mimeType: mimeType,
+                icon: fallbackIcon,
+              );
             } else if (item is List<int> || item is Uint8List) {
               switch (item.type) {
                 case UniversalFileType.image:
                   return Image.memory(item.data);
                 default:
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          fallbackIcon,
-                          size: 28,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const Gap(10),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.6),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (mimeType.isNotEmpty)
-                              Text(
-                                mimeType,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            if (mimeType.isNotEmpty) ...[
-                              const Gap(6),
-                              Container(
-                                width: 3,
-                                height: 3,
-                                decoration: BoxDecoration(
-                                  color: colorScheme.outlineVariant,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const Gap(6),
-                            ],
-                            Text(
-                              formatFileSize(item.data.length),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ).padding(vertical: 24);
+                  return _LocalFileCard(
+                    file: null,
+                    name: _getDisplayName(),
+                    mimeType: mimeType,
+                    icon: fallbackIcon,
+                    byteLength: item.data.length,
+                  );
               }
             }
             return const Placeholder();
@@ -1067,6 +906,183 @@ class AttachmentPreview extends HookConsumerWidget {
         ],
       ),
       child: contentWidget,
+    );
+  }
+}
+
+/// Placeholder card for a local attachment that cannot be rendered inline.
+class _LocalFileCard extends StatelessWidget {
+  final XFile? file;
+  final String name;
+  final String mimeType;
+  final IconData icon;
+
+  /// Size of an in-memory payload; read from [file] when null.
+  final int? byteLength;
+
+  const _LocalFileCard({
+    required this.file,
+    required this.name,
+    required this.mimeType,
+    required this.icon,
+    this.byteLength,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mimeLabel = mimeType.isNotEmpty ? mimeType : null;
+
+    Widget sizeBadge(int? bytes) => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (mimeLabel != null)
+            Text(
+              mimeLabel,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 10,
+              ),
+            ),
+          if (mimeLabel != null && bytes != null) ...[
+            const Gap(6),
+            Container(
+              width: 3,
+              height: 3,
+              decoration: BoxDecoration(
+                color: colorScheme.outlineVariant,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const Gap(6),
+          ],
+          if (bytes != null)
+            Text(
+              formatFileSize(bytes),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 10,
+              ),
+            ),
+        ],
+      ),
+    );
+
+    Widget badge(int? bytes) =>
+        bytes == null ? const SizedBox.shrink() : sizeBadge(bytes);
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, size: 28, color: colorScheme.onSurfaceVariant),
+        ),
+        const Gap(10),
+        if (name.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              name,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        if (name.isNotEmpty) const Gap(6),
+        if (file != null)
+          FutureBuilder<int>(
+            future: file!.length(),
+            builder: (context, snapshot) =>
+                badge(snapshot.hasData ? snapshot.data : null),
+          )
+        else
+          badge(byteLength),
+      ],
+    ).padding(vertical: 28);
+  }
+}
+
+/// Renders a local video's representative frame with a play badge.
+///
+/// Frames come from libmpv ([generateVideoThumbnail]) so one code path serves
+/// Android, iOS, macOS, Windows and Linux; [fallback] is shown while generating
+/// and when the file cannot be decoded.
+class _LocalVideoThumbnail extends StatefulWidget {
+  final String path;
+  final Widget fallback;
+
+  const _LocalVideoThumbnail({required this.path, required this.fallback});
+
+  @override
+  State<_LocalVideoThumbnail> createState() => _LocalVideoThumbnailState();
+}
+
+class _LocalVideoThumbnailState extends State<_LocalVideoThumbnail> {
+  late Future<Uint8List?> _thumbnail;
+
+  @override
+  void initState() {
+    super.initState();
+    _thumbnail = _generate();
+  }
+
+  @override
+  void didUpdateWidget(_LocalVideoThumbnail oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.path != widget.path) _thumbnail = _generate();
+  }
+
+  Future<Uint8List?> _generate() =>
+      generateVideoThumbnail(widget.path, maxWidth: 320, quality: 50);
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Uint8List?>(
+      future: _thumbnail,
+      builder: (context, snapshot) {
+        final bytes = snapshot.data;
+        if (bytes == null) return widget.fallback;
+        return Stack(
+          children: [
+            Image.memory(bytes, fit: BoxFit.cover),
+            Positioned.fill(
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest
+                        .withValues(alpha: 0.85),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Symbols.play_arrow_rounded,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    size: 32,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
