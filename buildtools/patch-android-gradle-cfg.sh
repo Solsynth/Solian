@@ -49,6 +49,31 @@ while IFS= read -r file; do
 done < <(find "$PUB_CACHE" -type f -name "*.gradle.kts" 2>/dev/null)
 echo "Done: patched $patched_gradle *.gradle, $patched_gradle_kts *.gradle.kts to ${MAX_COMPILE_SDK}."
 
+# AGP 9 rejects the non-optimized default ProGuard file.
+patched_proguard=0
+while IFS= read -r file; do
+  if grep -q 'proguard-android\.txt' "$file"; then
+    replace_in_file "s/proguard-android\\.txt/proguard-android-optimize.txt/g" "$file"
+    patched_proguard=$((patched_proguard + 1))
+  fi
+done < <(find "$PUB_CACHE" -type f \( -path "*/android/build.gradle" -o -path "*/android/build.gradle.kts" \) 2>/dev/null)
+echo "Done: patched $patched_proguard ProGuard default files."
+
+# cargokit (used by irondash_engine_context and super_native_extensions)
+# predates AGP 9 / Gradle 9: compileSdkVersion is now "android-37.0" and
+# Project.exec() has been removed.
+patched_cargokit=0
+while IFS= read -r file; do
+  if ! grep -q 'org.gradle.process.ExecOperations' "$file"; then
+    perl -0pi -e 's/import org\.apache\.tools\.ant\.taskdefs\.condition\.Os\n/import org.apache.tools.ant.taskdefs.condition.Os\nimport org.gradle.process.ExecOperations\nimport javax.inject.Inject\n/' "$file"
+    perl -0pi -e 's/abstract class CargoKitBuildTask extends DefaultTask \{\n/abstract class CargoKitBuildTask extends DefaultTask {\n\n    \@Inject\n    abstract ExecOperations getExecOperations()\n/' "$file"
+  fi
+  perl -pi -e 's/project\.exec \{/execOperations.exec {/g' "$file"
+  perl -0pi -e 's/compileSdkVersion = plugin\.project\.android\.compileSdkVersion\.substring\(8\) as int/compileSdkVersion = (plugin.project.android.compileSdkVersion =~ \/[0-9]+\/)[0] as int/g' "$file"
+  patched_cargokit=$((patched_cargokit + 1))
+done < <(find "$PUB_CACHE" -type f -path "*/cargokit/gradle/plugin.gradle" 2>/dev/null)
+echo "Done: patched $patched_cargokit cargokit Gradle scripts."
+
 # Pre-cache openmls native libraries if missing, to bypass GitHub release download 504 timeouts.
 OPENMLS_SHARED_DIR=".dart_tool/hooks_runner/shared/openmls/build"
 echo "Checking openmls native prebuilts in ${OPENMLS_SHARED_DIR}..."
