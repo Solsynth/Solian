@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:convert';
-import 'dart:ui';
 import 'package:auto_route/auto_route.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -1628,12 +1627,9 @@ class _AppWrapperBackdrop extends StatelessWidget {
         ),
         Positioned.fill(
           child: IgnorePointer(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 36, sigmaY: 36),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: scheme.surface.withOpacity(isDark ? 0.18 : 0.08),
-                ),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: scheme.surface.withOpacity(isDark ? 0.18 : 0.08),
               ),
             ),
           ),
@@ -1653,8 +1649,8 @@ class _BackdropOrb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final primary = scheme.primary.withOpacity(0.18);
-    final tertiary = scheme.tertiary.withOpacity(0.12);
+    final primary = scheme.primary.withOpacity(0.14);
+    final tertiary = scheme.tertiary.withOpacity(0.08);
 
     return IgnorePointer(
       child: Container(
@@ -1666,7 +1662,7 @@ class _BackdropOrb extends StatelessWidget {
             center: alignment,
             radius: 1,
             colors: [primary, tertiary, Colors.transparent],
-            stops: const [0, 0.55, 1],
+            stops: const [0, 0.45, 1],
           ),
         ),
       ),

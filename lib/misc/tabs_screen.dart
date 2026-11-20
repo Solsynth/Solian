@@ -109,6 +109,7 @@ Widget _buildTabTransition(
     child: FadeTransition(
       opacity: curved,
       child: ImageFiltered(
+        enabled: animation.value < 1.0,
         imageFilter: ImageFilter.blur(
           sigmaX: kTabBlurSigma * (1 - animation.value),
           sigmaY: kTabBlurSigma * (1 - animation.value),

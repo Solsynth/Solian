@@ -41,13 +41,9 @@ class WindowScaffold extends HookConsumerWidget {
     final useNativeFrame = ref.watch(desktopNativeWindowFrameProvider);
 
     useEffect(() {
-      if (!isDesktop) return null;
-
-      // The window-state listener keeps geometry persisted during the session
-      // on native resize/move events. Keep a lifecycle observer too: it
-      // catches pauses/hides (e.g. closing to tray) without waiting for a
-      // native event, and flushes the full bounds + maximized state.
-      final observer = _WindowGeometryObserver(ref);
+      // Observes app lifecycle for both memory reclamation (on all platforms)
+      // and desktop window geometry persistence.
+      final observer = _AppLifecycleMemoryObserver(ref);
       WidgetsBinding.instance.addObserver(observer);
 
       return () {
@@ -114,14 +110,28 @@ class WindowScaffold extends HookConsumerWidget {
   }
 }
 
-class _WindowGeometryObserver extends WidgetsBindingObserver {
-  _WindowGeometryObserver(this._ref);
+class _AppLifecycleMemoryObserver extends WidgetsBindingObserver {
+  _AppLifecycleMemoryObserver(this._ref);
 
   final WidgetRef _ref;
 
   @override
+  void didHaveMemoryPressure() {
+    super.didHaveMemoryPressure();
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
+  }
+
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
+
+    // Release cached decoded image textures when backgrounded or hidden to
+    // keep native RSS low while idle.
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      PaintingBinding.instance.imageCache.clear();
+    }
 
     // Save window geometry when app is paused, detached, or hidden
     if (state == AppLifecycleState.paused ||

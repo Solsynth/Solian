@@ -74,30 +74,61 @@ final mediaPlaybackProvider =
     );
 
 class MediaPlaybackController extends Notifier<MediaPlaybackState> {
-  late final Player player;
+  Player? _player;
+  final List<StreamSubscription<dynamic>> _subscriptions = [];
+
+  /// Lazily creates the shared [Player] on first actual media use so app
+  /// startup does not allocate libmpv native memory and threads when no media
+  /// is being played.
+  Player get player => _ensurePlayer();
+
+  Player _ensurePlayer() {
+    final existing = _player;
+    if (existing != null) return existing;
+
+    ensureMediaKitInitialized();
+    final created = Player(
+      configuration: const PlayerConfiguration(bufferSize: 8 * 1024 * 1024),
+    );
+    _player = created;
+    _subscriptions.addAll([
+      created.stream.playing.listen(
+        (value) => state = state.copyWith(playing: value),
+      ),
+      created.stream.position.listen(
+        (value) => state = state.copyWith(position: value),
+      ),
+      created.stream.duration.listen(
+        (value) => state = state.copyWith(duration: value),
+      ),
+      created.stream.buffer.listen(
+        (value) => state = state.copyWith(buffered: value),
+      ),
+    ]);
+    return created;
+  }
+
+  Future<void> _disposePlayer() async {
+    final subscriptions = List<StreamSubscription<dynamic>>.of(_subscriptions);
+    _subscriptions.clear();
+    for (final sub in subscriptions) {
+      await sub.cancel();
+    }
+    final existing = _player;
+    _player = null;
+    if (existing != null) {
+      await existing.dispose();
+    }
+  }
 
   /// True when the current media was opened by a chat room's voice message.
   bool isChatVoiceOf(String roomId) => state.source == 'chat:$roomId';
 
   @override
   MediaPlaybackState build() {
-    ensureMediaKitInitialized();
-    player = Player(
-      configuration: const PlayerConfiguration(bufferSize: 8 * 1024 * 1024),
-    );
-    player.stream.playing.listen(
-      (value) => state = state.copyWith(playing: value),
-    );
-    player.stream.position.listen(
-      (value) => state = state.copyWith(position: value),
-    );
-    player.stream.duration.listen(
-      (value) => state = state.copyWith(duration: value),
-    );
-    player.stream.buffer.listen(
-      (value) => state = state.copyWith(buffered: value),
-    );
-    ref.onDispose(player.dispose);
+    ref.onDispose(() {
+      unawaited(_disposePlayer());
+    });
     return const MediaPlaybackState();
   }
 
@@ -109,9 +140,10 @@ class MediaPlaybackController extends Notifier<MediaPlaybackState> {
     double aspectRatio = 16 / 9,
     String? source,
   }) async {
+    final activePlayer = _ensurePlayer();
     if (state.uri == uri) {
       state = state.copyWith(docked: false);
-      if (autoplay) await player.play();
+      if (autoplay) await activePlayer.play();
       return;
     }
 
@@ -122,7 +154,7 @@ class MediaPlaybackController extends Notifier<MediaPlaybackState> {
       aspectRatio: aspectRatio,
       source: source,
     );
-    await player.open(Media(uri), play: autoplay);
+    await activePlayer.open(Media(uri), play: autoplay);
   }
 
   /// Only continue playback in the dock/PiP while the parent player is
@@ -138,8 +170,8 @@ class MediaPlaybackController extends Notifier<MediaPlaybackState> {
   }
 
   Future<void> close() async {
-    await player.stop();
     state = const MediaPlaybackState();
+    await _disposePlayer();
   }
 }
 

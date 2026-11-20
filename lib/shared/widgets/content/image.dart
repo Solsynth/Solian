@@ -103,26 +103,43 @@ class UniversalImage extends HookConsumerWidget {
       );
     }
 
-    int? cacheWidth;
-    int? cacheHeight;
-    if (width != null && height != null && !noCacheOptimization) {
-      final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
-      cacheWidth = width != null ? (width! * devicePixelRatio).round() : null;
-      cacheHeight = height != null
-          ? (height! * devicePixelRatio).round()
-          : null;
+    int? resolveCacheDimension(double? logicalSize, double dpr, double maxPx) {
+      if (logicalSize == null || !logicalSize.isFinite || logicalSize <= 0) {
+        return null;
+      }
+      final px = (logicalSize * dpr).round();
+      return px.clamp(1, maxPx.round());
     }
 
-    return SizedBox(
-      width: width,
-      height: height ?? 200,
-      child: Stack(
+    Widget buildImage({int? cacheWidth, int? cacheHeight}) {
+      // Pass only a single target dimension to ResizeImage so Flutter preserves
+      // the source image's natural aspect ratio while still capping decoded
+      // RGBA texture memory.
+      int? memCacheWidth;
+      int? memCacheHeight;
+      if (!noCacheOptimization) {
+        if (cacheWidth != null && cacheHeight != null) {
+          if (cacheWidth >= cacheHeight) {
+            memCacheWidth = cacheWidth;
+          } else {
+            memCacheHeight = cacheHeight;
+          }
+        } else {
+          memCacheWidth = cacheWidth;
+          memCacheHeight = cacheHeight;
+        }
+      }
+
+      final showBlurHash =
+          !loaded.value &&
+          blurHash != null &&
+          blurHash!.isNotEmpty &&
+          _isValidBlurHash(blurHash!);
+
+      return Stack(
         fit: StackFit.expand,
         children: [
-          if (blurHash != null &&
-              blurHash!.isNotEmpty &&
-              _isValidBlurHash(blurHash!))
-            BlurHash(hash: blurHash!),
+          if (showBlurHash) BlurHash(hash: blurHash!),
           if (isCached.value == null)
             loadingIndicatorBuilder?.call(context, null) ??
                 Center(
@@ -140,18 +157,22 @@ class UniversalImage extends HookConsumerWidget {
               fit: fit,
               width: width,
               height: height,
-              memCacheHeight: cacheHeight,
-              memCacheWidth: cacheWidth,
-              imageBuilder: (context, imageProvider) => Image(
-                image: CachedNetworkImageProvider(
-                  uri,
-                  headers: httpHeaders,
-                  imageRenderMethodForWeb: renderMethod,
-                ),
-                fit: fit,
-                width: width,
-                height: height,
-              ),
+              memCacheHeight: memCacheHeight,
+              memCacheWidth: memCacheWidth,
+              imageBuilder: (context, imageProvider) {
+                if (!loaded.value && !loadingCompletionScheduled.value) {
+                  loadingCompletionScheduled.value = true;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (context.mounted) loaded.value = true;
+                  });
+                }
+                return Image(
+                  image: imageProvider,
+                  fit: fit,
+                  width: width,
+                  height: height,
+                );
+              },
               errorWidget: (context, url, error) => CachedImageErrorWidget(
                 useFallbackImage: useFallbackImage,
                 uri: uri,
@@ -168,8 +189,8 @@ class UniversalImage extends HookConsumerWidget {
               fit: fit,
               width: width,
               height: height,
-              memCacheHeight: cacheHeight,
-              memCacheWidth: cacheWidth,
+              memCacheHeight: memCacheHeight,
+              memCacheWidth: memCacheWidth,
               progressIndicatorBuilder: (context, url, progress) {
                 return loadingIndicatorBuilder?.call(
                       context,
@@ -184,13 +205,17 @@ class UniversalImage extends HookConsumerWidget {
                     );
               },
               imageBuilder: (context, imageProvider) {
-                if (loadingIndicatorBuilder != null &&
-                    !loaded.value &&
-                    !loadingCompletionScheduled.value) {
+                if (!loaded.value && !loadingCompletionScheduled.value) {
                   loadingCompletionScheduled.value = true;
-                  Future.delayed(const Duration(milliseconds: 100), () {
-                    if (context.mounted) loaded.value = true;
-                  });
+                  if (loadingIndicatorBuilder != null) {
+                    Future.delayed(const Duration(milliseconds: 100), () {
+                      if (context.mounted) loaded.value = true;
+                    });
+                  } else {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (context.mounted) loaded.value = true;
+                    });
+                  }
                 }
 
                 return Stack(
@@ -202,11 +227,7 @@ class UniversalImage extends HookConsumerWidget {
                           ? const Duration(milliseconds: 300)
                           : const Duration(milliseconds: 180),
                       child: Image(
-                        image: CachedNetworkImageProvider(
-                          uri,
-                          headers: httpHeaders,
-                          imageRenderMethodForWeb: renderMethod,
-                        ),
+                        image: imageProvider,
                         fit: fit,
                         width: width,
                         height: height,
@@ -226,6 +247,46 @@ class UniversalImage extends HookConsumerWidget {
               ),
             ),
         ],
+      );
+    }
+
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final screenMaxPx = (MediaQuery.sizeOf(context).longestSide * dpr).clamp(
+      512.0,
+      2048.0,
+    );
+
+    if (noCacheOptimization || (width != null && height != null)) {
+      return SizedBox(
+        width: width,
+        height: height ?? 200,
+        child: buildImage(
+          cacheWidth: resolveCacheDimension(width, dpr, screenMaxPx),
+          cacheHeight: resolveCacheDimension(height, dpr, screenMaxPx),
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: width,
+      height: height ?? 200,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final resolvedWidth =
+              width ??
+              (constraints.hasBoundedWidth ? constraints.maxWidth : null);
+          final resolvedHeight =
+              height ??
+              (constraints.hasBoundedHeight ? constraints.maxHeight : null);
+          return buildImage(
+            cacheWidth: resolveCacheDimension(resolvedWidth, dpr, screenMaxPx),
+            cacheHeight: resolveCacheDimension(
+              resolvedHeight,
+              dpr,
+              screenMaxPx,
+            ),
+          );
+        },
       ),
     );
   }

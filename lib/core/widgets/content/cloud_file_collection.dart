@@ -851,16 +851,6 @@ class _CloudFileListEntry extends HookConsumerWidget {
     if (isImage) {
       if (file.blurhash != null && file.blurhash!.isNotEmpty) {
         bg = BlurHash(hash: file.blurhash!);
-      } else if (!lockedByDS && !lockedByMature) {
-        bg = ImageFiltered(
-          imageFilter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-          child: CloudFileWidget(
-            fit: BoxFit.cover,
-            item: file,
-            noBlurhash: true,
-            useInternalGate: false,
-          ),
-        );
       } else {
         bg = const ColoredBox(color: Colors.black26);
       }

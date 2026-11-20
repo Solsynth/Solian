@@ -845,6 +845,8 @@ class ProfilePictureWidget extends ConsumerWidget {
               uri: uri,
               blurHash: blurHash,
               fit: BoxFit.cover,
+              width: radius * 2,
+              height: radius * 2,
               loadingIndicatorBuilder: _buildCloudAvatarLoadingIndicator,
             ),
           );
@@ -1028,6 +1030,8 @@ class SplitAvatarWidget extends ConsumerWidget {
       child: UniversalImage(
         uri: uri,
         fit: BoxFit.cover,
+        width: radius,
+        height: radius,
         loadingIndicatorBuilder: _buildCloudAvatarLoadingIndicator,
       ),
     );

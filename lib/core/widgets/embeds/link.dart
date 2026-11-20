@@ -65,12 +65,19 @@ class _EmbedLinkWidgetState extends ConsumerState<EmbedLinkWidget> {
     if (!mounted) return;
 
     try {
-      final image = CachedNetworkImageProvider(widget.link.imageUrl!);
+      // Decode a tiny width-constrained bitmap to inspect aspect ratio without
+      // keeping a full-resolution RGBA texture alive in the image cache.
+      final image = ResizeImage(
+        CachedNetworkImageProvider(widget.link.imageUrl!),
+        width: 32,
+      );
       final ImageStream stream = image.resolve(ImageConfiguration.empty);
 
       void listenerCallback(ImageInfo info, bool synchronousCall) {
-        if (!mounted) return;
         final aspectRatio = info.image.width / info.image.height;
+        // Release the stream immediately so the decoded frame isn't pinned live.
+        _cancelImageStream();
+        if (!mounted) return;
         setState(() {
           _isSquare = aspectRatio >= 0.9 && aspectRatio <= 1.1;
         });

@@ -95,11 +95,15 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main(List<String> args) async {
   Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen((record) {
+  final earlyLogSubscription = Logger.root.onRecord.listen((record) {
     _earlyLogs.add(record);
   });
 
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  // Cap Flutter's decoded RGBA image cache (off-heap/GPU memory) so feeds and
+  // kept-alive tabs don't balloon native RSS.
+  PaintingBinding.instance.imageCache.maximumSize = 200;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 50 << 20;
 
   // ponytail: detect sub-window on desktop before heavy init
   if (!kIsWeb && (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
@@ -172,8 +176,6 @@ void main(List<String> args) async {
       // Not a sub-window or parse failed — continue with normal init
     }
   }
-
-  ensureMediaKitInitialized();
 
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
     Logger.root.info(
@@ -402,6 +404,7 @@ void main(List<String> args) async {
       Logger.root.info("[SplashScreen] Now hiding splash screen...");
     }
 
+    await earlyLogSubscription.cancel();
     Logger.root.onRecord.listen((record) {
       developer.log(
         record.message,
@@ -418,6 +421,7 @@ void main(List<String> args) async {
         name: record.loggerName,
       );
     }
+    _earlyLogs.clear();
 
     runApp(
       ProviderScope(
