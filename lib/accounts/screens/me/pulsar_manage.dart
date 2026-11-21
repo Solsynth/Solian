@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/activity/pulsar_models.dart';
 import 'package:island/activity/pulsar_pod.dart';
+import 'package:island/core/services/time.dart';
 import 'package:island/core/theme.dart';
 import 'package:island/discovery/widgets/explore_card.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -15,6 +16,7 @@ import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 @RoutePage()
 class PulsarManageScreen extends HookConsumerWidget {
@@ -39,11 +41,13 @@ class PulsarManageScreen extends HookConsumerWidget {
     Future<void> refreshAll() async {
       ref.invalidate(pulsarMyWorkCollectionsProvider);
       ref.invalidate(pulsarUserHistoryProvider);
+      ref.invalidate(pulsarBangumiConnectionProvider);
       for (final domain in PulsarDomain.mediaDomains) {
         ref.invalidate(pulsarFavouritesProvider(domain));
       }
       await Future.wait([
         ref.read(pulsarMyWorkCollectionsProvider.future),
+        ref.read(pulsarBangumiConnectionProvider.future),
         ref.read(pulsarFavouritesProvider(favDomain.value).future),
         ref.read(
           pulsarUserHistoryProvider((
@@ -72,6 +76,7 @@ class PulsarManageScreen extends HookConsumerWidget {
             spacing: kExploreCardGap,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const _BangumiSyncCard(),
               _FavoritesManageCard(
                 selectedDomain: favDomain.value,
                 onDomainChanged: (d) => favDomain.value = d,
@@ -150,10 +155,7 @@ class _ManageArtworkThumb extends StatelessWidget {
   final IconData fallbackIcon;
   static const double _size = 44;
 
-  const _ManageArtworkThumb({
-    required this.url,
-    required this.fallbackIcon,
-  });
+  const _ManageArtworkThumb({required this.url, required this.fallbackIcon});
 
   @override
   Widget build(BuildContext context) {
@@ -185,6 +187,291 @@ class _ManageArtworkThumb extends StatelessWidget {
         fit: BoxFit.cover,
         errorWidget: (_, _, _) => placeholder,
         placeholder: (_, _) => placeholder,
+      ),
+    );
+  }
+}
+
+class _BangumiSyncCard extends HookConsumerWidget {
+  const _BangumiSyncCard();
+
+  String _policyLabel(String value) {
+    return switch (value) {
+      'local' => 'pulsarBangumiConflictLocal'.tr(),
+      'newest' => 'pulsarBangumiConflictNewest'.tr(),
+      _ => 'pulsarBangumiConflictRemote'.tr(),
+    };
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final connectionAsync = ref.watch(pulsarBangumiConnectionProvider);
+    final busy = useState(false);
+
+    Future<void> run(Future<void> Function() action) async {
+      if (busy.value) return;
+      busy.value = true;
+      try {
+        await action();
+      } catch (err) {
+        if (context.mounted) showErrorAlert(err);
+      } finally {
+        if (context.mounted) busy.value = false;
+      }
+    }
+
+    Future<void> link() async {
+      final client = ref.read(pulsarClientProvider);
+      try {
+        showLoadingModal(context);
+        final url = await client.startBangumiOAuth();
+        if (!context.mounted) return;
+        hideLoadingModal(context);
+        if (url.isEmpty) {
+          showSnackBar('pulsarBangumiSyncFailed'.tr());
+          return;
+        }
+        final launched = await launchUrlString(
+          url,
+          mode: LaunchMode.externalApplication,
+        );
+        if (!launched) {
+          showSnackBar('pulsarBangumiSyncFailed'.tr());
+          return;
+        }
+        if (context.mounted) {
+          showSnackBar('pulsarBangumiLinkHint'.tr());
+          ref.invalidate(pulsarBangumiConnectionProvider);
+        }
+      } catch (err) {
+        if (context.mounted) {
+          hideLoadingModal(context);
+          showErrorAlert(err);
+        }
+      }
+    }
+
+    Future<void> syncNow() async {
+      showLoadingModal(context);
+      try {
+        final result = await ref.read(pulsarClientProvider).syncBangumiNow();
+        if (!context.mounted) return;
+        showSnackBar(
+          '${'pulsarBangumiSyncDone'.tr()} · ${result.pulled}↓ ${result.pushed}↑',
+        );
+        ref.invalidate(pulsarBangumiConnectionProvider);
+        ref.invalidate(pulsarMyWorkCollectionsProvider);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
+    Future<void> unlink() async {
+      final confirmed = await showConfirmAlert(
+        'pulsarBangumiUnlinkConfirm'.tr(),
+        'pulsarBangumiUnlink'.tr(),
+        isDanger: true,
+      );
+      if (!confirmed) return;
+      await run(() async {
+        await ref.read(pulsarClientProvider).unlinkBangumi();
+        ref.invalidate(pulsarBangumiConnectionProvider);
+      });
+    }
+
+    Future<void> update({bool? syncEnabled, String? conflictPolicy}) async {
+      await run(() async {
+        await ref
+            .read(pulsarClientProvider)
+            .updateBangumiConnection(
+              syncEnabled: syncEnabled,
+              conflictPolicy: conflictPolicy,
+            );
+        ref.invalidate(pulsarBangumiConnectionProvider);
+      });
+    }
+
+    return _PulsarManageCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _ManageSectionHeader(
+            icon: Symbols.sync_alt,
+            title: 'pulsarBangumiSync'.tr(),
+            trailing: connectionAsync.value?.linked == true
+                ? Badge(
+                    label: Text(connectionAsync.value!.remoteUsername),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    textColor: Theme.of(context).colorScheme.onPrimary,
+                  )
+                : null,
+          ),
+          const Gap(SolSpace.md),
+          connectionAsync.when(
+            loading: () => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(SolSpace.md),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+            error: (err, _) => Text(
+              err.toString(),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+            data: (connection) {
+              if (!connection.configured) {
+                return Text(
+                  'pulsarBangumiNotConfigured'.tr(),
+                  style: Theme.of(context).textTheme.bodySmall,
+                );
+              }
+              if (!connection.linked) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'pulsarBangumiDescription'.tr(),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const Gap(SolSpace.md),
+                    FilledButton.tonalIcon(
+                      onPressed: busy.value ? null : link,
+                      icon: const Icon(Symbols.link),
+                      label: Text('pulsarBangumiLink'.tr()),
+                    ),
+                  ],
+                );
+              }
+
+              final avatarUrl = connection.avatarUrl;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 22,
+                        backgroundImage: avatarUrl.startsWith('http')
+                            ? CachedNetworkImageProvider(avatarUrl)
+                            : null,
+                        child: avatarUrl.startsWith('http')
+                            ? null
+                            : const Icon(Symbols.person),
+                      ),
+                      const Gap(SolSpace.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              connection.nickname.isNotEmpty
+                                  ? connection.nickname
+                                  : connection.remoteUsername,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            Text(
+                              '@${connection.remoteUsername}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (connection.lastSyncedAt != null)
+                        Text(
+                          '${'pulsarBangumiLastSynced'.tr()}\n${connection.lastSyncedAt!.formatSystem()}',
+                          textAlign: TextAlign.end,
+                          style: Theme.of(context).textTheme.labelSmall,
+                        )
+                      else
+                        Text(
+                          'pulsarBangumiNeverSynced'.tr(),
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                    ],
+                  ),
+                  if (connection.collections.isNotEmpty) ...[
+                    const Gap(SolSpace.md),
+                    Text(
+                      'pulsarBangumiCollections'.tr(),
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
+                    const Gap(SolSpace.xs),
+                    Wrap(
+                      spacing: SolSpace.xs,
+                      runSpacing: SolSpace.xs,
+                      children: [
+                        for (final collection in connection.collections)
+                          Chip(
+                            label: Text(
+                              '${PulsarDomain.label(collection.domain)} · ${collection.items}',
+                            ),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                      ],
+                    ),
+                  ],
+                  const Gap(SolSpace.sm),
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text('pulsarBangumiSyncEnabled'.tr()),
+                    value: connection.syncEnabled,
+                    onChanged: busy.value
+                        ? null
+                        : (value) => update(syncEnabled: value),
+                  ),
+                  DropdownButtonFormField<String>(
+                    key: ValueKey(connection.conflictPolicy),
+                    initialValue: connection.conflictPolicy,
+                    decoration: InputDecoration(
+                      labelText: 'pulsarBangumiConflictPolicy'.tr(),
+                    ),
+                    items: [
+                      for (final policy in const ['remote', 'local', 'newest'])
+                        DropdownMenuItem(
+                          value: policy,
+                          child: Text(_policyLabel(policy)),
+                        ),
+                    ],
+                    onChanged: busy.value
+                        ? null
+                        : (value) {
+                            if (value != null) {
+                              update(conflictPolicy: value);
+                            }
+                          },
+                  ),
+                  if (connection.lastError.isNotEmpty) ...[
+                    const Gap(SolSpace.sm),
+                    Text(
+                      connection.lastError,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                  const Gap(SolSpace.md),
+                  Wrap(
+                    spacing: SolSpace.sm,
+                    runSpacing: SolSpace.sm,
+                    children: [
+                      FilledButton.tonalIcon(
+                        onPressed: busy.value ? null : syncNow,
+                        icon: const Icon(Symbols.sync),
+                        label: Text('pulsarBangumiSyncNow'.tr()),
+                      ),
+                      TextButton.icon(
+                        onPressed: busy.value ? null : unlink,
+                        icon: const Icon(Symbols.link_off),
+                        label: Text('pulsarBangumiUnlink'.tr()),
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -554,7 +841,10 @@ class _WorkStatusesManageCard extends HookConsumerWidget {
                                     [
                                       entry.col.name,
                                       if (entry.item.displaySubtitle != null &&
-                                          entry.item.displaySubtitle!.isNotEmpty)
+                                          entry
+                                              .item
+                                              .displaySubtitle!
+                                              .isNotEmpty)
                                         entry.item.displaySubtitle!,
                                     ].join(' · '),
                                     maxLines: 1,
@@ -571,9 +861,10 @@ class _WorkStatusesManageCard extends HookConsumerWidget {
                                       overflow: TextOverflow.ellipsis,
                                       style: theme.textTheme.labelSmall
                                           ?.copyWith(
-                                        color:
-                                            theme.colorScheme.onSurfaceVariant,
-                                      ),
+                                            color: theme
+                                                .colorScheme
+                                                .onSurfaceVariant,
+                                          ),
                                     ),
                                 ],
                               ),
@@ -613,6 +904,17 @@ class _WorkStatusesManageCard extends HookConsumerWidget {
                                     style: theme.textTheme.labelSmall?.copyWith(
                                       color: theme.colorScheme.primary,
                                       fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                if (entry.item.progress != null)
+                                  Text(
+                                    [
+                                      '${entry.item.progress}',
+                                      if (entry.item.volumeProgress != null)
+                                        '${entry.item.volumeProgress} vol',
+                                    ].join(' · '),
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: theme.colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                               ],
@@ -708,7 +1010,9 @@ class _HistoryQuickActionsCard extends ConsumerWidget {
 
     Future<void> quickFavorite(PulsarScrobble scrobble) async {
       try {
-        await ref.read(pulsarClientProvider).setFavourite(
+        await ref
+            .read(pulsarClientProvider)
+            .setFavourite(
               domain: scrobble.domain,
               catalogId: scrobble.catalogId,
               title: scrobble.title,
@@ -819,9 +1123,9 @@ class _HistoryQuickActionsCard extends ConsumerWidget {
                                   if (s.subtitle != null &&
                                       s.subtitle!.isNotEmpty)
                                     s.subtitle!,
-                                  DateFormat.MMMd()
-                                      .add_Hm()
-                                      .format(s.playedAt.toLocal()),
+                                  DateFormat.MMMd().add_Hm().format(
+                                    s.playedAt.toLocal(),
+                                  ),
                                 ].join(' · '),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -912,7 +1216,9 @@ class _AddFavoriteSheet extends HookConsumerWidget {
             meta != null && meta.id.isNotEmpty && meta.id != zeroUuid
             ? meta.id
             : null;
-        await ref.read(pulsarClientProvider).setFavourite(
+        await ref
+            .read(pulsarClientProvider)
+            .setFavourite(
               domain: domain.value,
               catalogId: catalogId,
               title: title,
@@ -950,7 +1256,10 @@ class _AddFavoriteSheet extends HookConsumerWidget {
               decoration: InputDecoration(labelText: 'pulsarDomain'.tr()),
               items: [
                 for (final d in PulsarDomain.mediaDomains)
-                  DropdownMenuItem(value: d, child: Text(PulsarDomain.label(d))),
+                  DropdownMenuItem(
+                    value: d,
+                    child: Text(PulsarDomain.label(d)),
+                  ),
               ],
               onChanged: (v) {
                 if (v != null) domain.value = v;
@@ -1112,7 +1421,10 @@ class _AddWorkStatusSheet extends HookConsumerWidget {
               decoration: InputDecoration(labelText: 'pulsarDomain'.tr()),
               items: [
                 for (final d in PulsarDomain.mediaDomains)
-                  DropdownMenuItem(value: d, child: Text(PulsarDomain.label(d))),
+                  DropdownMenuItem(
+                    value: d,
+                    child: Text(PulsarDomain.label(d)),
+                  ),
               ],
               onChanged: (v) {
                 if (v == null) return;
@@ -1541,6 +1853,17 @@ class _FullWorkStatusesSheetBody extends HookConsumerWidget {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
+                              if (entry.item.progress != null)
+                                Text(
+                                  [
+                                    '${entry.item.progress}',
+                                    if (entry.item.volumeProgress != null)
+                                      '${entry.item.volumeProgress} vol',
+                                  ].join(' · '),
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
                             ],
                           ),
                         ],
@@ -1581,7 +1904,9 @@ class _FullHistoryManageSheetBody extends HookConsumerWidget {
       isLoading.value = true;
       final offset = reset ? 0 : items.value.length;
       try {
-        final batch = await ref.read(pulsarClientProvider).getUserHistory(
+        final batch = await ref
+            .read(pulsarClientProvider)
+            .getUserHistory(
               uname,
               domain: selectedDomain.value,
               offset: offset,
@@ -1602,7 +1927,9 @@ class _FullHistoryManageSheetBody extends HookConsumerWidget {
 
     Future<void> quickFavorite(PulsarScrobble scrobble) async {
       try {
-        await ref.read(pulsarClientProvider).setFavourite(
+        await ref
+            .read(pulsarClientProvider)
+            .setFavourite(
               domain: scrobble.domain,
               catalogId: scrobble.catalogId,
               title: scrobble.title,
@@ -1732,9 +2059,9 @@ class _FullHistoryManageSheetBody extends HookConsumerWidget {
                                   if (s.subtitle != null &&
                                       s.subtitle!.isNotEmpty)
                                     s.subtitle!,
-                                  DateFormat.MMMd()
-                                      .add_Hm()
-                                      .format(s.playedAt.toLocal()),
+                                  DateFormat.MMMd().add_Hm().format(
+                                    s.playedAt.toLocal(),
+                                  ),
                                 ].join(' · '),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -1775,11 +2102,15 @@ class _WorkStatusEditorSheet extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final status = useState<String>(
-      item.status ?? PulsarWorkStatus.watching,
-    );
+    final status = useState<String>(item.status ?? PulsarWorkStatus.watching);
     final rating = useState<int?>(item.rating);
     final noteController = useTextEditingController(text: item.note ?? '');
+    final progressController = useTextEditingController(
+      text: item.progress?.toString() ?? '',
+    );
+    final volumeProgressController = useTextEditingController(
+      text: item.volumeProgress?.toString() ?? '',
+    );
     final isSubmitting = useState(false);
 
     Future<void> save() async {
@@ -1792,6 +2123,8 @@ class _WorkStatusEditorSheet extends HookConsumerWidget {
           status: status.value,
           rating: rating.value,
           note: noteController.text.trim(),
+          progress: int.tryParse(progressController.text.trim()),
+          volumeProgress: int.tryParse(volumeProgressController.text.trim()),
         );
         final catalogId = item.catalogId ?? item.catalogItem?.id;
         if (catalogId != null &&
@@ -1818,7 +2151,9 @@ class _WorkStatusEditorSheet extends HookConsumerWidget {
       final catalogId = item.catalogId ?? item.catalogItem?.id;
       final domain = item.catalogItem?.domain ?? collection.domain;
       try {
-        await ref.read(pulsarClientProvider).setFavourite(
+        await ref
+            .read(pulsarClientProvider)
+            .setFavourite(
               domain: domain,
               catalogId: catalogId,
               title: item.displayTitle,
@@ -1915,6 +2250,32 @@ class _WorkStatusEditorSheet extends HookConsumerWidget {
               ],
               onChanged: (v) => rating.value = v,
             ),
+            if (collection.domain == PulsarDomain.book)
+              Row(
+                spacing: SolSpace.md,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: progressController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'pulsarProgressChapters'.tr(),
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: volumeProgressController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'pulsarProgressVolumes'.tr(),
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             TextField(
               controller: noteController,
               maxLines: 3,
@@ -1982,7 +2343,9 @@ class _ManualScrobbleSheet extends HookConsumerWidget {
       final meta = selectedMeta.value;
       isSubmitting.value = true;
       try {
-        await ref.read(pulsarClientProvider).submitScrobble(
+        await ref
+            .read(pulsarClientProvider)
+            .submitScrobble(
               domain: domain.value,
               title: title,
               subtitle: subtitleController.text.trim().isEmpty
@@ -2026,7 +2389,10 @@ class _ManualScrobbleSheet extends HookConsumerWidget {
               decoration: InputDecoration(labelText: 'pulsarDomain'.tr()),
               items: [
                 for (final d in PulsarDomain.all)
-                  DropdownMenuItem(value: d, child: Text(PulsarDomain.label(d))),
+                  DropdownMenuItem(
+                    value: d,
+                    child: Text(PulsarDomain.label(d)),
+                  ),
               ],
               onChanged: (v) {
                 if (v != null) domain.value = v;
@@ -2229,7 +2595,8 @@ class _MetadataSearchSection extends HookConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       subtitle:
-                          (item.subtitle != null && item.subtitle!.isNotEmpty) ||
+                          (item.subtitle != null &&
+                                  item.subtitle!.isNotEmpty) ||
                               (item.releaseDate != null &&
                                   item.releaseDate!.isNotEmpty)
                           ? Text(
@@ -2259,4 +2626,3 @@ class _MetadataSearchSection extends HookConsumerWidget {
     );
   }
 }
-

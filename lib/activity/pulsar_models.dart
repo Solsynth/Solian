@@ -11,22 +11,9 @@ abstract final class PulsarDomain {
   static const book = 'book';
   static const custom = 'custom';
 
-  static const List<String> mediaDomains = [
-    music,
-    gaming,
-    video,
-    anime,
-    book,
-  ];
+  static const List<String> mediaDomains = [music, gaming, video, anime, book];
 
-  static const List<String> all = [
-    music,
-    gaming,
-    video,
-    anime,
-    book,
-    custom,
-  ];
+  static const List<String> all = [music, gaming, video, anime, book, custom];
 
   static IconData icon(String? domain) {
     return switch (domain) {
@@ -174,7 +161,8 @@ class PulsarCatalogItem {
       subtitle: json['subtitle']?.toString(),
       caption: json['caption']?.toString(),
       description: json['description']?.toString(),
-      artworkUrl: _nonEmpty(json['artwork_url']) ?? _nonEmpty(json['image_url']),
+      artworkUrl:
+          _nonEmpty(json['artwork_url']) ?? _nonEmpty(json['image_url']),
       bannerUrl: _nonEmpty(json['banner_url']),
       durationSeconds: _asInt(json['duration_seconds']) ?? 0,
       releaseDate: json['release_date']?.toString(),
@@ -246,6 +234,8 @@ class PulsarCollectionItem {
   final String? note;
   final int? rating;
   final String? status;
+  final int? progress;
+  final int? volumeProgress;
   final String kind;
   final PulsarCatalogItem? catalogItem;
   final DateTime? createdAt;
@@ -259,6 +249,8 @@ class PulsarCollectionItem {
     this.note,
     this.rating,
     this.status,
+    this.progress,
+    this.volumeProgress,
     this.kind = '',
     this.catalogItem,
     this.createdAt,
@@ -279,6 +271,8 @@ class PulsarCollectionItem {
       note: json['note']?.toString(),
       rating: _asInt(json['rating']),
       status: json['status']?.toString(),
+      progress: _asInt(json['progress']),
+      volumeProgress: _asInt(json['volume_progress']),
       kind: json['kind']?.toString() ?? '',
       catalogItem: json['catalog_item'] is Map
           ? PulsarCatalogItem.fromJson(
@@ -340,6 +334,125 @@ class PulsarCollection {
           : const [],
       createdAt: _asDate(json['created_at']),
       updatedAt: _asDate(json['updated_at']),
+    );
+  }
+}
+
+class PulsarBangumiCollection {
+  final String domain;
+  final String collectionId;
+  final String name;
+  final String scope;
+  final int items;
+
+  const PulsarBangumiCollection({
+    required this.domain,
+    required this.collectionId,
+    this.name = '',
+    this.scope = '',
+    this.items = 0,
+  });
+
+  factory PulsarBangumiCollection.fromJson(Map<String, dynamic> json) {
+    return PulsarBangumiCollection(
+      domain: json['domain']?.toString() ?? PulsarDomain.custom,
+      collectionId: json['collection_id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      scope: json['scope']?.toString() ?? '',
+      items: _asInt(json['items']) ?? 0,
+    );
+  }
+}
+
+/// The account's Bangumi link state. Token values never reach the client; the
+/// fields here are the profile and sync switches the settings card needs.
+class PulsarBangumiConnection {
+  final bool linked;
+  final bool configured;
+  final String provider;
+  final String remoteUserId;
+  final String remoteUsername;
+  final String nickname;
+  final String avatarUrl;
+  final bool syncEnabled;
+  final String conflictPolicy;
+  final DateTime? tokenExpiresAt;
+  final DateTime? lastSyncedAt;
+  final String lastError;
+  final DateTime? linkedAt;
+  final List<PulsarBangumiCollection> collections;
+
+  const PulsarBangumiConnection({
+    this.linked = false,
+    this.configured = false,
+    this.provider = 'bangumi',
+    this.remoteUserId = '',
+    this.remoteUsername = '',
+    this.nickname = '',
+    this.avatarUrl = '',
+    this.syncEnabled = true,
+    this.conflictPolicy = 'remote',
+    this.tokenExpiresAt,
+    this.lastSyncedAt,
+    this.lastError = '',
+    this.linkedAt,
+    this.collections = const [],
+  });
+
+  factory PulsarBangumiConnection.fromJson(Map<String, dynamic> json) {
+    final rawCollections = json['collections'];
+    return PulsarBangumiConnection(
+      linked: json['linked'] as bool? ?? false,
+      configured: json['configured'] as bool? ?? false,
+      provider: json['provider']?.toString() ?? 'bangumi',
+      remoteUserId: json['remote_user_id']?.toString() ?? '',
+      remoteUsername: json['remote_username']?.toString() ?? '',
+      nickname: json['nickname']?.toString() ?? '',
+      avatarUrl: json['avatar_url']?.toString() ?? '',
+      syncEnabled: json['sync_enabled'] as bool? ?? true,
+      conflictPolicy: json['conflict_policy']?.toString() ?? 'remote',
+      tokenExpiresAt: _asDate(json['token_expires_at']),
+      lastSyncedAt: _asDate(json['last_synced_at']),
+      lastError: json['last_error']?.toString() ?? '',
+      linkedAt: _asDate(json['linked_at']),
+      collections: rawCollections is List
+          ? [
+              for (final item in rawCollections)
+                if (item is Map)
+                  PulsarBangumiCollection.fromJson(
+                    Map<String, dynamic>.from(item),
+                  ),
+            ]
+          : const [],
+    );
+  }
+}
+
+class PulsarBangumiSyncResult {
+  final int pulled;
+  final int pushed;
+  final int removed;
+  final int conflicts;
+  final int skipped;
+  final int failed;
+
+  const PulsarBangumiSyncResult({
+    this.pulled = 0,
+    this.pushed = 0,
+    this.removed = 0,
+    this.conflicts = 0,
+    this.skipped = 0,
+    this.failed = 0,
+  });
+
+  factory PulsarBangumiSyncResult.fromJson(Map<String, dynamic> json) {
+    return PulsarBangumiSyncResult(
+      pulled: _asInt(json['pulled']) ?? 0,
+      pushed: _asInt(json['pushed']) ?? 0,
+      removed: _asInt(json['removed']) ?? 0,
+      conflicts: _asInt(json['conflicts']) ?? 0,
+      skipped: _asInt(json['skipped']) ?? 0,
+      failed: _asInt(json['failed']) ?? 0,
     );
   }
 }

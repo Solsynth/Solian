@@ -183,6 +183,8 @@ class PulsarClient {
     String? status,
     int? rating,
     String? note,
+    int? progress,
+    int? volumeProgress,
   }) async {
     final resp = await _dio.post(
       '/pulsar/collections/${Uri.encodeComponent(collectionId)}/items',
@@ -195,6 +197,8 @@ class PulsarClient {
         if (status != null && status.isNotEmpty) 'status': status,
         'rating': ?rating,
         if (note != null && note.isNotEmpty) 'note': note,
+        'progress': ?progress,
+        'volume_progress': ?volumeProgress,
       },
     );
     return PulsarCollectionItem.fromJson(Map<String, dynamic>.from(resp.data));
@@ -206,6 +210,8 @@ class PulsarClient {
     String? status,
     int? rating,
     String? note,
+    int? progress,
+    int? volumeProgress,
   }) async {
     final resp = await _dio.patch(
       '/pulsar/collections/${Uri.encodeComponent(collectionId)}/items/${Uri.encodeComponent(itemId)}',
@@ -213,6 +219,8 @@ class PulsarClient {
         'status': ?status,
         'rating': ?rating,
         'note': ?note,
+        'progress': ?progress,
+        'volume_progress': ?volumeProgress,
       },
     );
     return PulsarCollectionItem.fromJson(Map<String, dynamic>.from(resp.data));
@@ -273,6 +281,50 @@ class PulsarClient {
     await _dio.delete('/pulsar/reviews/${Uri.encodeComponent(reviewId)}');
   }
 
+  Future<PulsarBangumiConnection> getBangumiConnection() async {
+    final resp = await _dio.get('/pulsar/bangumi/connection');
+    return PulsarBangumiConnection.fromJson(
+      Map<String, dynamic>.from(resp.data),
+    );
+  }
+
+  /// Starts the account-link flow and returns the Bangumi consent URL the
+  /// caller should open in the system browser.
+  Future<String> startBangumiOAuth() async {
+    final resp = await _dio.post('/pulsar/bangumi/oauth/start');
+    final data = resp.data is Map
+        ? Map<String, dynamic>.from(resp.data)
+        : const <String, dynamic>{};
+    return data['authorize_url']?.toString() ?? '';
+  }
+
+  Future<PulsarBangumiConnection> updateBangumiConnection({
+    bool? syncEnabled,
+    String? conflictPolicy,
+  }) async {
+    final resp = await _dio.patch(
+      '/pulsar/bangumi/connection',
+      data: {'sync_enabled': ?syncEnabled, 'conflict_policy': ?conflictPolicy},
+    );
+    return PulsarBangumiConnection.fromJson(
+      Map<String, dynamic>.from(resp.data),
+    );
+  }
+
+  Future<void> unlinkBangumi() async {
+    await _dio.delete('/pulsar/bangumi/connection');
+  }
+
+  Future<PulsarBangumiSyncResult> syncBangumiNow() async {
+    final resp = await _dio.post(
+      '/pulsar/bangumi/sync',
+      options: Options(receiveTimeout: const Duration(minutes: 3)),
+    );
+    return PulsarBangumiSyncResult.fromJson(
+      Map<String, dynamic>.from(resp.data),
+    );
+  }
+
   Future<List<PulsarCatalogItem>> searchMetadata(
     String query, {
     String? domain,
@@ -284,10 +336,7 @@ class PulsarClient {
     try {
       final resp = await _dio.get(
         '/pulsar/metadata/search',
-        queryParameters: {
-          'q': query,
-          'domain': ?effectiveDomain,
-        },
+        queryParameters: {'q': query, 'domain': ?effectiveDomain},
         options: Options(receiveTimeout: const Duration(seconds: 20)),
       );
       if (resp.data is List && (resp.data as List).isNotEmpty) {
@@ -346,6 +395,11 @@ class PulsarClient {
 final pulsarClientProvider = Provider<PulsarClient>((ref) {
   return PulsarClient(ref.watch(apiClientProvider));
 });
+
+final pulsarBangumiConnectionProvider =
+    FutureProvider.autoDispose<PulsarBangumiConnection>((ref) async {
+      return ref.watch(pulsarClientProvider).getBangumiConnection();
+    });
 
 final pulsarUserNowPlayingProvider = FutureProvider.autoDispose
     .family<List<SnPresenceActivity>, String>((ref, uname) async {
