@@ -6,6 +6,38 @@ import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 part 'notification.g.dart';
 
+/// Parses a `notifications.new` payload.
+///
+/// Ring's model keeps `title`, `content` and `subtitle` nullable — a silent or
+/// image-only notice carries none of them — while the SDK model requires a
+/// `String`. Reading straight through made those pushes throw inside the
+/// socket listener, which surfaced as "notifications never arrive" instead of
+/// a blank line of text. Everything optional is filled in here, and a payload
+/// with no id at all is rejected so the caller can skip it.
+SnNotification? parsePushedNotification(Map<String, dynamic> data) {
+  final id = data['id'];
+  final topic = data['topic'];
+  if (id is! String || id.isEmpty || topic is! String) return null;
+
+  String text(Object? value) => value is String ? value : '';
+  final createdAt = DateTime.tryParse(text(data['created_at']));
+  final viewedAt = DateTime.tryParse(text(data['viewed_at']));
+  final meta = data['meta'];
+
+  return SnNotification(
+    createdAt: createdAt ?? DateTime.now(),
+    id: id,
+    appId: data['app_id'] is String ? data['app_id'] as String : null,
+    topic: topic,
+    title: text(data['title']),
+    subtitle: text(data['subtitle']),
+    body: text(data['content']),
+    meta: meta is Map ? Map<String, dynamic>.from(meta) : const {},
+    viewedAt: viewedAt,
+    accountId: text(data['account_id']),
+  );
+}
+
 const kNotificationBaseDuration = Duration(seconds: 5);
 
 enum NotificationItemType { system, friendStatus }

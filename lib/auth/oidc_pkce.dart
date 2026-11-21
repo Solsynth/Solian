@@ -37,6 +37,18 @@ Uri solianTokenEndpoint(String serverUrl) {
   return Uri.parse('$base/stargate/auth/open/token');
 }
 
+/// The provider's device-authorization endpoint on the configured gateway.
+///
+/// The browser build has no way to receive a redirect, so it signs in with
+/// RFC 8628's device grant instead: this endpoint issues the code, the token
+/// endpoint redeems it once the person approved it.
+Uri solianDeviceAuthorizationEndpoint(String serverUrl) {
+  final base = serverUrl.endsWith('/')
+      ? serverUrl.substring(0, serverUrl.length - 1)
+      : serverUrl;
+  return Uri.parse('$base/stargate/auth/open/device/code');
+}
+
 /// An authorization request's PKCE material plus the CSRF `state` that ties a
 /// response back to this request.
 class PkceChallenge {
@@ -169,10 +181,15 @@ Future<OAuthTokenSet> exchangeAuthorizationCode({
     ),
   );
 
-  final data = response.data;
-  if (data is! Map) {
-    throw const WebSignInException('The provider returned no token.');
-  }
+  return oauthTokenSetFromJson(response.data);
+}
+
+/// The token pair an OAuth token response describes.
+///
+/// Every grant (authorization code, device code) answers with the same body:
+/// `access_token`, an optional `refresh_token` and a lifetime in seconds.
+OAuthTokenSet oauthTokenSetFromJson(Object? body) {
+  final data = body is Map ? body : const <String, dynamic>{};
   final accessToken = data['access_token'];
   if (accessToken is! String || accessToken.isEmpty) {
     throw const WebSignInException('The provider returned no token.');

@@ -1,20 +1,26 @@
-import 'package:island/core/session_cookie.dart';
-
+import 'device_code_sign_in.dart';
 import 'oidc_pkce.dart';
 
 /// Whether the console sign-in finishes inside this build.
 ///
-/// A browser cannot listen on loopback for the redirect, and the console's
-/// `solian` client refuses a web redirect URI, so the web build signs in with
-/// the cookie it shares with the console instead.
-const bool kWebSignInReturnsToApp = false;
 
-/// Leaves this tab for the console's sign-in page, which hands the person back
-/// to the page they came from already signed in.
+/// Signs in through the console with RFC 8628's device grant.
 ///
-/// Returns null: the token pair is adopted from the shared cookie when this page
-/// loads again, so there is nothing to hand back here.
-Future<OAuthTokenSet?> signInOverWeb({required String serverUrl}) async {
-  openSharedSignIn();
-  return null;
+/// A page cannot receive an OAuth redirect into itself — neither a custom
+/// scheme nor a loopback listener is reachable from one — and the console's
+/// `solian` client registers no web redirect URI. The device grant needs no
+/// redirect at all, so it is the flow that works here: the code is approved in
+/// any browser tab, and this page polls the token endpoint for the pair.
+Future<OAuthTokenSet?> signInOverWeb({
+  required String serverUrl,
+  DeviceAuthorizationCallback? onDeviceCode,
+  String? deviceId,
+  String? deviceName,
+}) async {
+  return signInWithDeviceCode(
+    serverUrl: serverUrl,
+    onDeviceCode: onDeviceCode,
+    deviceId: deviceId,
+    deviceName: deviceName,
+  );
 }

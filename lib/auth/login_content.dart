@@ -65,6 +65,19 @@ bool get _supportsPhysicalPassportLogin {
   };
 }
 
+/// Native Sign in with Apple is offered on the two Apple platforms only.
+///
+/// Both build the app under the same bundle id, so the identity token Stargate
+/// validates is issued for it. A browser goes through the console instead,
+/// where the same provider is one of the console's own buttons.
+bool get _supportsAppleSignIn {
+  if (kIsWeb) return false;
+  return switch (defaultTargetPlatform) {
+    TargetPlatform.iOS || TargetPlatform.macOS => true,
+    _ => false,
+  };
+}
+
 /// Drops factors that cannot / should not be completed via the factor picker.
 ///
 /// Stargate starts a password login with the password factor alone and
@@ -1016,19 +1029,25 @@ class _LoginLookupScreen extends HookConsumerWidget {
 
     /// Signs in through the identity console.
     ///
-    /// Every social provider now lives there, so this app asks the console for
-    /// one authorization code instead of greeting each provider itself. On a
-    /// native build the code comes back on a loopback listener and is exchanged
-    /// with PKCE; on the web the tab leaves for the console and the shared
-    /// cookie signs this app in when it returns, so nothing is handed back here.
+    /// Every social provider lives there now, so this app asks the console for
+    /// a session instead of greeting each provider itself. A native build
+    /// receives an authorization code on a loopback listener and trades it with
+    /// PKCE; the web build cannot receive a redirect at all, so it uses the
+    /// device grant: the console shows a code, the person approves it in any
+    /// browser tab, and this page polls for the token pair.
     Future<void> signInOverWebPressed() async {
       isBusy.value = true;
-      if (kWebSignInReturnsToApp) showLoadingModal(context);
       try {
-        final tokens = await signInOverWeb(
-          serverUrl: ref.read(serverUrlProvider),
+        final tokens = await withDeviceCodeSignIn(
+          context,
+          (onDeviceCode) async => signInOverWeb(
+            serverUrl: ref.read(serverUrlProvider),
+            onDeviceCode: onDeviceCode,
+            deviceId: await getUdid(),
+            deviceName: await getDeviceName(),
+          ),
         );
-        if (tokens == null) return; // The web leaves the page; nothing to do.
+        if (tokens == null) return; // The tab left; nothing comes back here.
 
         await setToken(
           ref.read(sharedPreferencesProvider),
@@ -1044,7 +1063,6 @@ class _LoginLookupScreen extends HookConsumerWidget {
         showErrorAlert(err);
       } finally {
         isBusy.value = false;
-        if (context.mounted) hideLoadingModal(context);
       }
     }
 
@@ -1084,6 +1102,92 @@ class _LoginLookupScreen extends HookConsumerWidget {
         if (!context.mounted) return;
         await exchangeAuthCodeForToken(context, ref, code: challenge.id);
       } catch (err) {
+        showErrorAlert(err);
+      } finally {
+        isBusy.value = false;
+      }
+    }
+
+    /// Signs in with the Apple ID already on this device.
+    ///
+    /// A native Apple-platform build can ask the system for an identity token
+    /// and hand it to Stargate, which is a shorter trip than the console and
+    /// keeps the platform's own sign-in sheet. A fresh account comes back with
+    /// an MFA challenge instead of a token pair, so that path is joined with
+    /// the normal factor flow rather than duplicating it.
+    Future<void> performAppleLogin() async {
+      isBusy.value = true;
+      try {
+        final client = ref.read(solarNetworkClientProvider);
+        final credential = await SignInWithApple.getAppleIDCredential(
+          scopes: const [AppleIDAuthorizationScopes.email],
+        );
+        final identityToken = credential.identityToken;
+        final authorizationCode = credential.authorizationCode;
+        if (identityToken == null || identityToken.isEmpty) {
+          throw WebSignInException('appleSignInFailed'.tr());
+        }
+
+        final resp = await client.dio.post(
+          '/stargate/auth/login/apple/mobile',
+          data: {
+            'identity_token': identityToken,
+            'authorization_code': authorizationCode,
+            'device_id': await getUdid(),
+            'device_name': await getDeviceName(),
+            // 2 = iOS, 4 = macOS; Stargate records this device's platform so
+            // the console's device list names it correctly.
+            'platform': _currentPlatformCode(),
+          },
+        );
+        final data = Map<String, dynamic>.from(resp.data as Map);
+
+        if (data['mfa_required'] == true) {
+          // No session was created: continue the challenge's remaining steps
+          // with this device's factor surfaces, exactly as a password sign-in
+          // would, and let the picker hand back the final code.
+          final challengeId = data['challenge_id'] as String?;
+          if (challengeId == null || challengeId.isEmpty) {
+            throw WebSignInException('appleSignInFailed'.tr());
+          }
+          final challengeResp = await client.dio.get(
+            '/stargate/auth/challenge/$challengeId',
+          );
+          final challenge = SnAuthChallenge.fromJson(challengeResp.data);
+          final (current, challengeFactors) = await _readChallengeFactors(
+            client.dio,
+            challenge,
+            recreate: () async => SnAuthChallenge.fromJson(
+              (await client.dio.get(
+                '/stargate/auth/challenge/$challengeId',
+              )).data,
+            ),
+          );
+          onChallenge(current);
+          onFactor(challengeFactors);
+          onNext();
+          return;
+        }
+
+        final token = data['token'] as String?;
+        if (token == null || token.isEmpty) {
+          throw WebSignInException('appleSignInFailed'.tr());
+        }
+        await setToken(
+          ref.read(sharedPreferencesProvider),
+          token,
+          refreshToken: data['refresh_token'] as String?,
+          expiresIn: (data['expires_in'] as num?)?.toInt(),
+          refreshExpiresIn: (data['refresh_expires_in'] as num?)?.toInt(),
+        );
+        ref.invalidate(tokenProvider);
+        if (!context.mounted) return;
+        await performPostLogin(context, ref);
+      } on SignInWithAppleAuthorizationException {
+        // The person cancelled the system sheet.
+        return;
+      } catch (err) {
+        if (!context.mounted) return;
         showErrorAlert(err);
       } finally {
         isBusy.value = false;
@@ -1134,15 +1238,30 @@ class _LoginLookupScreen extends HookConsumerWidget {
               icon: Icon(Symbols.fingerprint, size: 18, color: methodIconColor),
               tooltip: 'authFactorPasskey'.tr(),
             ),
+            // Every identity provider lives on the console, so this is the one
+            // option that reaches them: a native build gets a PKCE code back
+            // on loopback, the web build finishes the device grant here.
+            AuthMethodIconButton(
+              onPressed: isBusy.value ? null : signInOverWebPressed,
+              icon: Icon(
+                Symbols.travel_explore,
+                size: 18,
+                color: methodIconColor,
+              ),
+              tooltip: 'signInOverWeb'.tr(),
+            ),
+            if (_supportsAppleSignIn)
+              AuthMethodIconButton(
+                onPressed: isBusy.value ? null : performAppleLogin,
+                icon: SvgPicture.asset(
+                  'assets/images/oidc/apple.svg',
+                  width: 18,
+                  height: 18,
+                  color: methodIconColor,
+                ),
+                tooltip: 'accountConnectionProviderApple'.tr(),
+              ),
           ],
-        ),
-        // Every identity provider now lives on the console, so this is the one
-        // option that reaches them: a native build gets a PKCE code back on
-        // loopback, the web build lands back here with the shared cookie.
-        OutlinedButton.icon(
-          onPressed: isBusy.value ? null : signInOverWebPressed,
-          icon: const Icon(Symbols.travel_explore, size: 18),
-          label: Text('signInOverWeb'.tr()),
         ),
         AuthFormActions(isBusy: isBusy.value, onNext: performNewTicket),
         Column(
