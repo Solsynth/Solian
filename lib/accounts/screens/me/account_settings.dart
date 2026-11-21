@@ -26,6 +26,8 @@ import 'package:island/accounts/screens/me/settings_auth_factors.dart';
 import 'package:island/accounts/screens/me/settings_connections.dart';
 import 'package:island/accounts/screens/me/settings_contacts.dart';
 import 'package:island/accounts/screens/me/settings_webdav.dart';
+import 'package:island/activity/pulsar_models.dart';
+import 'package:island/activity/pulsar_pod.dart';
 import 'package:island/auth/captcha.dart';
 import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:island/chat/widgets/chat_groups_manager.dart';
@@ -147,11 +149,7 @@ Widget _buildLeadingIcon(
       color: background ?? colorScheme.surfaceContainerHighest,
       borderRadius: BorderRadius.circular(SolRadius.md),
     ),
-    child: Icon(
-      icon,
-      size: 20,
-      color: color ?? colorScheme.onSurfaceVariant,
-    ),
+    child: Icon(icon, size: 20, color: color ?? colorScheme.onSurfaceVariant),
   );
 }
 
@@ -234,12 +232,12 @@ class AccountSettingsScreen extends HookConsumerWidget {
     }
 
     final authFactors = ref.watch(authFactorsProvider);
-    final devicesCount = ref.watch(authDevicesProvider).whenOrNull(
-      data: (data) => data.totalCount ?? data.items.length,
-    );
-    final sessionsCount = ref.watch(authSessionsProvider()).whenOrNull(
-      data: (data) => data.totalCount,
-    );
+    final devicesCount = ref
+        .watch(authDevicesProvider)
+        .whenOrNull(data: (data) => data.totalCount ?? data.items.length);
+    final sessionsCount = ref
+        .watch(authSessionsProvider())
+        .whenOrNull(data: (data) => data.totalCount);
 
     // Group settings into categories for better organization
     final profileSettings = [
@@ -347,21 +345,21 @@ class AccountSettingsScreen extends HookConsumerWidget {
         minLeadingWidth: 44,
         leading: _buildLeadingIcon(context, Symbols.lock),
         title: Text('securityMode').tr(),
-        subtitle: ref.watch(securityPreferencesModeProvider).when(
-          data: (mode) => Text(
-            switch (mode) {
-              'lockdown' => 'securityModeLockdown'.tr(),
-              'lockoff' => 'securityModeLockoff'.tr(),
-              _ => 'securityModeDefault'.tr(),
-            },
-          ).fontSize(12),
-          loading: () => const SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-          error: (_, _) => Text('securityModeDefault'.tr()).fontSize(12),
-        ),
+        subtitle: ref
+            .watch(securityPreferencesModeProvider)
+            .when(
+              data: (mode) => Text(switch (mode) {
+                'lockdown' => 'securityModeLockdown'.tr(),
+                'lockoff' => 'securityModeLockoff'.tr(),
+                _ => 'securityModeDefault'.tr(),
+              }).fontSize(12),
+              loading: () => const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              error: (_, _) => Text('securityModeDefault'.tr()).fontSize(12),
+            ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
         trailing: const Icon(Symbols.chevron_right),
         onTap: () async {
@@ -449,7 +447,9 @@ class AccountSettingsScreen extends HookConsumerWidget {
                       for (final connection in connections)
                         Container(
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainer,
                             borderRadius: BorderRadius.circular(SolRadius.md),
                           ),
                           child: ListTile(
@@ -476,8 +476,9 @@ class AccountSettingsScreen extends HookConsumerWidget {
                             onTap: () {
                               showModalBottomSheet(
                                 context: context,
-                                builder: (context) =>
-                                    AccountConnectionSheet(connection: connection),
+                                builder: (context) => AccountConnectionSheet(
+                                  connection: connection,
+                                ),
                               ).then((value) {
                                 if (value == true) {
                                   ref.invalidate(accountConnectionsProvider);
@@ -488,7 +489,9 @@ class AccountSettingsScreen extends HookConsumerWidget {
                         ),
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHigh,
                           borderRadius: BorderRadius.circular(SolRadius.md),
                         ),
                         child: ListTile(
@@ -549,13 +552,17 @@ class AccountSettingsScreen extends HookConsumerWidget {
                         title: Text(
                           kFactorTypes[factor.type]!.$1,
                           style: factor.enabledAt == null
-                              ? const TextStyle(decoration: TextDecoration.lineThrough)
+                              ? const TextStyle(
+                                  decoration: TextDecoration.lineThrough,
+                                )
                               : null,
                         ).tr(),
                         subtitle: Text(
                           kFactorTypes[factor.type]!.$2,
                           style: factor.enabledAt == null
-                              ? const TextStyle(decoration: TextDecoration.lineThrough)
+                              ? const TextStyle(
+                                  decoration: TextDecoration.lineThrough,
+                                )
                               : null,
                         ).tr(),
                         leading: CircleAvatar(
@@ -573,7 +580,8 @@ class AccountSettingsScreen extends HookConsumerWidget {
                           }
                           showModalBottomSheet(
                             context: context,
-                            builder: (context) => AuthFactorSheet(factor: factor),
+                            builder: (context) =>
+                                AuthFactorSheet(factor: factor),
                           ).then((value) {
                             if (value == true) {
                               ref.invalidate(authFactorsProvider);
@@ -647,7 +655,9 @@ class AccountSettingsScreen extends HookConsumerWidget {
                       for (final contact in contacts)
                         Container(
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainer,
                             borderRadius: BorderRadius.circular(SolRadius.md),
                           ),
                           child: ListTile(
@@ -675,10 +685,16 @@ class AccountSettingsScreen extends HookConsumerWidget {
                             ),
                             leading: CircleAvatar(
                               backgroundColor: contact.verifiedAt == null
-                                  ? Theme.of(context).colorScheme.secondaryContainer
-                                  : Theme.of(context).colorScheme.primaryContainer,
+                                  ? Theme.of(
+                                      context,
+                                    ).colorScheme.secondaryContainer
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.primaryContainer,
                               child: Icon(
-                                contact.type == 0 ? Symbols.mail : Symbols.phone,
+                                contact.type == 0
+                                    ? Symbols.mail
+                                    : Symbols.phone,
                               ),
                             ),
                             trailing: const Icon(Symbols.chevron_right),
@@ -698,7 +714,9 @@ class AccountSettingsScreen extends HookConsumerWidget {
                         ),
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHigh,
                           borderRadius: BorderRadius.circular(SolRadius.md),
                         ),
                         child: ListTile(
@@ -712,7 +730,8 @@ class AccountSettingsScreen extends HookConsumerWidget {
                           onTap: () {
                             showModalBottomSheet(
                               context: context,
-                              builder: (context) => const ContactMethodNewSheet(),
+                              builder: (context) =>
+                                  const ContactMethodNewSheet(),
                             ).then((value) {
                               if (value == true) {
                                 ref.invalidate(contactMethodsProvider);
@@ -915,7 +934,10 @@ class AccountSettingsScreen extends HookConsumerWidget {
           leading: _buildLeadingIcon(context, Symbols.auto_fix_high),
           title: Text('affiliations').tr(),
           subtitle: Text('affiliationsDescription').tr().fontSize(12),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 2,
+          ),
           trailing: const Icon(Symbols.chevron_right),
           onTap: () {
             context.router.push(const AffiliationRoute());
@@ -950,7 +972,9 @@ class AccountSettingsScreen extends HookConsumerWidget {
         leading: _buildLeadingIcon(
           context,
           Symbols.delete_forever,
-          background: Theme.of(context).colorScheme.error.withValues(alpha: 0.15),
+          background: Theme.of(
+            context,
+          ).colorScheme.error.withValues(alpha: 0.15),
           color: Theme.of(context).colorScheme.error,
         ),
         trailing: Icon(
@@ -962,6 +986,7 @@ class AccountSettingsScreen extends HookConsumerWidget {
     ];
 
     final integrationsSettings = [
+      const _BangumiSyncSettingsTile(),
       ListTile(
         minLeadingWidth: 44,
         leading: _buildLeadingIcon(context, Symbols.group),
@@ -1123,6 +1148,318 @@ class AccountSettingsScreen extends HookConsumerWidget {
     } finally {
       if (context.mounted) hideLoadingModal(context);
     }
+  }
+}
+
+class _BangumiSyncSettingsTile extends HookConsumerWidget {
+  const _BangumiSyncSettingsTile();
+
+  String _policyLabel(String value) {
+    return switch (value) {
+      'local' => 'pulsarBangumiConflictLocal'.tr(),
+      'newest' => 'pulsarBangumiConflictNewest'.tr(),
+      _ => 'pulsarBangumiConflictRemote'.tr(),
+    };
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final connectionAsync = ref.watch(pulsarBangumiConnectionProvider);
+    final current = connectionAsync.value;
+    final collapsedSubtitle = current?.linked == true
+        ? '@${current!.remoteUsername}'
+        : 'pulsarBangumiDescription'.tr();
+
+    Future<void> link() async {
+      try {
+        showLoadingModal(context);
+        final url = await ref.read(pulsarClientProvider).startBangumiOAuth();
+        if (!context.mounted) return;
+        hideLoadingModal(context);
+        if (url.isEmpty) {
+          showSnackBar('pulsarBangumiSyncFailed'.tr());
+          return;
+        }
+        final launched = await launchUrlString(
+          url,
+          mode: LaunchMode.externalApplication,
+        );
+        if (!launched) {
+          showSnackBar('pulsarBangumiSyncFailed'.tr());
+          return;
+        }
+        if (context.mounted) {
+          showSnackBar('pulsarBangumiLinkHint'.tr());
+          ref.invalidate(pulsarBangumiConnectionProvider);
+        }
+      } catch (err) {
+        if (context.mounted) {
+          hideLoadingModal(context);
+          showErrorAlert(err);
+        }
+      }
+    }
+
+    Future<void> syncNow() async {
+      showLoadingModal(context);
+      try {
+        final result = await ref.read(pulsarClientProvider).syncBangumiNow();
+        if (!context.mounted) return;
+        showSnackBar(
+          '${'pulsarBangumiSyncDone'.tr()} · ${result.pulled}↓ ${result.pushed}↑',
+        );
+        ref.invalidate(pulsarBangumiConnectionProvider);
+      } catch (err) {
+        if (context.mounted) showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
+    Future<void> update({bool? syncEnabled, String? conflictPolicy}) async {
+      try {
+        showLoadingModal(context);
+        await ref
+            .read(pulsarClientProvider)
+            .updateBangumiConnection(
+              syncEnabled: syncEnabled,
+              conflictPolicy: conflictPolicy,
+            );
+        ref.invalidate(pulsarBangumiConnectionProvider);
+      } catch (err) {
+        if (context.mounted) showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
+    Future<void> unlink() async {
+      final confirmed = await showConfirmAlert(
+        'pulsarBangumiUnlinkConfirm'.tr(),
+        'pulsarBangumiUnlink'.tr(),
+        isDanger: true,
+      );
+      if (!confirmed || !context.mounted) return;
+      try {
+        showLoadingModal(context);
+        await ref.read(pulsarClientProvider).unlinkBangumi();
+        ref.invalidate(pulsarBangumiConnectionProvider);
+      } catch (err) {
+        if (context.mounted) showErrorAlert(err);
+      } finally {
+        if (context.mounted) hideLoadingModal(context);
+      }
+    }
+
+    Future<void> pickPolicy(String current) async {
+      final selected = await showModalBottomSheet<String>(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => SheetScaffold(
+          titleText: 'pulsarBangumiConflictPolicy'.tr(),
+          heightFactor: 0.45,
+          child: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final policy in const ['remote', 'local', 'newest'])
+                  ListTile(
+                    leading: Icon(
+                      policy == current
+                          ? Symbols.radio_button_checked
+                          : Symbols.radio_button_unchecked,
+                      color: policy == current
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    title: Text(_policyLabel(policy)),
+                    onTap: () => Navigator.pop(context, policy),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+      if (selected == null || selected == current) return;
+      await update(conflictPolicy: selected);
+    }
+
+    return ExpansionTile(
+      leading: _buildLeadingIcon(context, Symbols.sync_alt),
+      title: Text('pulsarBangumiSync'.tr()),
+      subtitle: Text(collapsedSubtitle).fontSize(12),
+      tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+      children: [
+        connectionAsync.when(
+          data: (connection) {
+            if (!connection.configured) {
+              return ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 2,
+                ),
+                leading: const Icon(Symbols.info),
+                title: Text('pulsarBangumiNotConfigured'.tr()).fontSize(13),
+              );
+            }
+            if (!connection.linked) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'pulsarBangumiDescription'.tr(),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const Gap(12),
+                    FilledButton.tonalIcon(
+                      onPressed: link,
+                      icon: const Icon(Symbols.link),
+                      label: Text('pulsarBangumiLink'.tr()),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            final avatarUrl = connection.avatarUrl;
+            final collectionSummary = connection.collections.isEmpty
+                ? 'none'.tr()
+                : connection.collections
+                      .map(
+                        (collection) =>
+                            '${PulsarDomain.label(collection.domain)} ${collection.items}',
+                      )
+                      .join(' · ');
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 2,
+                  ),
+                  leading: CircleAvatar(
+                    backgroundImage: avatarUrl.startsWith('http')
+                        ? NetworkImage(avatarUrl)
+                        : null,
+                    child: avatarUrl.startsWith('http')
+                        ? null
+                        : const Icon(Symbols.person),
+                  ),
+                  title: Text(
+                    connection.nickname.isNotEmpty
+                        ? connection.nickname
+                        : connection.remoteUsername,
+                  ),
+                  subtitle: Text('@${connection.remoteUsername}').fontSize(12),
+                  trailing: Badge(
+                    label: Text('pulsarBangumiSync'.tr()),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    textColor: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                ),
+                SwitchListTile.adaptive(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 2,
+                  ),
+                  secondary: const Icon(Symbols.sync),
+                  title: Text('pulsarBangumiSyncEnabled'.tr()),
+                  value: connection.syncEnabled,
+                  onChanged: (value) => update(syncEnabled: value),
+                ),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 2,
+                  ),
+                  leading: const Icon(Symbols.balance),
+                  title: Text('pulsarBangumiConflictPolicy'.tr()),
+                  subtitle: Text(
+                    _policyLabel(connection.conflictPolicy),
+                  ).fontSize(12),
+                  trailing: const Icon(Symbols.chevron_right),
+                  onTap: () => pickPolicy(connection.conflictPolicy),
+                ),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 2,
+                  ),
+                  leading: const Icon(Symbols.collections_bookmark),
+                  title: Text('pulsarBangumiCollections'.tr()),
+                  subtitle: Text(collectionSummary).fontSize(12),
+                ),
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 2,
+                  ),
+                  leading: const Icon(Symbols.schedule),
+                  title: Text('pulsarBangumiLastSynced'.tr()),
+                  subtitle: Text(
+                    connection.lastSyncedAt == null
+                        ? 'pulsarBangumiNeverSynced'.tr()
+                        : DateFormat.yMMMd().add_Hm().format(
+                            connection.lastSyncedAt!.toLocal(),
+                          ),
+                  ).fontSize(12),
+                ),
+                if (connection.lastError.isNotEmpty)
+                  ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 2,
+                    ),
+                    leading: Icon(
+                      Symbols.error,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    title: Text('pulsarBangumiSyncFailed'.tr()),
+                    subtitle: Text(
+                      connection.lastError,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ).fontSize(12),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: FilledButton.tonalIcon(
+                          onPressed: syncNow,
+                          icon: const Icon(Symbols.sync),
+                          label: Text('pulsarBangumiSyncNow'.tr()),
+                        ),
+                      ),
+                      const Gap(8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: unlink,
+                          icon: const Icon(Symbols.link_off),
+                          label: Text('pulsarBangumiUnlink'.tr()),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+          error: (err, _) => ResponseErrorWidget(
+            error: err,
+            onRetry: () => ref.invalidate(pulsarBangumiConnectionProvider),
+          ),
+          loading: () => const ResponseLoadingWidget(),
+        ),
+      ],
+    );
   }
 }
 
@@ -1365,7 +1702,9 @@ class _FediversePublisherPickerSheet extends StatelessWidget {
                         ? NetworkImage(publisher.avatarUrl!)
                         : null,
                     child: publisher.avatarUrl == null
-                        ? Text(avatarFallbackText(publisher.publisherName) ?? '?')
+                        ? Text(
+                            avatarFallbackText(publisher.publisherName) ?? '?',
+                          )
                         : null,
                   ),
                   title: Text(publisher.publisherName),

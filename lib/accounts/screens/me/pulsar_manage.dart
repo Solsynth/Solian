@@ -7,7 +7,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/activity/pulsar_models.dart';
 import 'package:island/activity/pulsar_pod.dart';
-import 'package:island/core/services/time.dart';
 import 'package:island/core/theme.dart';
 import 'package:island/discovery/widgets/explore_card.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -16,7 +15,6 @@ import 'package:island/shared/widgets/extended_refresh_indicator.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 @RoutePage()
 class PulsarManageScreen extends HookConsumerWidget {
@@ -41,13 +39,11 @@ class PulsarManageScreen extends HookConsumerWidget {
     Future<void> refreshAll() async {
       ref.invalidate(pulsarMyWorkCollectionsProvider);
       ref.invalidate(pulsarUserHistoryProvider);
-      ref.invalidate(pulsarBangumiConnectionProvider);
       for (final domain in PulsarDomain.mediaDomains) {
         ref.invalidate(pulsarFavouritesProvider(domain));
       }
       await Future.wait([
         ref.read(pulsarMyWorkCollectionsProvider.future),
-        ref.read(pulsarBangumiConnectionProvider.future),
         ref.read(pulsarFavouritesProvider(favDomain.value).future),
         ref.read(
           pulsarUserHistoryProvider((
@@ -76,7 +72,6 @@ class PulsarManageScreen extends HookConsumerWidget {
             spacing: kExploreCardGap,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const _BangumiSyncCard(),
               _FavoritesManageCard(
                 selectedDomain: favDomain.value,
                 onDomainChanged: (d) => favDomain.value = d,
@@ -187,291 +182,6 @@ class _ManageArtworkThumb extends StatelessWidget {
         fit: BoxFit.cover,
         errorWidget: (_, _, _) => placeholder,
         placeholder: (_, _) => placeholder,
-      ),
-    );
-  }
-}
-
-class _BangumiSyncCard extends HookConsumerWidget {
-  const _BangumiSyncCard();
-
-  String _policyLabel(String value) {
-    return switch (value) {
-      'local' => 'pulsarBangumiConflictLocal'.tr(),
-      'newest' => 'pulsarBangumiConflictNewest'.tr(),
-      _ => 'pulsarBangumiConflictRemote'.tr(),
-    };
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final connectionAsync = ref.watch(pulsarBangumiConnectionProvider);
-    final busy = useState(false);
-
-    Future<void> run(Future<void> Function() action) async {
-      if (busy.value) return;
-      busy.value = true;
-      try {
-        await action();
-      } catch (err) {
-        if (context.mounted) showErrorAlert(err);
-      } finally {
-        if (context.mounted) busy.value = false;
-      }
-    }
-
-    Future<void> link() async {
-      final client = ref.read(pulsarClientProvider);
-      try {
-        showLoadingModal(context);
-        final url = await client.startBangumiOAuth();
-        if (!context.mounted) return;
-        hideLoadingModal(context);
-        if (url.isEmpty) {
-          showSnackBar('pulsarBangumiSyncFailed'.tr());
-          return;
-        }
-        final launched = await launchUrlString(
-          url,
-          mode: LaunchMode.externalApplication,
-        );
-        if (!launched) {
-          showSnackBar('pulsarBangumiSyncFailed'.tr());
-          return;
-        }
-        if (context.mounted) {
-          showSnackBar('pulsarBangumiLinkHint'.tr());
-          ref.invalidate(pulsarBangumiConnectionProvider);
-        }
-      } catch (err) {
-        if (context.mounted) {
-          hideLoadingModal(context);
-          showErrorAlert(err);
-        }
-      }
-    }
-
-    Future<void> syncNow() async {
-      showLoadingModal(context);
-      try {
-        final result = await ref.read(pulsarClientProvider).syncBangumiNow();
-        if (!context.mounted) return;
-        showSnackBar(
-          '${'pulsarBangumiSyncDone'.tr()} · ${result.pulled}↓ ${result.pushed}↑',
-        );
-        ref.invalidate(pulsarBangumiConnectionProvider);
-        ref.invalidate(pulsarMyWorkCollectionsProvider);
-      } finally {
-        if (context.mounted) hideLoadingModal(context);
-      }
-    }
-
-    Future<void> unlink() async {
-      final confirmed = await showConfirmAlert(
-        'pulsarBangumiUnlinkConfirm'.tr(),
-        'pulsarBangumiUnlink'.tr(),
-        isDanger: true,
-      );
-      if (!confirmed) return;
-      await run(() async {
-        await ref.read(pulsarClientProvider).unlinkBangumi();
-        ref.invalidate(pulsarBangumiConnectionProvider);
-      });
-    }
-
-    Future<void> update({bool? syncEnabled, String? conflictPolicy}) async {
-      await run(() async {
-        await ref
-            .read(pulsarClientProvider)
-            .updateBangumiConnection(
-              syncEnabled: syncEnabled,
-              conflictPolicy: conflictPolicy,
-            );
-        ref.invalidate(pulsarBangumiConnectionProvider);
-      });
-    }
-
-    return _PulsarManageCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _ManageSectionHeader(
-            icon: Symbols.sync_alt,
-            title: 'pulsarBangumiSync'.tr(),
-            trailing: connectionAsync.value?.linked == true
-                ? Badge(
-                    label: Text(connectionAsync.value!.remoteUsername),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    textColor: Theme.of(context).colorScheme.onPrimary,
-                  )
-                : null,
-          ),
-          const Gap(SolSpace.md),
-          connectionAsync.when(
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(SolSpace.md),
-                child: CircularProgressIndicator(),
-              ),
-            ),
-            error: (err, _) => Text(
-              err.toString(),
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-            data: (connection) {
-              if (!connection.configured) {
-                return Text(
-                  'pulsarBangumiNotConfigured'.tr(),
-                  style: Theme.of(context).textTheme.bodySmall,
-                );
-              }
-              if (!connection.linked) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'pulsarBangumiDescription'.tr(),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const Gap(SolSpace.md),
-                    FilledButton.tonalIcon(
-                      onPressed: busy.value ? null : link,
-                      icon: const Icon(Symbols.link),
-                      label: Text('pulsarBangumiLink'.tr()),
-                    ),
-                  ],
-                );
-              }
-
-              final avatarUrl = connection.avatarUrl;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundImage: avatarUrl.startsWith('http')
-                            ? CachedNetworkImageProvider(avatarUrl)
-                            : null,
-                        child: avatarUrl.startsWith('http')
-                            ? null
-                            : const Icon(Symbols.person),
-                      ),
-                      const Gap(SolSpace.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              connection.nickname.isNotEmpty
-                                  ? connection.nickname
-                                  : connection.remoteUsername,
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
-                            Text(
-                              '@${connection.remoteUsername}',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (connection.lastSyncedAt != null)
-                        Text(
-                          '${'pulsarBangumiLastSynced'.tr()}\n${connection.lastSyncedAt!.formatSystem()}',
-                          textAlign: TextAlign.end,
-                          style: Theme.of(context).textTheme.labelSmall,
-                        )
-                      else
-                        Text(
-                          'pulsarBangumiNeverSynced'.tr(),
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
-                    ],
-                  ),
-                  if (connection.collections.isNotEmpty) ...[
-                    const Gap(SolSpace.md),
-                    Text(
-                      'pulsarBangumiCollections'.tr(),
-                      style: Theme.of(context).textTheme.labelMedium,
-                    ),
-                    const Gap(SolSpace.xs),
-                    Wrap(
-                      spacing: SolSpace.xs,
-                      runSpacing: SolSpace.xs,
-                      children: [
-                        for (final collection in connection.collections)
-                          Chip(
-                            label: Text(
-                              '${PulsarDomain.label(collection.domain)} · ${collection.items}',
-                            ),
-                            visualDensity: VisualDensity.compact,
-                          ),
-                      ],
-                    ),
-                  ],
-                  const Gap(SolSpace.sm),
-                  SwitchListTile.adaptive(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text('pulsarBangumiSyncEnabled'.tr()),
-                    value: connection.syncEnabled,
-                    onChanged: busy.value
-                        ? null
-                        : (value) => update(syncEnabled: value),
-                  ),
-                  DropdownButtonFormField<String>(
-                    key: ValueKey(connection.conflictPolicy),
-                    initialValue: connection.conflictPolicy,
-                    decoration: InputDecoration(
-                      labelText: 'pulsarBangumiConflictPolicy'.tr(),
-                    ),
-                    items: [
-                      for (final policy in const ['remote', 'local', 'newest'])
-                        DropdownMenuItem(
-                          value: policy,
-                          child: Text(_policyLabel(policy)),
-                        ),
-                    ],
-                    onChanged: busy.value
-                        ? null
-                        : (value) {
-                            if (value != null) {
-                              update(conflictPolicy: value);
-                            }
-                          },
-                  ),
-                  if (connection.lastError.isNotEmpty) ...[
-                    const Gap(SolSpace.sm),
-                    Text(
-                      connection.lastError,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                  const Gap(SolSpace.md),
-                  Wrap(
-                    spacing: SolSpace.sm,
-                    runSpacing: SolSpace.sm,
-                    children: [
-                      FilledButton.tonalIcon(
-                        onPressed: busy.value ? null : syncNow,
-                        icon: const Icon(Symbols.sync),
-                        label: Text('pulsarBangumiSyncNow'.tr()),
-                      ),
-                      TextButton.icon(
-                        onPressed: busy.value ? null : unlink,
-                        icon: const Icon(Symbols.link_off),
-                        label: Text('pulsarBangumiUnlink'.tr()),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
       ),
     );
   }
