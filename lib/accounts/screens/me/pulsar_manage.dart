@@ -1,12 +1,14 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
+import 'package:island/accounts/widgets/account/pulsar_shelf.dart';
+import 'package:island/activity/pulsar_artwork.dart';
 import 'package:island/activity/pulsar_models.dart';
 import 'package:island/activity/pulsar_pod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/theme.dart';
 import 'package:island/discovery/widgets/explore_card.dart';
 import 'package:island/shared/widgets/alert.dart';
@@ -24,8 +26,6 @@ class PulsarManageScreen extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userInfoProvider);
     final uname = user.value?.name ?? 'me';
-    final favDomain = useState<String>(PulsarDomain.music);
-    final statusFilter = useState<String?>(null);
     final historyDomain = useState<String?>(null);
 
     final historyAsync = ref.watch(
@@ -44,7 +44,8 @@ class PulsarManageScreen extends HookConsumerWidget {
       }
       await Future.wait([
         ref.read(pulsarMyWorkCollectionsProvider.future),
-        ref.read(pulsarFavouritesProvider(favDomain.value).future),
+        for (final domain in PulsarDomain.mediaDomains)
+          ref.read(pulsarFavouritesProvider(domain).future),
         ref.read(
           pulsarUserHistoryProvider((
             uname: uname,
@@ -72,14 +73,8 @@ class PulsarManageScreen extends HookConsumerWidget {
             spacing: kExploreCardGap,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _FavoritesManageCard(
-                selectedDomain: favDomain.value,
-                onDomainChanged: (d) => favDomain.value = d,
-              ),
-              _WorkStatusesManageCard(
-                statusFilter: statusFilter.value,
-                onStatusFilterChanged: (s) => statusFilter.value = s,
-              ),
+              const _FavoritesManageCard(),
+              const _WorkStatusesManageCard(),
               _HistoryQuickActionsCard(
                 uname: uname,
                 selectedDomain: historyDomain.value,
@@ -145,62 +140,36 @@ class _ManageSectionHeader extends StatelessWidget {
   }
 }
 
+/// A square 44 px case, for the list-style editors where a full shelf would
+/// take more room than the form beside it.
 class _ManageArtworkThumb extends StatelessWidget {
-  final String? url;
+  final List<String> artwork;
   final IconData fallbackIcon;
   static const double _size = 44;
 
-  const _ManageArtworkThumb({required this.url, required this.fallbackIcon});
+  const _ManageArtworkThumb({
+    required this.artwork,
+    required this.fallbackIcon,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final placeholder = Container(
+    return SizedBox(
       width: _size,
       height: _size,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(SolRadius.sm),
-      ),
-      child: Icon(
-        fallbackIcon,
-        size: _size * 0.48,
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
-    );
-
-    if (url == null || url!.isEmpty || !url!.startsWith('http')) {
-      return placeholder;
-    }
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(SolRadius.sm),
-      child: CachedNetworkImage(
-        imageUrl: url!,
-        width: _size,
-        height: _size,
-        fit: BoxFit.cover,
-        errorWidget: (_, _, _) => placeholder,
-        placeholder: (_, _) => placeholder,
-      ),
+      child: PulsarCover(artwork: artwork, fallbackIcon: fallbackIcon),
     );
   }
 }
 
 class _FavoritesManageCard extends HookConsumerWidget {
-  final String selectedDomain;
-  final ValueChanged<String> onDomainChanged;
-
-  const _FavoritesManageCard({
-    required this.selectedDomain,
-    required this.onDomainChanged,
-  });
+  const _FavoritesManageCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final favsAsync = ref.watch(pulsarFavouritesProvider(selectedDomain));
-    final visibleCount = useState(5);
+    final domain = useState(PulsarDomain.music);
+    final favsAsync = ref.watch(pulsarFavouritesProvider(domain.value));
 
     Future<void> removeFavorite(PulsarCollectionItem item) async {
       final catalogId = item.catalogId ?? item.catalogItem?.id;
@@ -208,8 +177,8 @@ class _FavoritesManageCard extends HookConsumerWidget {
       try {
         await ref
             .read(pulsarClientProvider)
-            .unsetFavourite(catalogId, domain: selectedDomain);
-        ref.invalidate(pulsarFavouritesProvider(selectedDomain));
+            .unsetFavourite(catalogId, domain: domain.value);
+        ref.invalidate(pulsarFavouritesProvider(domain.value));
       } catch (err) {
         showErrorAlert(err);
       }
@@ -220,7 +189,7 @@ class _FavoritesManageCard extends HookConsumerWidget {
         context: context,
         isScrollControlled: true,
         useRootNavigator: true,
-        builder: (_) => _AddFavoriteSheet(initialDomain: selectedDomain),
+        builder: (_) => _AddFavoriteSheet(initialDomain: domain.value),
       );
     }
 
@@ -238,7 +207,7 @@ class _FavoritesManageCard extends HookConsumerWidget {
               onPressed: openAddFavoriteSheet,
             ),
           ],
-          child: _FullFavoritesSheetBody(initialDomain: selectedDomain),
+          child: _FullFavoritesSheetBody(initialDomain: domain.value),
         ),
       );
     }
@@ -258,118 +227,46 @@ class _FavoritesManageCard extends HookConsumerWidget {
               visualDensity: VisualDensity.compact,
             ),
           ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              spacing: SolSpace.xs,
-              children: [
-                for (final domain in PulsarDomain.mediaDomains)
-                  ChoiceChip(
-                    selected: selectedDomain == domain,
-                    onSelected: (_) => onDomainChanged(domain),
-                    avatar: Icon(PulsarDomain.icon(domain), size: 16),
-                    label: Text(PulsarDomain.label(domain)),
-                    visualDensity: VisualDensity.compact,
-                  ),
-              ],
-            ),
+          PulsarDomainFilterRow(
+            selectedDomain: domain.value,
+            domains: PulsarDomain.mediaDomains,
+            onChanged: (value) => domain.value = value ?? PulsarDomain.music,
           ),
           favsAsync.when(
             data: (items) {
               if (items.isEmpty) {
-                return Text(
-                  'pulsarFavoritesEmpty'.tr(),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                );
+                return PulsarShelfEmptyHint(text: 'pulsarFavoritesEmpty'.tr());
               }
-              final visibleItems = items.take(visibleCount.value).toList();
-              return Column(
-                spacing: SolSpace.sm,
-                children: [
-                  for (final item in visibleItems)
-                    Row(
-                      spacing: SolSpace.md,
-                      children: [
-                        _ManageArtworkThumb(
-                          url: item.displayArtwork,
-                          fallbackIcon: PulsarDomain.icon(selectedDomain),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.displayTitle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              if (item.displaySubtitle != null &&
-                                  item.displaySubtitle!.isNotEmpty)
-                                Text(
-                                  item.displaySubtitle!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        if (item.kind.isNotEmpty)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: SolSpace.xs,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(SolRadius.xs),
-                            ),
-                            child: Text(
-                              PulsarFavoriteKind.label(item.kind),
-                              style: theme.textTheme.labelSmall,
-                            ),
-                          ),
-                        IconButton(
-                          icon: Icon(
-                            Symbols.favorite,
-                            size: 18,
-                            fill: 1,
-                            color: theme.colorScheme.error,
-                          ),
-                          tooltip: 'pulsarRemoveFavorite'.tr(),
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () => removeFavorite(item),
-                        ),
-                      ],
-                    ),
-                  if (items.length > visibleCount.value)
-                    Align(
-                      alignment: Alignment.center,
-                      child: TextButton(
-                        onPressed: openFullFavorites,
-                        child: Text('pulsarShowMore'.tr()),
+              final serverUrl = ref.watch(serverUrlProvider);
+              return PulsarShelf(
+                aspectRatio: pulsarShelfAspect(domain.value),
+                tileWidth: domain.value == PulsarDomain.music ? 132 : 112,
+                onSeeAll: openFullFavorites,
+                entries: [
+                  for (final item in items)
+                    PulsarShelfEntry(
+                      title: item.displayTitle,
+                      subtitle: item.displaySubtitle,
+                      artwork: PulsarArtwork.collectionUrls(
+                        item,
+                        serverUrl: serverUrl,
                       ),
+                      fallbackIcon: PulsarDomain.icon(
+                        item.displayDomain == PulsarDomain.custom
+                            ? domain.value
+                            : item.displayDomain,
+                      ),
+                      cornerLabel: item.kind.isEmpty
+                          ? null
+                          : PulsarFavoriteKind.label(item.kind),
+                      actionIcon: Symbols.favorite,
+                      actionTooltip: 'pulsarRemoveFavorite'.tr(),
+                      onAction: () => removeFavorite(item),
                     ),
                 ],
               );
             },
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(SolSpace.sm),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            ),
+            loading: () => const PulsarShelfLoading(),
             error: (err, _) => Text(
               err.toString(),
               style: theme.textTheme.bodySmall?.copyWith(
@@ -384,19 +281,13 @@ class _FavoritesManageCard extends HookConsumerWidget {
 }
 
 class _WorkStatusesManageCard extends HookConsumerWidget {
-  final String? statusFilter;
-  final ValueChanged<String?> onStatusFilterChanged;
-
-  const _WorkStatusesManageCard({
-    required this.statusFilter,
-    required this.onStatusFilterChanged,
-  });
+  const _WorkStatusesManageCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final collectionsAsync = ref.watch(pulsarMyWorkCollectionsProvider);
-    final visibleCount = useState(5);
+    final statusFilter = useState<String?>(null);
 
     Future<void> openAddWorkSheet(List<PulsarCollection> collections) async {
       await showModalBottomSheet<void>(
@@ -435,7 +326,7 @@ class _WorkStatusesManageCard extends HookConsumerWidget {
                   openAddWorkSheet(collectionsAsync.asData?.value ?? const []),
             ),
           ],
-          child: _FullWorkStatusesSheetBody(initialStatus: statusFilter),
+          child: _FullWorkStatusesSheetBody(initialStatus: statusFilter.value),
         ),
       );
     }
@@ -456,204 +347,88 @@ class _WorkStatusesManageCard extends HookConsumerWidget {
                   openAddWorkSheet(collectionsAsync.asData?.value ?? const []),
             ),
           ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              spacing: SolSpace.xs,
-              children: [
-                ChoiceChip(
-                  selected: statusFilter == null,
-                  onSelected: (_) {
-                    visibleCount.value = 5;
-                    onStatusFilterChanged(null);
-                  },
-                  label: Text('all'.tr()),
-                  visualDensity: VisualDensity.compact,
-                ),
-                for (final status in PulsarWorkStatus.all)
-                  ChoiceChip(
-                    selected: statusFilter == status,
-                    onSelected: (_) {
-                      visibleCount.value = 5;
-                      onStatusFilterChanged(status);
-                    },
-                    avatar: Icon(PulsarWorkStatus.icon(status), size: 16),
-                    label: Text(PulsarWorkStatus.label(status)),
-                    visualDensity: VisualDensity.compact,
-                  ),
-              ],
-            ),
+          PulsarStatusFilterRow(
+            selectedStatus: statusFilter.value,
+            onChanged: (value) => statusFilter.value = value,
           ),
           collectionsAsync.when(
             data: (collections) {
-              final entries =
-                  <({PulsarCollection col, PulsarCollectionItem item})>[];
+              final shelves =
+                  <
+                    ({PulsarCollection col, List<PulsarCollectionItem> items})
+                  >[];
               for (final col in collections) {
-                for (final item in col.items) {
-                  if (statusFilter != null && item.status != statusFilter) {
-                    continue;
+                final items = col.items.where((item) {
+                  if (statusFilter.value != null &&
+                      item.status != statusFilter.value) {
+                    return false;
                   }
-                  if (statusFilter == null &&
+                  // An untracked playlist entry is just a track in a playlist,
+                  // not a work someone is working through.
+                  if (statusFilter.value == null &&
                       item.status == null &&
                       item.rating == null &&
                       (item.note == null || item.note!.isEmpty) &&
                       col.kind == PulsarCollectionKind.playlist) {
-                    continue;
+                    return false;
                   }
-                  entries.add((col: col, item: item));
-                }
+                  return true;
+                }).toList();
+                if (items.isNotEmpty) shelves.add((col: col, items: items));
               }
 
-              if (entries.isEmpty) {
-                return Text(
-                  'pulsarWorkStatusesEmpty'.tr(),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+              if (shelves.isEmpty) {
+                return PulsarShelfEmptyHint(
+                  text: 'pulsarWorkStatusesEmpty'.tr(),
                 );
               }
 
-              final visibleEntries = entries.take(visibleCount.value).toList();
+              final serverUrl = ref.watch(serverUrlProvider);
               return Column(
-                spacing: SolSpace.sm,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: SolSpace.lg,
                 children: [
-                  for (final entry in visibleEntries)
-                    InkWell(
-                      borderRadius: BorderRadius.circular(SolRadius.sm),
-                      onTap: () => openItemEditor(entry.col, entry.item),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: SolSpace.xxs,
-                        ),
-                        child: Row(
-                          spacing: SolSpace.md,
-                          children: [
-                            _ManageArtworkThumb(
-                              url: entry.item.displayArtwork,
-                              fallbackIcon: PulsarDomain.icon(
-                                entry.item.catalogItem?.domain ??
-                                    entry.col.domain,
-                              ),
+                  for (final shelf in shelves)
+                    PulsarShelf(
+                      title: shelf.col.name,
+                      icon: PulsarDomain.icon(shelf.col.domain),
+                      count: shelf.items.length,
+                      aspectRatio: pulsarShelfAspect(shelf.col.domain),
+                      tileWidth: shelf.col.domain == PulsarDomain.music
+                          ? 132
+                          : 112,
+                      onSeeAll: openFullWorkStatuses,
+                      entries: [
+                        for (final item in shelf.items)
+                          PulsarShelfEntry(
+                            title: item.displayTitle,
+                            subtitle: item.displaySubtitle,
+                            artwork: PulsarArtwork.collectionUrls(
+                              item,
+                              serverUrl: serverUrl,
                             ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    entry.item.displayTitle,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  Text(
-                                    [
-                                      entry.col.name,
-                                      if (entry.item.displaySubtitle != null &&
-                                          entry
-                                              .item
-                                              .displaySubtitle!
-                                              .isNotEmpty)
-                                        entry.item.displaySubtitle!,
-                                    ].join(' · '),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  if (entry.item.note != null &&
-                                      entry.item.note!.isNotEmpty)
-                                    Text(
-                                      entry.item.note!,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: theme.textTheme.labelSmall
-                                          ?.copyWith(
-                                            color: theme
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                    ),
-                                ],
-                              ),
+                            fallbackIcon: PulsarDomain.icon(
+                              item.catalogItem?.domain ?? shelf.col.domain,
                             ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              spacing: 4,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: SolSpace.sm,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: PulsarWorkStatus.color(
-                                      context,
-                                      entry.item.status,
-                                    ).withOpacity(0.14),
-                                    borderRadius: BorderRadius.circular(
-                                      SolRadius.chip,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    PulsarWorkStatus.label(entry.item.status),
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: PulsarWorkStatus.color(
-                                        context,
-                                        entry.item.status,
-                                      ),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                if (entry.item.rating != null)
-                                  Text(
-                                    '★ ${entry.item.rating}/10',
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: theme.colorScheme.primary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                if (entry.item.progress != null)
-                                  Text(
-                                    [
-                                      '${entry.item.progress}',
-                                      if (entry.item.volumeProgress != null)
-                                        '${entry.item.volumeProgress} vol',
-                                    ].join(' · '),
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                              ],
+                            badge: item.status == null
+                                ? null
+                                : PulsarWorkStatus.label(item.status),
+                            badgeColor: PulsarWorkStatus.color(
+                              context,
+                              item.status,
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  if (entries.length > visibleCount.value)
-                    Align(
-                      alignment: Alignment.center,
-                      child: TextButton(
-                        onPressed: openFullWorkStatuses,
-                        child: Text('pulsarShowMore'.tr()),
-                      ),
+                            cornerLabel: item.rating?.toString(),
+                            cornerIcon: item.rating == null
+                                ? null
+                                : Symbols.star_rounded,
+                            onTap: () => openItemEditor(shelf.col, item),
+                          ),
+                      ],
                     ),
                 ],
               );
             },
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(SolSpace.sm),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            ),
+            loading: () => const PulsarShelfLoading(),
             error: (err, _) => Text(
               err.toString(),
               style: theme.textTheme.bodySmall?.copyWith(
@@ -727,7 +502,10 @@ class _HistoryQuickActionsCard extends ConsumerWidget {
               catalogId: scrobble.catalogId,
               title: scrobble.title,
               subtitle: scrobble.subtitle,
-              artworkUrl: scrobble.effectiveArtworkUrl,
+              artworkUrl: PulsarArtwork.persistableScrobbleArtwork(
+                scrobble,
+                serverUrl: ref.watch(serverUrlProvider),
+              ),
             );
         ref.invalidate(pulsarFavouritesProvider(scrobble.domain));
         if (context.mounted) {
@@ -753,11 +531,15 @@ class _HistoryQuickActionsCard extends ConsumerWidget {
           initialCatalogId: scrobble.catalogId,
           initialTitle: scrobble.title,
           initialSubtitle: scrobble.subtitle,
-          initialArtworkUrl: scrobble.effectiveArtworkUrl,
+          initialArtworkUrl: PulsarArtwork.persistableScrobbleArtwork(
+            scrobble,
+            serverUrl: ref.watch(serverUrlProvider),
+          ),
         ),
       );
     }
 
+    final serverUrl = ref.watch(serverUrlProvider);
     return _PulsarManageCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -773,114 +555,44 @@ class _HistoryQuickActionsCard extends ConsumerWidget {
               onPressed: openManualScrobbleSheet,
             ),
           ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              spacing: SolSpace.xs,
-              children: [
-                ChoiceChip(
-                  selected: selectedDomain == null,
-                  onSelected: (_) => onDomainChanged(null),
-                  label: Text('all'.tr()),
-                  visualDensity: VisualDensity.compact,
-                ),
-                for (final domain in PulsarDomain.mediaDomains)
-                  ChoiceChip(
-                    selected: selectedDomain == domain,
-                    onSelected: (_) => onDomainChanged(domain),
-                    avatar: Icon(PulsarDomain.icon(domain), size: 16),
-                    label: Text(PulsarDomain.label(domain)),
-                    visualDensity: VisualDensity.compact,
-                  ),
-              ],
-            ),
+          PulsarDomainFilterRow(
+            selectedDomain: selectedDomain,
+            domains: PulsarDomain.mediaDomains,
+            includeAll: true,
+            onChanged: onDomainChanged,
           ),
           historyAsync.when(
             data: (items) {
               if (items.isEmpty) {
-                return Text(
-                  'pulsarHistoryEmpty'.tr(),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                );
+                return PulsarShelfEmptyHint(text: 'pulsarHistoryEmpty'.tr());
               }
-              return Column(
-                spacing: SolSpace.sm,
-                children: [
+              return PulsarShelf(
+                aspectRatio: 1,
+                tileWidth: 96,
+                // The card already shows a full page; only offer the sheet
+                // when the server had more to give.
+                onSeeAll: items.length >= 10 ? openFullHistory : null,
+                entries: [
                   for (final s in items)
-                    Row(
-                      spacing: SolSpace.md,
-                      children: [
-                        _ManageArtworkThumb(
-                          url: s.effectiveArtworkUrl,
-                          fallbackIcon: PulsarDomain.icon(s.domain),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                s.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                [
-                                  if (s.subtitle != null &&
-                                      s.subtitle!.isNotEmpty)
-                                    s.subtitle!,
-                                  DateFormat.MMMd().add_Hm().format(
-                                    s.playedAt.toLocal(),
-                                  ),
-                                ].join(' · '),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Symbols.favorite_border, size: 18),
-                          tooltip: 'pulsarAddFavorite'.tr(),
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () => quickFavorite(s),
-                        ),
-                        IconButton(
-                          icon: const Icon(Symbols.bookmark_add, size: 18),
-                          tooltip: 'pulsarTrackWork'.tr(),
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () => quickTrackStatus(s),
-                        ),
-                      ],
-                    ),
-                  if (items.length >= 10)
-                    Align(
-                      alignment: Alignment.center,
-                      child: TextButton(
-                        onPressed: openFullHistory,
-                        child: Text('pulsarShowMore'.tr()),
+                    PulsarShelfEntry(
+                      title: s.title,
+                      subtitle: DateFormat.MMMd().add_Hm().format(
+                        s.playedAt.toLocal(),
                       ),
+                      artwork: PulsarArtwork.scrobbleUrls(
+                        s,
+                        serverUrl: serverUrl,
+                      ),
+                      fallbackIcon: PulsarDomain.icon(s.domain),
+                      actionIcon: Symbols.favorite_border,
+                      actionTooltip: 'pulsarAddFavorite'.tr(),
+                      onAction: () => quickFavorite(s),
+                      onTap: () => quickTrackStatus(s),
                     ),
                 ],
               );
             },
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(SolSpace.sm),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            ),
+            loading: () => const PulsarShelfLoading(),
             error: (err, _) => Text(
               err.toString(),
               style: theme.textTheme.bodySmall?.copyWith(
@@ -935,7 +647,12 @@ class _AddFavoriteSheet extends HookConsumerWidget {
               subtitle: subtitleController.text.trim().isEmpty
                   ? null
                   : subtitleController.text.trim(),
-              artworkUrl: meta?.artworkUrl,
+              artworkUrl: meta == null
+                  ? null
+                  : PulsarArtwork.catalogUrls(
+                      meta,
+                      serverUrl: ref.watch(serverUrlProvider),
+                    ).firstOrNull,
               kind: domain.value == PulsarDomain.music ? kind.value : 'track',
             );
         ref.invalidate(pulsarFavouritesProvider(domain.value));
@@ -1096,7 +813,12 @@ class _AddWorkStatusSheet extends HookConsumerWidget {
           subtitle: subtitleController.text.trim().isEmpty
               ? null
               : subtitleController.text.trim(),
-          artworkUrl: meta?.artworkUrl ?? initialArtworkUrl,
+          artworkUrl: (meta == null
+              ? initialArtworkUrl
+              : PulsarArtwork.catalogUrls(
+                  meta,
+                  serverUrl: ref.watch(serverUrlProvider),
+                ).firstOrNull),
           status: status.value,
           rating: rating.value,
           note: noteController.text.trim().isEmpty
@@ -1243,6 +965,7 @@ class _FullFavoritesSheetBody extends HookConsumerWidget {
     final theme = Theme.of(context);
     final selectedDomain = useState(initialDomain);
     final favsAsync = ref.watch(pulsarFavouritesProvider(selectedDomain.value));
+    final serverUrl = ref.watch(serverUrlProvider);
 
     Future<void> removeFavorite(PulsarCollectionItem item) async {
       final catalogId = item.catalogId ?? item.catalogItem?.id;
@@ -1308,7 +1031,10 @@ class _FullFavoritesSheetBody extends HookConsumerWidget {
                     spacing: SolSpace.md,
                     children: [
                       _ManageArtworkThumb(
-                        url: item.displayArtwork,
+                        artwork: PulsarArtwork.collectionUrls(
+                          item,
+                          serverUrl: serverUrl,
+                        ),
                         fallbackIcon: PulsarDomain.icon(selectedDomain.value),
                       ),
                       Expanded(
@@ -1386,6 +1112,7 @@ class _FullWorkStatusesSheetBody extends HookConsumerWidget {
     final theme = Theme.of(context);
     final statusFilter = useState<String?>(initialStatus);
     final collectionsAsync = ref.watch(pulsarMyWorkCollectionsProvider);
+    final serverUrl = ref.watch(serverUrlProvider);
 
     Future<void> openItemEditor(
       PulsarCollection collection,
@@ -1482,7 +1209,10 @@ class _FullWorkStatusesSheetBody extends HookConsumerWidget {
                         spacing: SolSpace.md,
                         children: [
                           _ManageArtworkThumb(
-                            url: entry.item.displayArtwork,
+                            artwork: PulsarArtwork.collectionUrls(
+                              entry.item,
+                              serverUrl: serverUrl,
+                            ),
                             fallbackIcon: PulsarDomain.icon(
                               entry.item.catalogItem?.domain ??
                                   entry.col.domain,
@@ -1605,6 +1335,7 @@ class _FullHistoryManageSheetBody extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final selectedDomain = useState<String?>(initialDomain);
+    final serverUrl = ref.watch(serverUrlProvider);
     final items = useState<List<PulsarScrobble>>([]);
     final isLoading = useState<bool>(true);
     final hasMore = useState<bool>(true);
@@ -1644,7 +1375,10 @@ class _FullHistoryManageSheetBody extends HookConsumerWidget {
               catalogId: scrobble.catalogId,
               title: scrobble.title,
               subtitle: scrobble.subtitle,
-              artworkUrl: scrobble.effectiveArtworkUrl,
+              artworkUrl: PulsarArtwork.persistableScrobbleArtwork(
+                scrobble,
+                serverUrl: ref.watch(serverUrlProvider),
+              ),
             );
         ref.invalidate(pulsarFavouritesProvider(scrobble.domain));
         if (context.mounted) {
@@ -1670,7 +1404,10 @@ class _FullHistoryManageSheetBody extends HookConsumerWidget {
           initialCatalogId: scrobble.catalogId,
           initialTitle: scrobble.title,
           initialSubtitle: scrobble.subtitle,
-          initialArtworkUrl: scrobble.effectiveArtworkUrl,
+          initialArtworkUrl: PulsarArtwork.persistableScrobbleArtwork(
+            scrobble,
+            serverUrl: ref.watch(serverUrlProvider),
+          ),
         ),
       );
     }
@@ -1749,7 +1486,10 @@ class _FullHistoryManageSheetBody extends HookConsumerWidget {
                       spacing: SolSpace.md,
                       children: [
                         _ManageArtworkThumb(
-                          url: s.effectiveArtworkUrl,
+                          artwork: PulsarArtwork.scrobbleUrls(
+                            s,
+                            serverUrl: serverUrl,
+                          ),
                           fallbackIcon: PulsarDomain.icon(s.domain),
                         ),
                         Expanded(
@@ -1868,7 +1608,10 @@ class _WorkStatusEditorSheet extends HookConsumerWidget {
               catalogId: catalogId,
               title: item.displayTitle,
               subtitle: item.displaySubtitle,
-              artworkUrl: item.displayArtwork,
+              artworkUrl: PulsarArtwork.persistableCollectionArtwork(
+                item,
+                serverUrl: ref.watch(serverUrlProvider),
+              ),
             );
         ref.invalidate(pulsarFavouritesProvider(domain));
         if (context.mounted) {
@@ -1906,7 +1649,10 @@ class _WorkStatusEditorSheet extends HookConsumerWidget {
               spacing: SolSpace.md,
               children: [
                 _ManageArtworkThumb(
-                  url: item.displayArtwork,
+                  artwork: PulsarArtwork.collectionUrls(
+                    item,
+                    serverUrl: ref.watch(serverUrlProvider),
+                  ),
                   fallbackIcon: PulsarDomain.icon(
                     item.catalogItem?.domain ?? collection.domain,
                   ),
@@ -2064,7 +1810,12 @@ class _ManualScrobbleSheet extends HookConsumerWidget {
               caption: captionController.text.trim().isEmpty
                   ? null
                   : captionController.text.trim(),
-              artworkUrl: meta?.artworkUrl,
+              artworkUrl: meta == null
+                  ? null
+                  : PulsarArtwork.catalogUrls(
+                      meta,
+                      serverUrl: ref.watch(serverUrlProvider),
+                    ).firstOrNull,
               catalogId: meta?.id,
               urn: meta?.urn,
               listenedSeconds: seconds,
@@ -2212,7 +1963,10 @@ class _MetadataSearchSection extends HookConsumerWidget {
               spacing: SolSpace.md,
               children: [
                 _ManageArtworkThumb(
-                  url: selected!.artworkUrl,
+                  artwork: PulsarArtwork.catalogUrls(
+                    selected,
+                    serverUrl: ref.watch(serverUrlProvider),
+                  ),
                   fallbackIcon: PulsarDomain.icon(selected!.domain),
                 ),
                 Expanded(
@@ -2296,7 +2050,10 @@ class _MetadataSearchSection extends HookConsumerWidget {
                     return ListTile(
                       dense: true,
                       leading: _ManageArtworkThumb(
-                        url: item.artworkUrl,
+                        artwork: PulsarArtwork.catalogUrls(
+                          item,
+                          serverUrl: ref.watch(serverUrlProvider),
+                        ),
                         fallbackIcon: PulsarDomain.icon(item.domain),
                       ),
                       title: Text(

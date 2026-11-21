@@ -858,6 +858,7 @@ class AccountProfileContent extends HookConsumerWidget {
       }
       if (isCurrentUser) {
         ref.invalidate(myAccountBoardProvider);
+        ref.invalidate(pulsarMyWorkCollectionsProvider);
       }
 
       final futures = <Future<dynamic>>[
@@ -877,6 +878,7 @@ class AccountProfileContent extends HookConsumerWidget {
       }
       if (isCurrentUser) {
         futures.add(ref.read(myAccountBoardProvider.future));
+        futures.add(ref.read(pulsarMyWorkCollectionsProvider.future));
       }
       await Future.wait(futures);
     }
@@ -992,6 +994,7 @@ class AccountProfileContent extends HookConsumerWidget {
 
           final pulsarContent = PulsarProfileTab(
             uname: name,
+            showWorkStatuses: isCurrentUser,
             onRefresh: refreshProfile,
           );
 

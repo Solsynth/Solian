@@ -1,10 +1,12 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/widgets/account/pulsar_shelf.dart';
+import 'package:island/activity/pulsar_artwork.dart';
 import 'package:island/activity/pulsar_models.dart';
 import 'package:island/activity/pulsar_pod.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/theme.dart';
 import 'package:island/discovery/widgets/explore_card.dart';
 import 'package:island/shared/widgets/extended_refresh_indicator.dart';
@@ -13,15 +15,25 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
-/// Read-only Pulsar tab for viewing any user's profile (now playing, stats,
-/// and recent scrobble history).
+/// Read-only Solink tab for viewing any user's profile: what they are playing
+/// now, what they play most, the works they are working through, and their
+/// recent history.
+///
+/// Everything here is a shelf: the subjects are things a person collects, so
+/// they are shown as covers standing on a ledge rather than as rows of text.
 class PulsarProfileTab extends HookConsumerWidget {
   final String uname;
+
+  /// Whether this is the signed-in account's own profile. Work statuses come
+  /// from the account's own collections, which the server only exposes to that
+  /// account, so they are shown on one's own profile only.
+  final bool showWorkStatuses;
   final Future<void> Function() onRefresh;
 
   const PulsarProfileTab({
     super.key,
     required this.uname,
+    this.showWorkStatuses = false,
     required this.onRefresh,
   });
 
@@ -63,6 +75,7 @@ class PulsarProfileTab extends HookConsumerWidget {
               loading: () => const _SectionLoadingCard(),
               error: (_, _) => const SizedBox.shrink(),
             ),
+            if (showWorkStatuses) const _WorkStatusesCard(),
             _HistoryCard(
               uname: uname,
               selectedDomain: historyDomain.value,
@@ -100,26 +113,20 @@ class _SectionLoadingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _PulsarCard(
-      child: Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: SolSpace.md),
-          child: SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      ),
-    );
+    return const _PulsarCard(child: PulsarShelfLoading());
   }
 }
 
 class _SectionHeader extends StatelessWidget {
   final IconData icon;
   final String title;
+  final Widget? trailing;
 
-  const _SectionHeader({required this.icon, required this.title});
+  const _SectionHeader({
+    required this.icon,
+    required this.title,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -136,141 +143,81 @@ class _SectionHeader extends StatelessWidget {
             ),
           ),
         ),
+        ?trailing,
       ],
     );
   }
 }
 
-class _ArtworkThumb extends StatelessWidget {
-  final String? url;
-  final IconData fallbackIcon;
-  final double size;
-
-  const _ArtworkThumb({
-    required this.url,
-    required this.fallbackIcon,
-    this.size = 44,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final placeholder = Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(SolRadius.sm),
-      ),
-      child: Icon(
-        fallbackIcon,
-        size: size * 0.48,
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
-    );
-
-    if (url == null || url!.isEmpty || !url!.startsWith('http')) {
-      return placeholder;
-    }
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(SolRadius.sm),
-      child: CachedNetworkImage(
-        imageUrl: url!,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        errorWidget: (_, _, _) => placeholder,
-        placeholder: (_, _) => placeholder,
-      ),
-    );
-  }
-}
-
-class _NowPlayingCard extends StatelessWidget {
+class _NowPlayingCard extends ConsumerWidget {
   final List<SnPresenceActivity> sessions;
   const _NowPlayingCard({required this.sessions});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final serverUrl = ref.watch(serverUrlProvider);
+
     return _PulsarCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: SolSpace.md,
+        spacing: SolSpace.sm,
         children: [
           _SectionHeader(
             icon: Symbols.podcasts,
             title: 'pulsarNowPlaying'.tr(),
-          ),
-          for (final s in sessions)
-            Row(
-              spacing: SolSpace.md,
-              children: [
-                _ArtworkThumb(
-                  url: s.largeImage,
-                  fallbackIcon: PulsarDomain.icon(s.type),
-                  size: 48,
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: SolSpace.sm,
+                vertical: 2,
+              ),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(SolRadius.chip),
+              ),
+              child: Text(
+                '${sessions.length}',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w700,
                 ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        s.title ?? 'Unknown',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      if (s.subtitle != null && s.subtitle!.isNotEmpty)
-                        Text(
-                          s.subtitle!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      if (s.caption != null && s.caption!.isNotEmpty)
-                        Text(
-                          s.caption!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: SolSpace.sm,
-                    vertical: SolSpace.xxs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(SolRadius.chip),
-                  ),
-                  child: Text(
-                    PulsarDomain.label(s.type),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
+          ),
+          PulsarShelf(
+            aspectRatio: 2 / 3,
+            tileWidth: 104,
+            entries: [
+              for (final s in sessions)
+                PulsarShelfEntry(
+                  title: s.title ?? 'Unknown',
+                  subtitle: (s.subtitle?.isNotEmpty ?? false)
+                      ? s.subtitle
+                      : s.caption,
+                  artwork: PulsarArtwork.presenceUrls(s, serverUrl: serverUrl),
+                  fallbackIcon: PulsarDomain.icon(_presenceDomain(s)),
+                ),
+            ],
+          ),
         ],
       ),
     );
   }
+
+  String _presenceDomain(SnPresenceActivity session) {
+    // Pulsar sessions already carry the media domain as their type; the
+    // presence taxonomy collapses video/anime onto `entertainment`, so read
+    // the domain back off the caption-less fallback order.
+    return switch (session.type) {
+      'entertainment' => PulsarDomain.video,
+      'reading' => PulsarDomain.book,
+      'other' => PulsarDomain.custom,
+      final value => value,
+    };
+  }
 }
 
-class _StatsCard extends StatelessWidget {
+class _StatsCard extends ConsumerWidget {
   final PulsarMediaStats? stats;
   const _StatsCard({required this.stats});
 
@@ -283,7 +230,7 @@ class _StatsCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     if (stats == null || stats!.totalScrobbles == 0) {
       return _PulsarCard(
@@ -291,10 +238,7 @@ class _StatsCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: SolSpace.sm,
           children: [
-            _SectionHeader(
-              icon: Symbols.equalizer,
-              title: 'pulsarStats'.tr(),
-            ),
+            _SectionHeader(icon: Symbols.equalizer, title: 'pulsarStats'.tr()),
             Text(
               'pulsarStatsEmpty'.tr(),
               style: theme.textTheme.bodySmall?.copyWith(
@@ -307,15 +251,14 @@ class _StatsCard extends StatelessWidget {
     }
 
     final data = stats!;
+    final serverUrl = ref.watch(serverUrlProvider);
+
     return _PulsarCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: SolSpace.md,
         children: [
-          _SectionHeader(
-            icon: Symbols.equalizer,
-            title: 'pulsarStats'.tr(),
-          ),
+          _SectionHeader(icon: Symbols.equalizer, title: 'pulsarStats'.tr()),
           Row(
             spacing: SolSpace.sm,
             children: [
@@ -362,40 +305,20 @@ class _StatsCard extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            Column(
-              spacing: SolSpace.xs,
-              children: [
-                for (var i = 0; i < data.topItems.take(5).length; i++)
-                  Row(
-                    spacing: SolSpace.sm,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        child: Text(
-                          '${i + 1}',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          data.topItems[i].subtitle?.isNotEmpty == true
-                              ? '${data.topItems[i].name} — ${data.topItems[i].subtitle}'
-                              : data.topItems[i].name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall,
-                        ),
-                      ),
-                      Text(
-                        '${data.topItems[i].count}',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
+            PulsarShelf(
+              aspectRatio: 1,
+              tileWidth: 96,
+              entries: [
+                for (final item in data.topItems.take(10))
+                  PulsarShelfEntry(
+                    title: item.name,
+                    subtitle: item.subtitle,
+                    artwork: PulsarArtwork.resolve(
+                      item.artworkUrl,
+                      serverUrl: serverUrl,
+                    ),
+                    fallbackIcon: Symbols.equalizer,
+                    cornerLabel: '${item.count}×',
                   ),
               ],
             ),
@@ -476,7 +399,108 @@ class _StatMetricTile extends StatelessWidget {
   }
 }
 
-class _HistoryCard extends StatelessWidget {
+/// The account's tracked works, one shelf per collection.
+///
+/// Only shown on your own profile: Pulsar keeps collections private to their
+/// owner and exposes no per-account listing, so another viewer has no way to
+/// read these.
+class _WorkStatusesCard extends HookConsumerWidget {
+  const _WorkStatusesCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final collectionsAsync = ref.watch(pulsarMyWorkCollectionsProvider);
+
+    return _PulsarCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: SolSpace.md,
+        children: [
+          _SectionHeader(
+            icon: Symbols.checklist,
+            title: 'pulsarWorkStatuses'.tr(),
+          ),
+          collectionsAsync.when(
+            data: (collections) {
+              final shelves =
+                  <
+                    ({PulsarCollection col, List<PulsarCollectionItem> items})
+                  >[];
+              for (final col in collections) {
+                final items = col.items
+                    .where(
+                      (item) =>
+                          item.status != null ||
+                          item.rating != null ||
+                          (item.note?.isNotEmpty ?? false),
+                    )
+                    .toList();
+                if (items.isNotEmpty) shelves.add((col: col, items: items));
+              }
+              if (shelves.isEmpty) {
+                return PulsarShelfEmptyHint(
+                  text: 'pulsarWorkStatusesEmpty'.tr(),
+                );
+              }
+              final serverUrl = ref.watch(serverUrlProvider);
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: SolSpace.lg,
+                children: [
+                  for (final shelf in shelves)
+                    PulsarShelf(
+                      title: shelf.col.name,
+                      icon: PulsarDomain.icon(shelf.col.domain),
+                      count: shelf.items.length,
+                      aspectRatio: pulsarShelfAspect(shelf.col.domain),
+                      tileWidth: shelf.col.domain == PulsarDomain.music
+                          ? 132
+                          : 112,
+                      entries: [
+                        for (final item in shelf.items)
+                          PulsarShelfEntry(
+                            title: item.displayTitle,
+                            subtitle: item.displaySubtitle,
+                            artwork: PulsarArtwork.collectionUrls(
+                              item,
+                              serverUrl: serverUrl,
+                            ),
+                            fallbackIcon: PulsarDomain.icon(
+                              item.catalogItem?.domain ?? shelf.col.domain,
+                            ),
+                            badge: item.status == null
+                                ? null
+                                : PulsarWorkStatus.label(item.status),
+                            badgeColor: PulsarWorkStatus.color(
+                              context,
+                              item.status,
+                            ),
+                            cornerLabel: item.rating?.toString(),
+                            cornerIcon: item.rating == null
+                                ? null
+                                : Symbols.star_rounded,
+                          ),
+                      ],
+                    ),
+                ],
+              );
+            },
+            loading: () => const PulsarShelfLoading(),
+            error: (err, _) => Text(
+              err.toString(),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HistoryCard extends HookConsumerWidget {
   final String uname;
   final String? selectedDomain;
   final ValueChanged<String?> onDomainChanged;
@@ -490,8 +514,9 @@ class _HistoryCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final serverUrl = ref.watch(serverUrlProvider);
 
     void openFullHistory() {
       showModalBottomSheet<void>(
@@ -507,111 +532,45 @@ class _HistoryCard extends StatelessWidget {
         ),
       );
     }
+
     return _PulsarCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: SolSpace.md,
         children: [
-          _SectionHeader(
-            icon: Symbols.history,
-            title: 'pulsarHistory'.tr(),
-          ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              spacing: SolSpace.xs,
-              children: [
-                ChoiceChip(
-                  selected: selectedDomain == null,
-                  onSelected: (_) => onDomainChanged(null),
-                  label: Text('all'.tr()),
-                  visualDensity: VisualDensity.compact,
-                ),
-                for (final domain in PulsarDomain.mediaDomains)
-                  ChoiceChip(
-                    selected: selectedDomain == domain,
-                    onSelected: (_) => onDomainChanged(domain),
-                    avatar: Icon(PulsarDomain.icon(domain), size: 16),
-                    label: Text(PulsarDomain.label(domain)),
-                    visualDensity: VisualDensity.compact,
-                  ),
-              ],
-            ),
+          _SectionHeader(icon: Symbols.history, title: 'pulsarHistory'.tr()),
+          PulsarDomainFilterRow(
+            selectedDomain: selectedDomain,
+            domains: PulsarDomain.mediaDomains,
+            includeAll: true,
+            onChanged: onDomainChanged,
           ),
           historyAsync.when(
             data: (items) {
               if (items.isEmpty) {
-                return Text(
-                  'pulsarHistoryEmpty'.tr(),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                );
+                return PulsarShelfEmptyHint(text: 'pulsarHistoryEmpty'.tr());
               }
-              return Column(
-                spacing: SolSpace.sm,
-                children: [
+              return PulsarShelf(
+                aspectRatio: 1,
+                tileWidth: 96,
+                onSeeAll: items.length >= 10 ? openFullHistory : null,
+                entries: [
                   for (final s in items)
-                    Row(
-                      spacing: SolSpace.md,
-                      children: [
-                        _ArtworkThumb(
-                          url: s.effectiveArtworkUrl,
-                          fallbackIcon: PulsarDomain.icon(s.domain),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                s.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                [
-                                  if (s.subtitle != null &&
-                                      s.subtitle!.isNotEmpty)
-                                    s.subtitle!,
-                                  DateFormat.MMMd()
-                                      .add_Hm()
-                                      .format(s.playedAt.toLocal()),
-                                ].join(' · '),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  if (items.length >= 10)
-                    Align(
-                      alignment: Alignment.center,
-                      child: TextButton(
-                        onPressed: openFullHistory,
-                        child: Text('pulsarShowMore'.tr()),
+                    PulsarShelfEntry(
+                      title: s.title,
+                      subtitle: DateFormat.MMMd().add_Hm().format(
+                        s.playedAt.toLocal(),
                       ),
+                      artwork: PulsarArtwork.scrobbleUrls(
+                        s,
+                        serverUrl: serverUrl,
+                      ),
+                      fallbackIcon: PulsarDomain.icon(s.domain),
                     ),
                 ],
               );
             },
-            loading: () => const Center(
-              child: Padding(
-                padding: EdgeInsets.all(SolSpace.sm),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            ),
+            loading: () => const PulsarShelfLoading(),
             error: (err, _) => Text(
               err.toString(),
               style: theme.textTheme.bodySmall?.copyWith(
@@ -641,13 +600,16 @@ class _FullHistorySheetBody extends HookConsumerWidget {
     final items = useState<List<PulsarScrobble>>([]);
     final isLoading = useState<bool>(true);
     final hasMore = useState<bool>(true);
+    final serverUrl = ref.watch(serverUrlProvider);
     const pageSize = 20;
 
     Future<void> loadPage({required bool reset}) async {
       isLoading.value = true;
       final offset = reset ? 0 : items.value.length;
       try {
-        final batch = await ref.read(pulsarClientProvider).getUserHistory(
+        final batch = await ref
+            .read(pulsarClientProvider)
+            .getUserHistory(
               uname,
               domain: selectedDomain.value,
               offset: offset,
@@ -669,31 +631,11 @@ class _FullHistorySheetBody extends HookConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(
-            horizontal: SolSpace.lg,
-            vertical: SolSpace.sm,
-          ),
-          child: Row(
-            spacing: SolSpace.xs,
-            children: [
-              ChoiceChip(
-                selected: selectedDomain.value == null,
-                onSelected: (_) => selectedDomain.value = null,
-                label: Text('all'.tr()),
-                visualDensity: VisualDensity.compact,
-              ),
-              for (final domain in PulsarDomain.mediaDomains)
-                ChoiceChip(
-                  selected: selectedDomain.value == domain,
-                  onSelected: (_) => selectedDomain.value = domain,
-                  avatar: Icon(PulsarDomain.icon(domain), size: 16),
-                  label: Text(PulsarDomain.label(domain)),
-                  visualDensity: VisualDensity.compact,
-                ),
-            ],
-          ),
+        PulsarDomainFilterRow(
+          selectedDomain: selectedDomain.value,
+          domains: PulsarDomain.mediaDomains,
+          includeAll: true,
+          onChanged: (value) => selectedDomain.value = value,
         ),
         Expanded(
           child: isLoading.value && items.value.isEmpty
@@ -739,9 +681,16 @@ class _FullHistorySheetBody extends HookConsumerWidget {
                     return Row(
                       spacing: SolSpace.md,
                       children: [
-                        _ArtworkThumb(
-                          url: s.effectiveArtworkUrl,
-                          fallbackIcon: PulsarDomain.icon(s.domain),
+                        SizedBox(
+                          width: 44,
+                          height: 44,
+                          child: PulsarCover(
+                            artwork: PulsarArtwork.scrobbleUrls(
+                              s,
+                              serverUrl: serverUrl,
+                            ),
+                            fallbackIcon: PulsarDomain.icon(s.domain),
+                          ),
                         ),
                         Expanded(
                           child: Column(
@@ -760,9 +709,9 @@ class _FullHistorySheetBody extends HookConsumerWidget {
                                   if (s.subtitle != null &&
                                       s.subtitle!.isNotEmpty)
                                     s.subtitle!,
-                                  DateFormat.MMMd()
-                                      .add_Hm()
-                                      .format(s.playedAt.toLocal()),
+                                  DateFormat.MMMd().add_Hm().format(
+                                    s.playedAt.toLocal(),
+                                  ),
                                 ].join(' · '),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,

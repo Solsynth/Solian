@@ -183,6 +183,11 @@ class PulsarScrobble {
   final int listenedSeconds;
   final int durationSeconds;
   final DateTime playedAt;
+
+  /// Provider metadata the client that scrobbled the row sent — for gaming
+  /// that is `game_id`/`provider`, which is the only handle Steam artwork can
+  /// be built from.
+  final Map<String, dynamic>? meta;
   final PulsarCatalogItem? catalogItem;
 
   const PulsarScrobble({
@@ -198,6 +203,7 @@ class PulsarScrobble {
     this.listenedSeconds = 0,
     this.durationSeconds = 0,
     required this.playedAt,
+    this.meta,
     this.catalogItem,
   });
 
@@ -217,6 +223,9 @@ class PulsarScrobble {
       listenedSeconds: _asInt(json['listened_seconds']) ?? 0,
       durationSeconds: _asInt(json['duration_seconds']) ?? 0,
       playedAt: _asDate(json['played_at']) ?? DateTime.now().toUtc(),
+      meta: json['meta'] is Map
+          ? Map<String, dynamic>.from(json['meta'])
+          : null,
       catalogItem: json['catalog_item'] is Map
           ? PulsarCatalogItem.fromJson(
               Map<String, dynamic>.from(json['catalog_item']),
@@ -463,11 +472,16 @@ class PulsarTopEntity {
   final int count;
   final int seconds;
 
+  /// Cover of the row the aggregate picked for this group. Empty when every
+  /// play in the group came from a client that sent no picture.
+  final String? artworkUrl;
+
   const PulsarTopEntity({
     required this.name,
     this.subtitle,
     this.count = 0,
     this.seconds = 0,
+    this.artworkUrl,
   });
 
   factory PulsarTopEntity.fromJson(Map<String, dynamic> json) {
@@ -476,6 +490,7 @@ class PulsarTopEntity {
       subtitle: json['subtitle']?.toString(),
       count: _asInt(json['count']) ?? 0,
       seconds: _asInt(json['seconds']) ?? 0,
+      artworkUrl: _nonEmpty(json['artwork_url']),
     );
   }
 }
