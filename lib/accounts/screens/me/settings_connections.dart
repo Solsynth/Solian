@@ -39,6 +39,8 @@ Widget getProviderIcon(String provider, {double size = 24, Color? color}) {
         height: size,
         color: color,
       );
+    case 'bangumi':
+      return Icon(Symbols.live_tv, size: size, color: color);
     case 'spotify':
       return Image.asset(
         'assets/images/oidc/spotify.webp',
@@ -71,6 +73,8 @@ String getLocalizedProviderName(String provider) {
       return 'accountConnectionProviderSteam'.tr();
     case 'lastfm':
       return 'accountConnectionProviderLastfm'.tr();
+    case 'bangumi':
+      return 'accountConnectionProviderBangumi'.tr();
     default:
       return provider;
   }
@@ -248,6 +252,7 @@ class AccountConnectionNewSheet extends HookConsumerWidget {
       'afdian',
       'steam',
       'lastfm',
+      'bangumi',
     ];
 
     Future<void> addConnection() async {

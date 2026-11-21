@@ -5720,6 +5720,8 @@
   "thoughtsSkillWebFetchLabel": "网页抓取",
   "thoughtsSkillWebFetchDescription": "从本机自己的连接抓取页面，而不是服务器的，因此对服务器地址弹出验证码的站点会以用户自己的身份读取。",
   "pulsar": "Solink",
+  "accountConnectionProviderBangumi": "Bangumi",
+  "pulsarBangumiManageHint": "在上方的账号关联中绑定、解绑或重新授权 Bangumi。",
   "pulsarBangumiSync": "Bangumi 同步",
   "pulsarBangumiDescription": "镜像你在 Bangumi 的动画、书籍、游戏与三次元收藏。状态、评分与短评双向同步。",
   "pulsarBangumiNotConfigured": "当前服务器尚未配置 Bangumi 账号关联。",

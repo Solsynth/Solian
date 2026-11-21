@@ -31,6 +31,7 @@ import 'package:island/activity/pulsar_pod.dart';
 import 'package:island/auth/captcha.dart';
 import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:island/chat/widgets/chat_groups_manager.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/database.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/theme.dart';
@@ -1171,32 +1172,22 @@ class _BangumiSyncSettingsTile extends HookConsumerWidget {
         : 'pulsarBangumiDescription'.tr();
 
     Future<void> link() async {
-      try {
-        showLoadingModal(context);
-        final url = await ref.read(pulsarClientProvider).startBangumiOAuth();
-        if (!context.mounted) return;
-        hideLoadingModal(context);
-        if (url.isEmpty) {
-          showSnackBar('pulsarBangumiSyncFailed'.tr());
-          return;
-        }
-        final launched = await launchUrlString(
-          url,
-          mode: LaunchMode.externalApplication,
-        );
-        if (!launched) {
-          showSnackBar('pulsarBangumiSyncFailed'.tr());
-          return;
-        }
-        if (context.mounted) {
-          showSnackBar('pulsarBangumiLinkHint'.tr());
-          ref.invalidate(pulsarBangumiConnectionProvider);
-        }
-      } catch (err) {
-        if (context.mounted) {
-          hideLoadingModal(context);
-          showErrorAlert(err);
-        }
+      final serverUrl = ref.watch(serverUrlProvider);
+      final accessToken = ref.watch(tokenProvider);
+      if (accessToken == null) return;
+      final url =
+          '$serverUrl/stargate/auth/login/bangumi?tk=${accessToken.token}';
+      final launched = await launchUrlString(
+        url,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        if (context.mounted) showSnackBar('pulsarBangumiSyncFailed'.tr());
+        return;
+      }
+      if (context.mounted) {
+        showSnackBar('pulsarBangumiLinkHint'.tr());
+        ref.invalidate(pulsarBangumiConnectionProvider);
       }
     }
 
@@ -1225,24 +1216,6 @@ class _BangumiSyncSettingsTile extends HookConsumerWidget {
               syncEnabled: syncEnabled,
               conflictPolicy: conflictPolicy,
             );
-        ref.invalidate(pulsarBangumiConnectionProvider);
-      } catch (err) {
-        if (context.mounted) showErrorAlert(err);
-      } finally {
-        if (context.mounted) hideLoadingModal(context);
-      }
-    }
-
-    Future<void> unlink() async {
-      final confirmed = await showConfirmAlert(
-        'pulsarBangumiUnlinkConfirm'.tr(),
-        'pulsarBangumiUnlink'.tr(),
-        isDanger: true,
-      );
-      if (!confirmed || !context.mounted) return;
-      try {
-        showLoadingModal(context);
-        await ref.read(pulsarClientProvider).unlinkBangumi();
         ref.invalidate(pulsarBangumiConnectionProvider);
       } catch (err) {
         if (context.mounted) showErrorAlert(err);
@@ -1429,21 +1402,19 @@ class _BangumiSyncSettingsTile extends HookConsumerWidget {
                   ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(
-                        child: FilledButton.tonalIcon(
-                          onPressed: syncNow,
-                          icon: const Icon(Symbols.sync),
-                          label: Text('pulsarBangumiSyncNow'.tr()),
-                        ),
+                      FilledButton.tonalIcon(
+                        onPressed: syncNow,
+                        icon: const Icon(Symbols.sync),
+                        label: Text('pulsarBangumiSyncNow'.tr()),
                       ),
                       const Gap(8),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: unlink,
-                          icon: const Icon(Symbols.link_off),
-                          label: Text('pulsarBangumiUnlink'.tr()),
+                      Text(
+                        'pulsarBangumiManageHint'.tr(),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],

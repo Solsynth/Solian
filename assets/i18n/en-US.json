@@ -5720,6 +5720,8 @@
   "thoughtsSkillWebFetchLabel": "Web fetch",
   "thoughtsSkillWebFetchDescription": "Fetches pages from this machine's own connection instead of the server's, so a site that challenges the server's address with a captcha is read from the user's own.",
   "pulsar": "Solink",
+  "accountConnectionProviderBangumi": "Bangumi",
+  "pulsarBangumiManageHint": "Link, unlink, or re-authorize Bangumi in Account connections above.",
   "pulsarBangumiSync": "Bangumi sync",
   "pulsarBangumiDescription": "Mirror your Bangumi anime, book, game and video collections. Status, rating and notes move both ways.",
   "pulsarBangumiNotConfigured": "Bangumi account linking is not configured on this server.",

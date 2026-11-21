@@ -288,16 +288,6 @@ class PulsarClient {
     );
   }
 
-  /// Starts the account-link flow and returns the Bangumi consent URL the
-  /// caller should open in the system browser.
-  Future<String> startBangumiOAuth() async {
-    final resp = await _dio.post('/pulsar/bangumi/oauth/start');
-    final data = resp.data is Map
-        ? Map<String, dynamic>.from(resp.data)
-        : const <String, dynamic>{};
-    return data['authorize_url']?.toString() ?? '';
-  }
-
   Future<PulsarBangumiConnection> updateBangumiConnection({
     bool? syncEnabled,
     String? conflictPolicy,
@@ -309,10 +299,6 @@ class PulsarClient {
     return PulsarBangumiConnection.fromJson(
       Map<String, dynamic>.from(resp.data),
     );
-  }
-
-  Future<void> unlinkBangumi() async {
-    await _dio.delete('/pulsar/bangumi/connection');
   }
 
   Future<PulsarBangumiSyncResult> syncBangumiNow() async {
