@@ -59,4 +59,23 @@ void main() {
       expect(find.byType(CachedImageErrorWidget), findsNothing);
     });
   });
+
+  group('resolveImageCacheDimension', () {
+    test('buckets small layout changes into the same cache dimension', () {
+      // Across a sidebar animation or minor resize, widths that fall in the
+      // same bucket must share one ResizeImage cache key instead of re-decoding
+      // on every frame.
+      expect(resolveImageCacheDimension(280, 2.0, 2048), 768);
+      expect(resolveImageCacheDimension(320, 2.0, 2048), 768);
+      expect(resolveImageCacheDimension(380, 2.0, 2048), 768);
+    });
+
+    test('caps at maxPx and returns null for invalid dimensions', () {
+      expect(resolveImageCacheDimension(null, 2.0, 2048), isNull);
+      expect(resolveImageCacheDimension(0, 2.0, 2048), isNull);
+      expect(resolveImageCacheDimension(-10, 2.0, 2048), isNull);
+      expect(resolveImageCacheDimension(double.infinity, 2.0, 2048), isNull);
+      expect(resolveImageCacheDimension(1500, 2.0, 1200), 1200);
+    });
+  });
 }

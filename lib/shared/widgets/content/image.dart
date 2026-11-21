@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:io' show HandshakeException;
 
 import 'dart:math' as math;
@@ -13,6 +14,57 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
 import 'package:solar_network_foundation/solar_network_foundation.dart';
+
+/// Coarse pixel buckets for [CachedNetworkImage]'s `memCacheWidth` /
+/// `memCacheHeight`.
+///
+/// Using exact layout pixel sizes makes every 1px resize (such as a window
+/// resize or sidebar animation) generate a brand-new `ResizeImage` cache key,
+/// causing a memory-cache miss, async re-decode, and visible flash on every
+/// frame. Snapping up to these buckets keeps the cache key stable across small
+/// layout changes while still capping decoded RGBA texture memory.
+const List<int> _kImageCacheSizeBuckets = <int>[
+  64,
+  128,
+  256,
+  384,
+  512,
+  768,
+  1024,
+  1536,
+  2048,
+];
+
+/// Resolves a logical dimension into a bucketed physical-pixel decode size.
+@visibleForTesting
+int? resolveImageCacheDimension(
+  double? logicalSize,
+  double dpr,
+  double maxPx,
+) {
+  if (logicalSize == null || !logicalSize.isFinite || logicalSize <= 0) {
+    return null;
+  }
+  final maxCap = maxPx.round().clamp(1, _kImageCacheSizeBuckets.last);
+  final rawPx = (logicalSize * dpr).round().clamp(1, maxCap);
+  for (final bucket in _kImageCacheSizeBuckets) {
+    if (bucket >= rawPx) {
+      return bucket > maxCap ? maxCap : bucket;
+    }
+  }
+  return maxCap;
+}
+
+const int _kMaxKnownCachedImageUris = 512;
+final LinkedHashSet<String> _knownCachedImageUris = LinkedHashSet<String>();
+
+void _rememberCachedImageUri(String uri) {
+  _knownCachedImageUris.remove(uri);
+  _knownCachedImageUris.add(uri);
+  if (_knownCachedImageUris.length > _kMaxKnownCachedImageUris) {
+    _knownCachedImageUris.remove(_knownCachedImageUris.first);
+  }
+}
 
 class UniversalImage extends HookConsumerWidget {
   final String uri;
@@ -52,7 +104,9 @@ class UniversalImage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final loaded = useState(false);
     final loadingCompletionScheduled = useRef(false);
-    final isCached = useState<bool?>(null);
+    final isCached = useState<bool?>(
+      _knownCachedImageUris.contains(uri) ? true : null,
+    );
     final isSvgImage = isSvg || uri.toLowerCase().endsWith('.svg');
     final serverUrl = ref.watch(serverUrlProvider);
     final token = ref.watch(tokenProvider);
@@ -71,8 +125,15 @@ class UniversalImage extends HookConsumerWidget {
     useEffect(() {
       loaded.value = false;
       loadingCompletionScheduled.value = false;
+      if (_knownCachedImageUris.contains(uri)) {
+        isCached.value = true;
+        return null;
+      }
       isCached.value = null;
       DefaultCacheManager().getFileFromCache(uri).then((fileInfo) {
+        if (fileInfo != null) {
+          _rememberCachedImageUri(uri);
+        }
         if (context.mounted) isCached.value = fileInfo != null;
       });
       return null;
@@ -101,14 +162,6 @@ class UniversalImage extends HookConsumerWidget {
             loadingIndicatorBuilder?.call(context, null) ??
             const Center(child: CircularProgressIndicator()),
       );
-    }
-
-    int? resolveCacheDimension(double? logicalSize, double dpr, double maxPx) {
-      if (logicalSize == null || !logicalSize.isFinite || logicalSize <= 0) {
-        return null;
-      }
-      final px = (logicalSize * dpr).round();
-      return px.clamp(1, maxPx.round());
     }
 
     Widget buildImage({int? cacheWidth, int? cacheHeight}) {
@@ -159,6 +212,8 @@ class UniversalImage extends HookConsumerWidget {
               height: height,
               memCacheHeight: memCacheHeight,
               memCacheWidth: memCacheWidth,
+              fadeInDuration: Duration.zero,
+              fadeOutDuration: Duration.zero,
               imageBuilder: (context, imageProvider) {
                 if (!loaded.value && !loadingCompletionScheduled.value) {
                   loadingCompletionScheduled.value = true;
@@ -171,6 +226,7 @@ class UniversalImage extends HookConsumerWidget {
                   fit: fit,
                   width: width,
                   height: height,
+                  gaplessPlayback: true,
                 );
               },
               errorWidget: (context, url, error) => CachedImageErrorWidget(
@@ -205,6 +261,7 @@ class UniversalImage extends HookConsumerWidget {
                     );
               },
               imageBuilder: (context, imageProvider) {
+                _rememberCachedImageUri(uri);
                 if (!loaded.value && !loadingCompletionScheduled.value) {
                   loadingCompletionScheduled.value = true;
                   if (loadingIndicatorBuilder != null) {
@@ -231,6 +288,7 @@ class UniversalImage extends HookConsumerWidget {
                         fit: fit,
                         width: width,
                         height: height,
+                        gaplessPlayback: true,
                       ),
                     ),
                     if (loadingIndicatorBuilder != null && !loaded.value)
@@ -261,8 +319,8 @@ class UniversalImage extends HookConsumerWidget {
         width: width,
         height: height ?? 200,
         child: buildImage(
-          cacheWidth: resolveCacheDimension(width, dpr, screenMaxPx),
-          cacheHeight: resolveCacheDimension(height, dpr, screenMaxPx),
+          cacheWidth: resolveImageCacheDimension(width, dpr, screenMaxPx),
+          cacheHeight: resolveImageCacheDimension(height, dpr, screenMaxPx),
         ),
       );
     }
@@ -279,8 +337,12 @@ class UniversalImage extends HookConsumerWidget {
               height ??
               (constraints.hasBoundedHeight ? constraints.maxHeight : null);
           return buildImage(
-            cacheWidth: resolveCacheDimension(resolvedWidth, dpr, screenMaxPx),
-            cacheHeight: resolveCacheDimension(
+            cacheWidth: resolveImageCacheDimension(
+              resolvedWidth,
+              dpr,
+              screenMaxPx,
+            ),
+            cacheHeight: resolveImageCacheDimension(
               resolvedHeight,
               dpr,
               screenMaxPx,

@@ -324,6 +324,37 @@ void main() {
     debugDefaultTargetPlatformOverride = null;
   });
 
+  testWidgets('folding and unfolding the rail keeps the page body width fixed', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await _pumpApp(tester, const {'app_dashboard_enabled': false});
+
+    final widthCollapsed = tester.getSize(find.byType(ExploreScreen)).width;
+
+    await tester.tap(find.byIcon(Symbols.menu_rounded).first);
+    await tester.pump(const Duration(milliseconds: 100));
+    final widthMidExpand = tester.getSize(find.byType(ExploreScreen)).width;
+
+    await tester.pumpAndSettle();
+    final widthExpanded = tester.getSize(find.byType(ExploreScreen)).width;
+
+    await tester.tap(find.byIcon(Symbols.menu_rounded).first);
+    await tester.pumpAndSettle();
+    final widthFoldedAgain = tester.getSize(find.byType(ExploreScreen)).width;
+
+    expect(widthMidExpand, widthCollapsed);
+    expect(widthExpanded, widthCollapsed);
+    expect(widthFoldedAgain, widthCollapsed);
+
+    await _teardown(tester);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   testWidgets(
     'long-pressing Explore in the expanded rail opens its entrance sheet',
     (tester) async {

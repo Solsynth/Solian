@@ -482,7 +482,11 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
       // bottom slot reserved by `trailing`: 16px in, so its 24px glyph lines
       // up with the destination icons (which are centred in the rail's 80px
       // control column), but with no label beside it.
+      const collapsedRailWidth = 80.0;
+      final railSurfaceColor = Theme.of(context).colorScheme.surfaceContainer;
+
       Widget rail = NavigationRail(
+        minWidth: collapsedRailWidth,
         backgroundColor: Colors.transparent,
         extended: railExpanded,
         // Extended rails always paint their labels and reject any
@@ -525,19 +529,48 @@ class _TabsScreenContentState extends ConsumerState<_TabsScreenContent> {
         );
       }
 
+      final railBorderRadius = railExpanded
+          ? BorderRadiusDirectional.horizontal(
+              end: const Radius.circular(16),
+            ).resolve(Directionality.of(context))
+          : BorderRadius.zero;
+
       final railContent = Scaffold(
         key: rootScaffoldKey,
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+        backgroundColor: railSurfaceColor,
         body: SafeArea(
-          child: Row(
+          child: Stack(
             children: [
-              rail,
-              Expanded(
+              // Reserve only the collapsed rail's width so expanding and
+              // folding the rail overlays the page instead of resizing
+              // `widget.child` on every animation frame (which would reflow
+              // timelines like `RoomMessageList` and churn image caches).
+              PositionedDirectional(
+                top: 0,
+                bottom: 0,
+                start: collapsedRailWidth,
+                end: 0,
                 child: ClipRRect(
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(16),
                   ),
                   child: RepaintBoundary(child: widget.child),
+                ),
+              ),
+              PositionedDirectional(
+                top: 0,
+                bottom: 0,
+                start: 0,
+                child: AnimatedPhysicalModel(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOutCubic,
+                  shape: BoxShape.rectangle,
+                  borderRadius: railBorderRadius,
+                  elevation: railExpanded ? 6 : 0,
+                  color: railSurfaceColor,
+                  shadowColor: Colors.black.withValues(alpha: 0.25),
+                  clipBehavior: Clip.antiAlias,
+                  child: rail,
                 ),
               ),
             ],
