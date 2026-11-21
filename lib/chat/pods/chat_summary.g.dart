@@ -34,7 +34,7 @@ final class ChatUnreadCountNotifierProvider
 }
 
 String _$chatUnreadCountNotifierHash() =>
-    r'4e5c8ae77e6b004cd401268aff67ad4c6fe09a1d';
+    r'd102ada37d5a3e9f1f841d380dc54c8907484d2d';
 
 abstract class _$ChatUnreadCountNotifier extends $AsyncNotifier<int> {
   FutureOr<int> build();
@@ -78,7 +78,7 @@ final class ChatSummaryProvider
   ChatSummary create() => ChatSummary();
 }
 
-String _$chatSummaryHash() => r'aeb8ffb455f5b2558dea548970726bc16821237d';
+String _$chatSummaryHash() => r'65828eceabd51d7e1f95df27917100ad3b3e690b';
 
 abstract class _$ChatSummary
     extends $AsyncNotifier<Map<String, SnChatSummary>> {

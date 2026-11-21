@@ -272,6 +272,13 @@ class AccountFeatureWidget extends HookConsumerWidget {
                             );
                           },
                         },
+                        {
+                          'icon': Symbols.podcasts,
+                          'title': 'pulsar',
+                          'onTap': () {
+                            context.router.push(const PulsarManageRoute());
+                          },
+                        },
                       ];
                       return Column(
                         children: menuItems.map((item) {

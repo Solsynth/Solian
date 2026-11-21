@@ -67,7 +67,7 @@ final class PresenceActivitiesProvider
 }
 
 String _$presenceActivitiesHash() =>
-    r'5e9911f5b169cb5561761e9989d8d817f4290a93';
+    r'942d79e4a802be9f294b02b39855dcee6dd0090e';
 
 final class PresenceActivitiesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SnPresenceActivity>>, String> {

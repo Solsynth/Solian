@@ -11,6 +11,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/widgets/account/account_name.dart';
 import 'package:island/accounts/widgets/account/status.dart';
 import 'package:island/accounts/widgets/account/board.dart';
+import 'package:island/accounts/widgets/account/pulsar_profile_tab.dart';
+import 'package:island/activity/pulsar_pod.dart';
 import 'package:island/accounts/screens/profile_timeline.dart';
 import 'package:island/developers/models/developer.dart';
 import 'package:island/accounts/account_pod.dart';
@@ -843,6 +845,9 @@ class AccountProfileContent extends HookConsumerWidget {
       ref.invalidate(accountPunishmentOverviewProvider(name));
       ref.invalidate(accountTimelineProvider(name));
       ref.invalidate(boardWidgetAppsProvider);
+      ref.invalidate(pulsarUserNowPlayingProvider(name));
+      ref.invalidate(pulsarUserStatsProvider(name));
+      ref.invalidate(pulsarUserHistoryProvider);
 
       if (account.value != null) {
         ref.invalidate(accountPublishersProvider(account.value!.id));
@@ -877,7 +882,7 @@ class AccountProfileContent extends HookConsumerWidget {
     }
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: account.when(
         data: (data) {
           final accountPublishers = ref.watch(
@@ -985,6 +990,11 @@ class AccountProfileContent extends HookConsumerWidget {
             ),
           );
 
+          final pulsarContent = PulsarProfileTab(
+            uname: name,
+            onRefresh: refreshProfile,
+          );
+
           return LayoutBuilder(
             builder: (context, constraints) {
               final useWide =
@@ -1040,6 +1050,14 @@ class AccountProfileContent extends HookConsumerWidget {
                         child: Text('timeline'.tr()),
                       ),
                     ),
+                    Tab(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: SolSpace.xs,
+                        ),
+                        child: Text('pulsar'.tr()),
+                      ),
+                    ),
                   ],
                 ),
               );
@@ -1078,7 +1096,11 @@ class AccountProfileContent extends HookConsumerWidget {
                       ),
                     ],
                     body: TabBarView(
-                      children: [boardContentWithoutHeader, timelineContent],
+                      children: [
+                        boardContentWithoutHeader,
+                        timelineContent,
+                        pulsarContent,
+                      ],
                     ),
                   ),
                 );
@@ -1103,7 +1125,11 @@ class AccountProfileContent extends HookConsumerWidget {
                           ),
                         ],
                         body: TabBarView(
-                          children: [boardContentNoHeader, timelineContent],
+                          children: [
+                            boardContentNoHeader,
+                            timelineContent,
+                            pulsarContent,
+                          ],
                         ),
                       ),
                     ),

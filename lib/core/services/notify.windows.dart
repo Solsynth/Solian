@@ -17,7 +17,6 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:windows_notification/windows_notification.dart' as winty;
 import 'package:windows_notification/notification_message.dart';
-import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 import 'udid.dart';
 
