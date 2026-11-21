@@ -5,14 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import 'device_code_sign_in.dart';
 import 'oidc_pkce.dart';
-
-/// Whether the console sign-in finishes inside this build.
-///
-/// A native build holds the PKCE verifier and receives the authorization code
-/// itself, so it comes back with a token pair. A browser cannot listen for a
-/// redirect on loopback, so the web build leaves for the console instead.
-const bool kWebSignInReturnsToApp = true;
 
 /// First loopback port tried for the callback.
 ///
@@ -36,7 +30,15 @@ const Duration kWebSignInTimeout = Duration(minutes: 5);
 /// The code arrives on a loopback listener rather than a `solian://` custom
 /// scheme — the console's `solian` client answers native apps on
 /// `http://127.0.0.1:<port>/auth/callback` and refuses a custom scheme.
-Future<OAuthTokenSet?> signInOverWeb({required String serverUrl}) async {
+Future<OAuthTokenSet?> signInOverWeb({
+  required String serverUrl,
+  DeviceAuthorizationCallback? onDeviceCode,
+  String? deviceId,
+  String? deviceName,
+  int? platform,
+}) async {
+  // The loopback listener completes this build; the device-flow parameters
+  // exist so one call site can serve either platform, and are unused here.
   final server = await bindLoopbackServer();
   final redirectUri =
       'http://${server.address.address}:${server.port}$kWebSignInCallbackPath';
@@ -98,9 +100,7 @@ Future<HttpServer> bindLoopbackServer() async {
       lastError = err;
     }
   }
-  throw WebSignInException(
-    'signInOverWebUnavailable'.tr(args: ['$lastError']),
-  );
+  throw WebSignInException('signInOverWebUnavailable'.tr(args: ['$lastError']));
 }
 
 /// Answers the browser's redirect and completes with the authorization code.

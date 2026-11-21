@@ -57,8 +57,9 @@ StreamSubscription<WebSocketPacket> setupNotificationListener(
   final settings = ref.watch(appSettingsProvider);
   final ws = ref.watch(websocketProvider);
   return ws.dataStream.listen((pkt) async {
-    if (pkt.type == "notifications.new") {
-      final notification = SnNotification.fromJson(pkt.data!);
+    if (pkt.type == "notifications.new" && pkt.data != null) {
+      final notification = parsePushedNotification(pkt.data!);
+      if (notification == null) return;
       if (_appLifecycleState == AppLifecycleState.resumed) {
         Logger.root.info(
           '[Notification] Showing in-app notification: ${notification.title}',

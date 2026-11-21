@@ -1,9 +1,6 @@
 import 'device_code_sign_in.dart';
 import 'oidc_pkce.dart';
 
-/// Whether the console sign-in finishes inside this build.
-///
-
 /// Signs in through the console with RFC 8628's device grant.
 ///
 /// A page cannot receive an OAuth redirect into itself — neither a custom
@@ -16,11 +13,13 @@ Future<OAuthTokenSet?> signInOverWeb({
   DeviceAuthorizationCallback? onDeviceCode,
   String? deviceId,
   String? deviceName,
+  int? platform,
 }) async {
   return signInWithDeviceCode(
     serverUrl: serverUrl,
     onDeviceCode: onDeviceCode,
     deviceId: deviceId,
     deviceName: deviceName,
+    platform: platform,
   );
 }

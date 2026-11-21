@@ -15,9 +15,3 @@ Future<void> clearSharedSession({
   required String serverUrl,
   String? token,
 }) async {}
-
-/// No-op: there is no shared sign-in page outside the browser.
-String sharedSignInUrl() => '';
-
-/// No-op: the browser is the only thing that can be sent there.
-void openSharedSignIn() {}

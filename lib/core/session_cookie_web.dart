@@ -3,11 +3,9 @@ import 'dart:async';
 import 'package:dio/browser.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:web/web.dart' as web;
 
 import 'package:island/core/network.dart';
 import 'package:island/core/services/udid.dart';
-import 'package:island/core/shared_sign_in_url.dart';
 
 /// Opts a Dio client into the browser's cookie jar.
 ///
@@ -107,16 +105,4 @@ Future<void> clearSharedSession({
   } finally {
     client.close();
   }
-}
-
-/// The shared sign-in page, pointed back at the page the person is on.
-String sharedSignInUrl() => buildSharedSignInUrl(kSharedSignInPage, Uri.base);
-
-/// Leaves this tab for the shared sign-in page.
-///
-/// The console hands the finished sign-in back to the address it was given, so
-/// this page has to be the one that navigates away: a new tab would sign in
-/// and have nowhere to return to.
-void openSharedSignIn() {
-  web.window.location.href = sharedSignInUrl();
 }

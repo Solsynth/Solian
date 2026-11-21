@@ -22,12 +22,16 @@ import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
 
 import 'captcha.dart';
+import 'oidc_pkce.dart';
 import 'web_sign_in.dart';
+import 'widgets/device_code_dialog.dart';
 
 /// Performs post-login tasks including fetching user info, subscribing to push
 /// notifications, connecting websocket, and closing the login dialog.
@@ -1045,6 +1049,7 @@ class _LoginLookupScreen extends HookConsumerWidget {
             onDeviceCode: onDeviceCode,
             deviceId: await getUdid(),
             deviceName: await getDeviceName(),
+            platform: _currentPlatformCode(),
           ),
         );
         if (tokens == null) return; // The tab left; nothing comes back here.

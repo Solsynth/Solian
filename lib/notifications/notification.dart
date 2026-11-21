@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/core/config.dart';
+import 'package:island/core/notification.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/utils/bounded_id_set.dart';
 import 'package:island/core/websocket.dart';
@@ -136,7 +137,8 @@ class NotificationUnreadCountNotifier
     final webSocketService = ref.read(websocketProvider);
     _subscription = webSocketService.dataStream.listen((packet) {
       if (packet.type == 'notifications.new' && packet.data != null) {
-        final notification = SnNotification.fromJson(packet.data!);
+        final notification = parsePushedNotification(packet.data!);
+        if (notification == null) return;
         if (!_countedNotificationIds.add(notification.id)) return;
         if (notification.topic != 'messages.new') _incrementCounter();
       }

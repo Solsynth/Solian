@@ -100,6 +100,5 @@ void main() {
     expect(server.address.address, '127.0.0.1');
     expect(server.port, greaterThan(1024));
     expect(kWebSignInCallbackPath, '/auth/callback');
-    expect(kWebSignInReturnsToApp, isTrue);
   });
 }
