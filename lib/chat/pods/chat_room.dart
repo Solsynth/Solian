@@ -1559,8 +1559,16 @@ class ChatRoomIdentityNotifier extends _$ChatRoomIdentityNotifier {
 Future<List<SnChatMember>> chatroomInvites(Ref ref) async {
   final client = ref.watch(apiClientProvider);
   final resp = await client.get('/messager/chat/invites');
-  return resp.data
-      .map((e) => SnChatMember.fromJson(e))
-      .cast<SnChatMember>()
-      .toList();
+  final invites = <SnChatMember>[];
+  for (final raw in resp.data as List) {
+    final member = SnChatMember.fromJson(Map<String, dynamic>.from(raw as Map));
+    // An invite is rendered from its room: the sheet titles the tile from
+    // `chatRoom` and accepts/declines by its id. A row without one (a stale
+    // membership whose room was purged, or a server that does not hydrate the
+    // room) cannot be acted on, and force-unwrapping it throws out of the
+    // whole sheet, so it is dropped here instead.
+    if (member.chatRoom == null) continue;
+    invites.add(member);
+  }
+  return invites;
 }
