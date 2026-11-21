@@ -22,6 +22,7 @@ import 'package:island/shared/widgets/alert.dart';
 import 'package:island/shared/widgets/app_scaffold.dart';
 import 'package:island/shared/widgets/page_app_bar.dart';
 import 'package:island/shared/widgets/attention_modal.dart';
+import 'package:island/shared/widgets/segmented_list.dart';
 import 'package:island/drive/widgets/cloud_files.dart';
 import 'package:island/core/debug_sheet.dart';
 import 'package:island/core/config.dart';
@@ -211,149 +212,122 @@ class AccountFeatureWidget extends HookConsumerWidget {
                     experience: user.value!.profile.experience,
                     progress: user.value!.profile.levelingProgress,
                   ).padding(horizontal: 12),
-                  Builder(
-                    builder: (context) {
-                      final menuItems = [
-                        {
-                          'icon': Symbols.notifications,
-                          'title': 'notifications',
-                          'badgeCount': notificationUnreadCount.value ?? 0,
-                          'onTap': () {
-                            showAttentionModal(
-                              id: 'notifications',
-                              replaceIfExists: true,
-                              barrierDismissible: true,
-                              builder: (context, dismiss) =>
-                                  NotificationModal(onDismiss: dismiss),
-                            );
-                          },
-                        },
-                        {
-                          'icon': Symbols.workspace_premium,
-                          'title': 'progress',
-                          'onTap': () {
-                            context.router.push(ProgressRoute());
-                          },
-                        },
-                        {
-                          'icon': Symbols.trending_up,
-                          'title': 'leveling',
-                          'onTap': () {
-                            context.router.push(const LevelingRoute());
-                          },
-                        },
-                        {
-                          'icon': Symbols.storefront,
-                          'title': 'store',
-                          'onTap': () {
-                            context.router.push(const StoreRoute());
-                          },
-                        },
-                        {
-                          'icon': Symbols.qr_code_rounded,
-                          'title': 'qrCode',
-                          'onTap': () {
-                            context.router.push(const AccountQrRoute());
-                          },
-                        },
-                        {
-                          'icon': Symbols.people,
-                          'title': 'relationships',
-                          'onTap': () {
-                            context.router.push(const RelationshipRoute());
-                          },
-                        },
-                        {
-                          'icon': Symbols.sticker_rounded,
-                          'title': 'stickers',
-                          'onTap': () {
-                            context.router.push(
-                              const StickerMarketplaceRoute(),
-                            );
-                          },
-                        },
-                        {
-                          'icon': Symbols.podcasts,
-                          'title': 'pulsar',
-                          'onTap': () {
-                            context.router.push(const PulsarManageRoute());
-                          },
-                        },
-                      ];
-                      return Column(
-                        children: menuItems.map((item) {
-                          final icon = item['icon'] as IconData;
-                          final title = item['title'] as String;
-                          final badgeCount = item['badgeCount'] as int?;
-                          final onTap = item['onTap'] as VoidCallback?;
-                          return ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                            ),
-                            trailing: const Icon(Symbols.chevron_right),
-                            dense: true,
-                            leading: Badge(
-                              isLabelVisible:
-                                  badgeCount != null && badgeCount > 0,
-                              label: Text(badgeCount.toString()),
-                              child: Icon(icon, size: 24),
-                            ),
-                            title: Text(title).tr(),
-                            onTap: onTap,
-                          );
-                        }).toList(),
-                      );
-                    },
-                  ),
-                  const Divider(height: 1).padding(vertical: 8),
-                  Column(
+                  SegmentedListSection(
                     children: [
                       ListTile(
-                        leading: const Icon(Symbols.settings),
-                        trailing: const Icon(Symbols.chevron_right),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 24,
+                        leading: Badge(
+                          isLabelVisible:
+                              (notificationUnreadCount.value ?? 0) > 0,
+                          label: Text(
+                            (notificationUnreadCount.value ?? 0).toString(),
+                          ),
+                          child: const Icon(Symbols.notifications, size: 22),
                         ),
-                        dense: true,
+                        title: Text('notifications').tr(),
+                        trailing: const Icon(Symbols.chevron_right),
+                        onTap: () {
+                          showAttentionModal(
+                            id: 'notifications',
+                            replaceIfExists: true,
+                            barrierDismissible: true,
+                            builder: (context, dismiss) =>
+                                NotificationModal(onDismiss: dismiss),
+                          );
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Symbols.workspace_premium, size: 22),
+                        title: Text('progress').tr(),
+                        trailing: const Icon(Symbols.chevron_right),
+                        onTap: () {
+                          context.router.push(ProgressRoute());
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Symbols.trending_up, size: 22),
+                        title: Text('leveling').tr(),
+                        trailing: const Icon(Symbols.chevron_right),
+                        onTap: () {
+                          context.router.push(const LevelingRoute());
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Symbols.storefront, size: 22),
+                        title: Text('store').tr(),
+                        trailing: const Icon(Symbols.chevron_right),
+                        onTap: () {
+                          context.router.push(const StoreRoute());
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Symbols.qr_code_rounded, size: 22),
+                        title: Text('qrCode').tr(),
+                        trailing: const Icon(Symbols.chevron_right),
+                        onTap: () {
+                          context.router.push(const AccountQrRoute());
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Symbols.people, size: 22),
+                        title: Text('relationships').tr(),
+                        trailing: const Icon(Symbols.chevron_right),
+                        onTap: () {
+                          context.router.push(const RelationshipRoute());
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Symbols.sticker_rounded, size: 22),
+                        title: Text('stickers').tr(),
+                        trailing: const Icon(Symbols.chevron_right),
+                        onTap: () {
+                          context.router.push(const StickerMarketplaceRoute());
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Symbols.podcasts, size: 22),
+                        title: Text('pulsar').tr(),
+                        trailing: const Icon(Symbols.chevron_right),
+                        onTap: () {
+                          context.router.push(const PulsarManageRoute());
+                        },
+                      ),
+                    ],
+                  ).padding(horizontal: 12),
+                  SegmentedListSection(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Symbols.settings, size: 22),
                         title: Text('appSettings').tr(),
+                        trailing: const Icon(Symbols.chevron_right),
                         onTap: () {
                           context.router.push(const SettingsRoute());
                         },
                       ),
                       ListTile(
-                        leading: const Icon(Symbols.manage_accounts),
-                        trailing: const Icon(Symbols.chevron_right),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                        ),
-                        dense: true,
+                        leading: const Icon(Symbols.manage_accounts, size: 22),
                         title: Text('accountSettings').tr(),
+                        trailing: const Icon(Symbols.chevron_right),
                         onTap: () {
                           context.router.push(const AccountSettingsRoute());
                         },
                       ),
                     ],
-                  ),
-                  const Divider(height: 1).padding(vertical: 8),
-                  Column(
+                  ).padding(horizontal: 12),
+                  SegmentedListSection(
                     children: [
                       if (isDeveloperMode)
                         ListTile(
-                          leading: const Icon(Symbols.bug_report),
-                          trailing: const Icon(Symbols.chevron_right),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                          leading: const Icon(Symbols.bug_report, size: 22),
                           title: Text('debugOptions').tr(),
-                          dense: true,
+                          trailing: const Icon(Symbols.chevron_right),
                           onTap: () {
                             toggleDebugOverlay(ref);
                           },
                         ),
                       ListTile(
-                        leading: const Icon(Symbols.logout),
-                        trailing: const Icon(Symbols.chevron_right),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 24),
+                        leading: const Icon(Symbols.logout, size: 22),
                         title: Text('logout').tr(),
-                        dense: true,
+                        trailing: const Icon(Symbols.chevron_right),
                         onTap: () async {
                           final ws = ref.watch(websocketStateProvider.notifier);
                           final client = ref.watch(solarNetworkClientProvider);
@@ -371,7 +345,7 @@ class AccountFeatureWidget extends HookConsumerWidget {
                         },
                       ),
                     ],
-                  ),
+                  ).padding(horizontal: 12),
                 ],
               ).padding(top: 8, bottom: MediaQuery.of(context).padding.bottom),
             ),

@@ -105,6 +105,10 @@ class ComposeToolbar extends HookConsumerWidget {
       ComposeLogic.pickCalendarEvent(ref, state, context);
     }
 
+    void pickWorkStatus() {
+      ComposeLogic.pickWorkStatus(ref, state, context);
+    }
+
     void showDraftManager() {
       showModalBottomSheet(
         context: context,
@@ -306,6 +310,29 @@ class ComposeToolbar extends HookConsumerWidget {
                                         state.embeds.value.any(
                                               (e) =>
                                                   e['type'] == 'calendar_event',
+                                            )
+                                            ? colorScheme.primary.withOpacity(
+                                                0.15,
+                                              )
+                                            : null,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              // Work status
+                              ListenableBuilder(
+                                listenable: state.embeds,
+                                builder: (context, _) {
+                                  return IconButton(
+                                    onPressed: pickWorkStatus,
+                                    icon: const Icon(Symbols.checklist),
+                                    tooltip: 'pulsarWorkStatuses'.tr(),
+                                    color: colorScheme.primary,
+                                    style: ButtonStyle(
+                                      backgroundColor: WidgetStatePropertyAll(
+                                        state.embeds.value.any(
+                                              (e) => e['type'] == 'work_status',
                                             )
                                             ? colorScheme.primary.withOpacity(
                                                 0.15,

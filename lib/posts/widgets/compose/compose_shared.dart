@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/services/attachment_upload_manager.dart';
 import 'package:island/posts/widgets/compose/compose_calendar_event_sheet.dart';
+import 'package:island/posts/widgets/compose/compose_work_status_sheet.dart';
 import 'package:island/posts/widgets/compose/compose_fund.dart';
 import 'package:island/posts/widgets/compose/compose_link_attachments.dart';
 import 'package:island/posts/widgets/compose/compose_location_sheet.dart';
@@ -1564,6 +1565,27 @@ class ComposeLogic {
 
     if (event == null) return;
     addEmbed(state, {'type': 'calendar_event', 'id': event.id});
+  }
+
+  static Future<void> pickWorkStatus(
+    WidgetRef ref,
+    ComposeState state,
+    BuildContext context,
+  ) async {
+    if (hasEmbed(state, 'work_status')) {
+      removeEmbed(state, 'work_status');
+      return;
+    }
+
+    final workStatus = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (context) => const ComposeWorkStatusSheet(),
+    );
+
+    if (workStatus == null) return;
+    addEmbed(state, workStatus);
   }
 
   /// Unified submit method that returns the created/updated post.

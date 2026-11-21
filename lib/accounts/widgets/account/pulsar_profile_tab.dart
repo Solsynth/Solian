@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:island/accounts/widgets/account/account_nameplate.dart';
 import 'package:island/accounts/widgets/account/pulsar_shelf.dart';
 import 'package:island/activity/pulsar_artwork.dart';
 import 'package:island/activity/pulsar_models.dart';
@@ -49,6 +50,42 @@ class PulsarProfileTab extends HookConsumerWidget {
         take: 10,
       )),
     );
+    final serverUrl = ref.watch(serverUrlProvider);
+    final collections = showWorkStatuses
+        ? ref.watch(pulsarMyWorkCollectionsProvider).asData?.value
+        : null;
+
+    final fallbackArtworks =
+        <String, ({List<String> urls, String? domain})>{};
+    void addFallback(String? title, List<String> urls, String? domain) {
+      final key = title?.trim().toLowerCase();
+      if (key == null || key.isEmpty || urls.isEmpty) return;
+      fallbackArtworks.putIfAbsent(key, () => (urls: urls, domain: domain));
+    }
+
+    for (final s in nowPlayingAsync.asData?.value ?? const <SnPresenceActivity>[]) {
+      addFallback(
+        s.title,
+        PulsarArtwork.presenceUrls(s, serverUrl: serverUrl),
+        s.type,
+      );
+    }
+    for (final s in historyAsync.asData?.value ?? const <PulsarScrobble>[]) {
+      addFallback(
+        s.title,
+        PulsarArtwork.scrobbleUrls(s, serverUrl: serverUrl),
+        s.domain,
+      );
+    }
+    for (final col in collections ?? const <PulsarCollection>[]) {
+      for (final item in col.items) {
+        addFallback(
+          item.displayTitle,
+          PulsarArtwork.collectionUrls(item, serverUrl: serverUrl),
+          item.catalogItem?.domain ?? col.domain,
+        );
+      }
+    }
 
     return ExtendedRefreshIndicator(
       onRefresh: onRefresh,
@@ -70,12 +107,15 @@ class PulsarProfileTab extends HookConsumerWidget {
               loading: () => const SizedBox.shrink(),
               error: (_, _) => const SizedBox.shrink(),
             ),
+            if (showWorkStatuses) _WorkStatusesCard(uname: uname),
             statsAsync.when(
-              data: (stats) => _StatsCard(stats: stats),
+              data: (stats) => _StatsCard(
+                stats: stats,
+                fallbackArtworks: fallbackArtworks,
+              ),
               loading: () => const _SectionLoadingCard(),
               error: (_, _) => const SizedBox.shrink(),
             ),
-            if (showWorkStatuses) const _WorkStatusesCard(),
             _HistoryCard(
               uname: uname,
               selectedDomain: historyDomain.value,
@@ -219,7 +259,8 @@ class _NowPlayingCard extends ConsumerWidget {
 
 class _StatsCard extends ConsumerWidget {
   final PulsarMediaStats? stats;
-  const _StatsCard({required this.stats});
+  final Map<String, ({List<String> urls, String? domain})> fallbackArtworks;
+  const _StatsCard({required this.stats, this.fallbackArtworks = const {}});
 
   String _formatDuration(int totalSeconds) {
     if (totalSeconds <= 0) return '0m';
@@ -310,16 +351,30 @@ class _StatsCard extends ConsumerWidget {
               tileWidth: 96,
               entries: [
                 for (final item in data.topItems.take(10))
-                  PulsarShelfEntry(
-                    title: item.name,
-                    subtitle: item.subtitle,
-                    artwork: PulsarArtwork.resolve(
-                      item.artworkUrl,
+                  () {
+                    final directArtwork = PulsarArtwork.topEntityUrls(
+                      item,
                       serverUrl: serverUrl,
-                    ),
-                    fallbackIcon: Symbols.equalizer,
-                    cornerLabel: '${item.count}×',
-                  ),
+                    );
+                    final fallback =
+                        fallbackArtworks[item.name.trim().toLowerCase()];
+                    final artwork = directArtwork.isNotEmpty
+                        ? directArtwork
+                        : (fallback?.urls ?? const <String>[]);
+                    final domain =
+                        item.domain ??
+                        item.catalogItem?.domain ??
+                        fallback?.domain;
+                    return PulsarShelfEntry(
+                      title: item.name,
+                      subtitle: item.subtitle,
+                      artwork: artwork,
+                      fallbackIcon: domain != null
+                          ? PulsarDomain.icon(domain)
+                          : Symbols.equalizer,
+                      cornerLabel: '${item.count}×',
+                    );
+                  }(),
               ],
             ),
           ],
@@ -405,7 +460,8 @@ class _StatMetricTile extends StatelessWidget {
 /// owner and exposes no per-account listing, so another viewer has no way to
 /// read these.
 class _WorkStatusesCard extends HookConsumerWidget {
-  const _WorkStatusesCard();
+  final String uname;
+  const _WorkStatusesCard({required this.uname});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -459,28 +515,57 @@ class _WorkStatusesCard extends HookConsumerWidget {
                           : 112,
                       entries: [
                         for (final item in shelf.items)
-                          PulsarShelfEntry(
-                            title: item.displayTitle,
-                            subtitle: item.displaySubtitle,
-                            artwork: PulsarArtwork.collectionUrls(
-                              item,
-                              serverUrl: serverUrl,
-                            ),
-                            fallbackIcon: PulsarDomain.icon(
-                              item.catalogItem?.domain ?? shelf.col.domain,
-                            ),
-                            badge: item.status == null
-                                ? null
-                                : PulsarWorkStatus.label(item.status),
-                            badgeColor: PulsarWorkStatus.color(
-                              context,
-                              item.status,
-                            ),
-                            cornerLabel: item.rating?.toString(),
-                            cornerIcon: item.rating == null
-                                ? null
-                                : Symbols.star_rounded,
-                          ),
+                          () {
+                            final hasNote =
+                                item.note != null &&
+                                item.note!.trim().isNotEmpty;
+                            return PulsarShelfEntry(
+                              title: item.displayTitle,
+                              subtitle: item.displaySubtitle,
+                              artwork: PulsarArtwork.collectionUrls(
+                                item,
+                                serverUrl: serverUrl,
+                              ),
+                              fallbackIcon: PulsarDomain.icon(
+                                item.catalogItem?.domain ?? shelf.col.domain,
+                              ),
+                              badge: item.status == null
+                                  ? null
+                                  : PulsarWorkStatus.label(item.status),
+                              badgeColor: PulsarWorkStatus.color(
+                                context,
+                                item.status,
+                              ),
+                              cornerLabel: item.rating?.toString(),
+                              cornerIcon: item.rating == null
+                                  ? null
+                                  : Symbols.star_rounded,
+                              actionIcon: hasNote
+                                  ? Symbols.sticky_note_2
+                                  : null,
+                              actionTooltip: hasNote
+                                  ? 'pulsarNote'.tr()
+                                  : null,
+                              onAction: hasNote
+                                  ? () => _showWorkNoteSheet(
+                                      context,
+                                      item,
+                                      shelf.col,
+                                      serverUrl,
+                                      uname: uname,
+                                    )
+                                  : null,
+                              onTap: hasNote
+                                  ? () => _showWorkNoteSheet(
+                                      context,
+                                      item,
+                                      shelf.col,
+                                      serverUrl,
+                                      uname: uname,
+                                    )
+                                  : null,
+                            );
+                          }(),
                       ],
                     ),
                 ],
@@ -498,6 +583,169 @@ class _WorkStatusesCard extends HookConsumerWidget {
       ),
     );
   }
+}
+
+void _showWorkNoteSheet(
+  BuildContext context,
+  PulsarCollectionItem item,
+  PulsarCollection collection,
+  String serverUrl, {
+  required String uname,
+}) {
+  final note = item.note?.trim();
+  if (note == null || note.isEmpty) return;
+
+  final theme = Theme.of(context);
+  final domain = item.catalogItem?.domain ?? collection.domain;
+  final statusColor = PulsarWorkStatus.color(context, item.status);
+  final metaParts = <String>[
+    collection.name,
+    if (item.displaySubtitle != null && item.displaySubtitle!.isNotEmpty)
+      item.displaySubtitle!,
+  ];
+
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useRootNavigator: true,
+    builder: (context) => SheetScaffold(
+      titleText: 'pulsarNote'.tr(),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
+          SolSpace.lg,
+          SolSpace.md,
+          SolSpace.lg,
+          MediaQuery.paddingOf(context).bottom + SolSpace.lg,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: SolSpace.md,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: SolSpace.md,
+              children: [
+                SizedBox(
+                  width: 56,
+                  height: domain == PulsarDomain.music ? 56 : 84,
+                  child: PulsarCover(
+                    artwork: PulsarArtwork.collectionUrls(
+                      item,
+                      serverUrl: serverUrl,
+                    ),
+                    fallbackIcon: PulsarDomain.icon(domain),
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: SolSpace.xs,
+                    children: [
+                      Text(
+                        item.displayTitle,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (metaParts.isNotEmpty)
+                        Text(
+                          metaParts.join(' · '),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      if (item.status != null || item.rating != null)
+                        Wrap(
+                          spacing: SolSpace.xs,
+                          runSpacing: SolSpace.xs,
+                          children: [
+                            if (item.status != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: SolSpace.sm,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(
+                                    SolRadius.chip,
+                                  ),
+                                ),
+                                child: Text(
+                                  PulsarWorkStatus.label(item.status),
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: statusColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            if (item.rating != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: SolSpace.sm,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surfaceContainerHigh,
+                                  borderRadius: BorderRadius.circular(
+                                    SolRadius.chip,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  spacing: 2,
+                                  children: [
+                                    Icon(
+                                      Symbols.star_rounded,
+                                      size: 13,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    Text(
+                                      '${item.rating}/10',
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Container(
+              padding: const EdgeInsets.all(SolSpace.md),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(SolRadius.sm),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: SolSpace.sm,
+                children: [
+                  AccountNameplate(
+                    name: uname,
+                    isCompact: true,
+                    isOutlined: false,
+                    padding: EdgeInsets.zero,
+                  ),
+                  SelectableText(
+                    note,
+                    style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class _HistoryCard extends HookConsumerWidget {

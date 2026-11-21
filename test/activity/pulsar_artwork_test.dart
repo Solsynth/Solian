@@ -114,4 +114,37 @@ void main() {
       ]);
     });
   });
+
+  group('top entity artwork', () {
+    test('resolves steam and catalog artwork when artwork_url is absent', () {
+      final entity = PulsarTopEntity.fromJson({
+        'name': 'RimWorld',
+        'count': 12,
+        'seconds': 3600,
+        'provider': 'steam',
+        'provider_key': '294100',
+      });
+
+      expect(PulsarArtwork.topEntityUrls(entity), [
+        '$_steamCdn/294100/library_600x900.jpg',
+        '$_steamCdn/294100/header.jpg',
+      ]);
+    });
+
+    test('resolves sha256 and image_url fallback on top entity', () {
+      final entity = PulsarTopEntity.fromJson({
+        'name': 'Album',
+        'count': 5,
+        'image_url': 'sha256:deadbeef',
+      });
+
+      expect(
+        PulsarArtwork.topEntityUrls(
+          entity,
+          serverUrl: 'https://api.solian.app',
+        ),
+        ['https://api.solian.app/stargate/presence/artworks/sha256:deadbeef'],
+      );
+    });
+  });
 }

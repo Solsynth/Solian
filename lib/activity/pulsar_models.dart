@@ -385,7 +385,6 @@ class PulsarBangumiConnection {
   final String avatarUrl;
   final bool syncEnabled;
   final String conflictPolicy;
-  final DateTime? tokenExpiresAt;
   final DateTime? lastSyncedAt;
   final String lastError;
   final DateTime? linkedAt;
@@ -401,7 +400,6 @@ class PulsarBangumiConnection {
     this.avatarUrl = '',
     this.syncEnabled = true,
     this.conflictPolicy = 'remote',
-    this.tokenExpiresAt,
     this.lastSyncedAt,
     this.lastError = '',
     this.linkedAt,
@@ -420,7 +418,6 @@ class PulsarBangumiConnection {
       avatarUrl: json['avatar_url']?.toString() ?? '',
       syncEnabled: json['sync_enabled'] as bool? ?? true,
       conflictPolicy: json['conflict_policy']?.toString() ?? 'remote',
-      tokenExpiresAt: _asDate(json['token_expires_at']),
       lastSyncedAt: _asDate(json['last_synced_at']),
       lastError: json['last_error']?.toString() ?? '',
       linkedAt: _asDate(json['linked_at']),
@@ -475,6 +472,11 @@ class PulsarTopEntity {
   /// Cover of the row the aggregate picked for this group. Empty when every
   /// play in the group came from a client that sent no picture.
   final String? artworkUrl;
+  final String? domain;
+  final String? provider;
+  final String? providerKey;
+  final PulsarCatalogItem? catalogItem;
+  final Map<String, dynamic>? meta;
 
   const PulsarTopEntity({
     required this.name,
@@ -482,6 +484,11 @@ class PulsarTopEntity {
     this.count = 0,
     this.seconds = 0,
     this.artworkUrl,
+    this.domain,
+    this.provider,
+    this.providerKey,
+    this.catalogItem,
+    this.meta,
   });
 
   factory PulsarTopEntity.fromJson(Map<String, dynamic> json) {
@@ -490,7 +497,19 @@ class PulsarTopEntity {
       subtitle: json['subtitle']?.toString(),
       count: _asInt(json['count']) ?? 0,
       seconds: _asInt(json['seconds']) ?? 0,
-      artworkUrl: _nonEmpty(json['artwork_url']),
+      artworkUrl:
+          _nonEmpty(json['artwork_url']) ?? _nonEmpty(json['image_url']),
+      domain: _nonEmpty(json['domain']),
+      provider: _nonEmpty(json['provider']),
+      providerKey: _nonEmpty(json['provider_key']),
+      catalogItem: json['catalog_item'] is Map
+          ? PulsarCatalogItem.fromJson(
+              Map<String, dynamic>.from(json['catalog_item']),
+            )
+          : null,
+      meta: json['meta'] is Map
+          ? Map<String, dynamic>.from(json['meta'])
+          : null,
     );
   }
 }

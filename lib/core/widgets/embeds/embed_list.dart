@@ -5,8 +5,11 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:gap/gap.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:island/accounts/widgets/account/pulsar_shelf.dart';
+import 'package:island/activity/pulsar_models.dart';
 import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/theme.dart';
 
 import 'package:island/route.gr.dart';
 import 'package:island/creators/screens/survey/survey_list.dart';
@@ -176,6 +179,13 @@ class _EmbedListWidgetState extends ConsumerState<EmbedListWidget>
                         vertical: 8,
                       ),
                     ),
+            'work_status' => _WorkStatusEmbedCard(
+              embedData: Map<String, dynamic>.from(embedData as Map),
+              margin: EdgeInsets.symmetric(
+                horizontal: widget.renderingPadding.left,
+                vertical: 8,
+              ),
+            ),
             _ => Text('Unable show embed: ${embedData['type']}'),
           },
         ),
@@ -1028,6 +1038,391 @@ class _NotableDayEmbedCard extends StatelessWidget {
             ),
             Icon(Symbols.celebration, color: colorScheme.tertiary),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WorkStatusEmbedCard extends StatelessWidget {
+  final Map<String, dynamic> embedData;
+  final EdgeInsets margin;
+
+  const _WorkStatusEmbedCard({
+    required this.embedData,
+    required this.margin,
+  });
+
+  List<String> _artworkUrls() {
+    final rawList = embedData['artwork_urls'];
+    if (rawList is List) {
+      final urls = rawList
+          .map((e) => e?.toString().trim() ?? '')
+          .where((e) => e.isNotEmpty)
+          .toList();
+      if (urls.isNotEmpty) return urls;
+    }
+    final single = embedData['artwork']?.toString().trim();
+    if (single != null && single.isNotEmpty) return [single];
+    return const [];
+  }
+
+  int? _asInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final domain = embedData['domain']?.toString();
+    final title = embedData['title']?.toString().trim();
+    final subtitle = embedData['subtitle']?.toString().trim();
+    final collectionName = embedData['collection_name']?.toString().trim();
+    final status = embedData['status']?.toString().trim();
+    final rating = _asInt(embedData['rating']);
+    final progress = _asInt(embedData['progress']);
+    final volumeProgress = _asInt(embedData['volume_progress']);
+    final note = embedData['note']?.toString().trim();
+    final artwork = _artworkUrls();
+    final statusColor = PulsarWorkStatus.color(context, status);
+
+    final metaParts = <String>[
+      if (collectionName != null && collectionName.isNotEmpty) collectionName,
+      if (subtitle != null && subtitle.isNotEmpty) subtitle,
+    ];
+
+    return Card(
+      margin: margin,
+      elevation: 0,
+      color: colorScheme.surfaceContainerLowest,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: note != null && note.isNotEmpty
+            ? () => _showNoteSheet(
+                context,
+                title: title ?? 'Unknown',
+                metaParts: metaParts,
+                domain: domain,
+                artwork: artwork,
+                status: status,
+                rating: rating,
+                note: note,
+              )
+            : null,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 52,
+                    height: domain == PulsarDomain.music ? 52 : 76,
+                    child: PulsarCover(
+                      artwork: artwork,
+                      fallbackIcon: PulsarDomain.icon(domain),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              PulsarDomain.icon(domain),
+                              size: 14,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                'pulsarWorkStatuses'.tr(),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          (title != null && title.isNotEmpty)
+                              ? title
+                              : 'Unknown',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (metaParts.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            metaParts.join(' · '),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        if ((status != null && status.isNotEmpty) ||
+                            rating != null ||
+                            progress != null) ...[
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: SolSpace.xs,
+                            runSpacing: SolSpace.xs,
+                            children: [
+                              if (status != null && status.isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: SolSpace.sm,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: statusColor.withValues(alpha: 0.14),
+                                    borderRadius: BorderRadius.circular(
+                                      SolRadius.chip,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    PulsarWorkStatus.label(status),
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: statusColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              if (rating != null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: SolSpace.sm,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surfaceContainerHigh,
+                                    borderRadius: BorderRadius.circular(
+                                      SolRadius.chip,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    spacing: 2,
+                                    children: [
+                                      Icon(
+                                        Symbols.star_rounded,
+                                        size: 13,
+                                        color: colorScheme.primary,
+                                      ),
+                                      Text(
+                                        '$rating/10',
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              if (progress != null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: SolSpace.sm,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surfaceContainerHigh,
+                                    borderRadius: BorderRadius.circular(
+                                      SolRadius.chip,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    volumeProgress != null
+                                        ? '$volumeProgress vol · $progress'
+                                        : '$progress',
+                                    style: theme.textTheme.labelSmall,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (note != null && note.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(SolSpace.sm),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(SolRadius.sm),
+                  ),
+                  child: Text(
+                    note,
+                    style: theme.textTheme.bodySmall?.copyWith(height: 1.4),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showNoteSheet(
+    BuildContext context, {
+    required String title,
+    required List<String> metaParts,
+    required String? domain,
+    required List<String> artwork,
+    required String? status,
+    required int? rating,
+    required String note,
+  }) {
+    final theme = Theme.of(context);
+    final statusColor = PulsarWorkStatus.color(context, status);
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (context) => SheetScaffold(
+        titleText: 'pulsarNote'.tr(),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            SolSpace.lg,
+            SolSpace.md,
+            SolSpace.lg,
+            MediaQuery.paddingOf(context).bottom + SolSpace.lg,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: SolSpace.md,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: SolSpace.md,
+                children: [
+                  SizedBox(
+                    width: 56,
+                    height: domain == PulsarDomain.music ? 56 : 84,
+                    child: PulsarCover(
+                      artwork: artwork,
+                      fallbackIcon: PulsarDomain.icon(domain),
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: SolSpace.xs,
+                      children: [
+                        Text(
+                          title,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (metaParts.isNotEmpty)
+                          Text(
+                            metaParts.join(' · '),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        if (status != null || rating != null)
+                          Wrap(
+                            spacing: SolSpace.xs,
+                            runSpacing: SolSpace.xs,
+                            children: [
+                              if (status != null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: SolSpace.sm,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: statusColor.withValues(alpha: 0.14),
+                                    borderRadius: BorderRadius.circular(
+                                      SolRadius.chip,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    PulsarWorkStatus.label(status),
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: statusColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              if (rating != null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: SolSpace.sm,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.surfaceContainerHigh,
+                                    borderRadius: BorderRadius.circular(
+                                      SolRadius.chip,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    spacing: 2,
+                                    children: [
+                                      Icon(
+                                        Symbols.star_rounded,
+                                        size: 13,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      Text(
+                                        '$rating/10',
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.all(SolSpace.md),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(SolRadius.sm),
+                ),
+                child: SelectableText(
+                  note,
+                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

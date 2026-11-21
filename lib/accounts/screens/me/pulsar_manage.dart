@@ -1954,10 +1954,13 @@ class _MetadataSearchSection extends HookConsumerWidget {
       children: [
         if (selected != null)
           Container(
-            padding: const EdgeInsets.all(SolSpace.sm),
+            padding: const EdgeInsets.symmetric(
+              vertical: SolSpace.sm,
+              horizontal: SolSpace.md,
+            ),
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(SolRadius.sm),
+              borderRadius: BorderRadius.circular(SolRadius.control),
             ),
             child: Row(
               spacing: SolSpace.md,
@@ -2039,7 +2042,7 @@ class _MetadataSearchSection extends HookConsumerWidget {
               constraints: const BoxConstraints(maxHeight: 200),
               child: Material(
                 color: theme.colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(SolRadius.sm),
+                borderRadius: BorderRadius.circular(SolRadius.control),
                 child: ListView.separated(
                   shrinkWrap: true,
                   padding: const EdgeInsets.symmetric(vertical: SolSpace.xs),

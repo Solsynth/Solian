@@ -97,37 +97,39 @@ class PulsarShelf extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: SolSpace.md,
       children: [
         if (title != null)
           Padding(
             padding: padding,
             child: Row(
+              spacing: SolSpace.sm,
               children: [
-                if (icon != null) ...[
+                if (icon != null)
                   Icon(icon, size: 14, color: theme.colorScheme.primary),
-                  const Gap(SolSpace.xs),
-                ],
-                Flexible(
-                  child: Text(
-                    title!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                Expanded(
+                  child: Row(
+                    spacing: SolSpace.sm,
+                    children: [
+                      Text(
+                        title!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      if (count != null)
+                        Text(
+                          '$count',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                if (count != null) ...[
-                  const Gap(SolSpace.xs),
-                  Text(
-                    '$count',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                ],
-                const Spacer(),
                 ?trailing,
                 if (onSeeAll != null)
                   TextButton(
@@ -164,7 +166,6 @@ class PulsarShelf extends StatelessWidget {
             },
           ),
         ),
-        _ShelfLedge(padding: padding),
       ],
     );
   }
@@ -174,11 +175,7 @@ class _ShelfCase extends StatelessWidget {
   final PulsarShelfEntry entry;
   final double imageHeight;
 
-  const _ShelfCase({
-    super.key,
-    required this.entry,
-    required this.imageHeight,
-  });
+  const _ShelfCase({super.key, required this.entry, required this.imageHeight});
 
   @override
   Widget build(BuildContext context) {
@@ -222,44 +219,6 @@ class _ShelfCase extends StatelessWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-/// The line the cases stand on, plus the shadow they cast onto the board
-/// below it.
-class _ShelfLedge extends StatelessWidget {
-  final EdgeInsetsGeometry padding;
-
-  const _ShelfLedge({required this.padding});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: padding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            height: 1,
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
-          ),
-          Container(
-            height: 10,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  theme.colorScheme.onSurface.withValues(alpha: 0.045),
-                  theme.colorScheme.onSurface.withValues(alpha: 0),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );

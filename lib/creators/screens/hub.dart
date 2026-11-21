@@ -23,6 +23,7 @@ import 'package:island/shared/widgets/confuse_spinner.dart';
 import 'package:island/shared/widgets/layouts/sheet_scaffold.dart';
 import 'package:island/shared/widgets/pagination_list.dart';
 import 'package:island/shared/widgets/response.dart';
+import 'package:island/shared/widgets/segmented_list.dart';
 import 'package:island/posts/activity_heatmap.dart';
 import 'package:island/posts/widgets/publisher_leaderboard_sheet.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -731,13 +732,9 @@ class CreatorHubContentWidget extends HookConsumerWidget {
     Widget buildNavigationWidget() {
       final leftItems = [
         ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          minTileHeight: 48,
           title: Text('stickers').tr(),
-          trailing: Icon(Symbols.chevron_right),
-          leading: const Icon(Symbols.ar_stickers),
+          trailing: const Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.ar_stickers, size: 22),
           onTap: () {
             context.router.push(
               CreatorStickerListRoute(pubName: currentPublisher.value!.name),
@@ -745,13 +742,9 @@ class CreatorHubContentWidget extends HookConsumerWidget {
           },
         ),
         ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          minTileHeight: 48,
           title: Text('posts').tr(),
-          trailing: Icon(Symbols.chevron_right),
-          leading: const Icon(Symbols.sticky_note_2),
+          trailing: const Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.sticky_note_2, size: 22),
           onTap: () {
             context.router.push(
               CreatorPostListRoute(pubName: currentPublisher.value!.name),
@@ -759,13 +752,9 @@ class CreatorHubContentWidget extends HookConsumerWidget {
           },
         ),
         ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          minTileHeight: 48,
           title: Text('collections').tr(),
-          trailing: Icon(Symbols.chevron_right),
-          leading: const Icon(Symbols.collections),
+          trailing: const Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.collections, size: 22),
           onTap: () {
             context.router.push(
               CreatorPostCollectionsRoute(
@@ -775,13 +764,9 @@ class CreatorHubContentWidget extends HookConsumerWidget {
           },
         ),
         ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          minTileHeight: 48,
           title: Text('surveys').tr(),
           trailing: const Icon(Symbols.chevron_right),
-          leading: const Icon(Symbols.poll),
+          leading: const Icon(Symbols.poll, size: 22),
           onTap: () {
             context.router.push(
               CreatorSurveyListRoute(pubName: currentPublisher.value!.name),
@@ -789,13 +774,9 @@ class CreatorHubContentWidget extends HookConsumerWidget {
           },
         ),
         ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          minTileHeight: 48,
           title: Text('publisherTags'.tr()),
           trailing: const Icon(Symbols.chevron_right),
-          leading: const Icon(Symbols.label),
+          leading: const Icon(Symbols.label, size: 22),
           onTap: () {
             context.router.push(
               CreatorTagManageRoute(pubName: currentPublisher.value!.name),
@@ -806,13 +787,9 @@ class CreatorHubContentWidget extends HookConsumerWidget {
 
       final rightItems = [
         ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          minTileHeight: 48,
           title: Text('publisherMembers').tr(),
           trailing: const Icon(Symbols.chevron_right),
-          leading: const Icon(Symbols.group),
+          leading: const Icon(Symbols.group, size: 22),
           onTap: () {
             showModalBottomSheet(
               isScrollControlled: true,
@@ -824,13 +801,9 @@ class CreatorHubContentWidget extends HookConsumerWidget {
           },
         ),
         ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          minTileHeight: 48,
           title: Text('publisherSubscribers').tr(),
-          trailing: Icon(Symbols.chevron_right),
-          leading: const Icon(Symbols.person_add),
+          trailing: const Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.person_add, size: 22),
           onTap: () {
             showModalBottomSheet(
               isScrollControlled: true,
@@ -844,13 +817,17 @@ class CreatorHubContentWidget extends HookConsumerWidget {
           },
         ),
         ExpansionTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
+          shape: const Border(),
+          collapsedShape: const Border(),
           title: Text('publisherFeatures').tr(),
-          leading: const Icon(Symbols.flag),
-          tilePadding: const EdgeInsets.only(left: 16, right: 24),
-          minTileHeight: 48,
+          leading: const Icon(Symbols.flag, size: 22),
+          tilePadding: const EdgeInsets.only(
+            left: SolSpace.lg,
+            right: SolSpace.xxl,
+          ),
+          dense: true,
+          visualDensity: VisualDensity.compact,
+          minTileHeight: 42,
           children: [
             ...publisherFeatures.when(
               data: (data) {
@@ -907,23 +884,15 @@ class CreatorHubContentWidget extends HookConsumerWidget {
           ],
         ),
         ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          minTileHeight: 48,
           title: Text('editPublisher').tr(),
-          trailing: Icon(Symbols.chevron_right),
-          leading: const Icon(Symbols.edit),
+          trailing: const Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.edit, size: 22),
           onTap: updatePublisher,
         ),
         ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          minTileHeight: 48,
           title: Text('publisherFediverse').tr(),
-          trailing: Icon(Symbols.chevron_right),
-          leading: const Icon(Symbols.public),
+          trailing: const Icon(Symbols.chevron_right),
+          leading: const Icon(Symbols.public, size: 22),
           onTap: () {
             showModalBottomSheet(
               isScrollControlled: true,
@@ -935,13 +904,9 @@ class CreatorHubContentWidget extends HookConsumerWidget {
           },
         ),
         ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-          ),
-          minTileHeight: 48,
           title: Text('verifiedDomains').tr(),
           trailing: const Icon(Symbols.chevron_right),
-          leading: const Icon(Symbols.domain),
+          leading: const Icon(Symbols.domain, size: 22),
           onTap: () {
             context.router.push(
               CreatorDomainManageRoute(pubName: currentPublisher.value!.name),
@@ -950,34 +915,27 @@ class CreatorHubContentWidget extends HookConsumerWidget {
         ),
         if (isOwner)
           ListTile(
-            shape: RoundedRectangleBorder(
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
-            ),
-            minTileHeight: 48,
             title: Text('deletePublisher').tr(),
-            trailing: Icon(Symbols.chevron_right),
-            leading: const Icon(Symbols.delete),
+            trailing: const Icon(Symbols.chevron_right),
+            leading: const Icon(Symbols.delete, size: 22),
             onTap: deletePublisher,
           )
         else if (canLeave)
           ListTile(
-            shape: RoundedRectangleBorder(
-              borderRadius: const BorderRadius.all(Radius.circular(8)),
-            ),
-            minTileHeight: 48,
             title: Text('leavePublisher').tr(),
-            trailing: Icon(Symbols.chevron_right),
-            leading: const Icon(Symbols.logout),
+            trailing: const Icon(Symbols.chevron_right),
+            leading: const Icon(Symbols.logout, size: 22),
             onTap: leavePublisher,
           ),
       ];
 
-      return Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          children: [...leftItems, const Divider(height: 8), ...rightItems],
-        ),
-      );
+      return Column(
+        spacing: 12,
+        children: [
+          SegmentedListSection(children: leftItems),
+          SegmentedListSection(children: rightItems),
+        ],
+      ).padding(horizontal: 16);
     }
 
     // The pill's band, reserved by the body below so its first card starts

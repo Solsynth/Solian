@@ -10,12 +10,14 @@ import 'package:easy_localization/easy_localization.dart';
 class AccountNameplate extends HookConsumerWidget {
   final String name;
   final bool isOutlined;
+  final bool isCompact;
   final EdgeInsetsGeometry padding;
 
   const AccountNameplate({
     super.key,
     required this.name,
     this.isOutlined = true,
+    this.isCompact = false,
     this.padding = const EdgeInsets.all(16),
   });
 
@@ -39,7 +41,7 @@ class AccountNameplate extends HookConsumerWidget {
         elevation: 0,
         color: Colors.transparent,
         child: user.when(
-          data: (account) => account.profile.background != null
+          data: (account) => !isCompact && account.profile.background != null
               ? AspectRatio(
                   aspectRatio: 16 / 9,
                   child: Stack(
@@ -117,10 +119,15 @@ class AccountNameplate extends HookConsumerWidget {
                   ),
                 )
               : Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
+                  padding: isCompact
+                      ? const EdgeInsets.symmetric(
+                          horizontal: 10.0,
+                          vertical: 6.0,
+                        )
+                      : const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
+                        ),
                   decoration: isOutlined
                       ? BoxDecoration(
                           border: Border.all(
@@ -130,24 +137,40 @@ class AccountNameplate extends HookConsumerWidget {
                         )
                       : null,
                   child: Row(
+                    mainAxisSize: isCompact ? MainAxisSize.min : MainAxisSize.max,
                     children: [
                       // Profile picture (equivalent to leading)
                       ProfilePictureWidget(
                         file: account.profile.picture,
                         fallbackName: account.nick,
+                        radius: isCompact ? 14 : 20,
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: isCompact ? 10 : 16),
                       // Text content (equivalent to title and subtitle)
-                      Expanded(
+                      Flexible(
+                        fit: isCompact ? FlexFit.loose : FlexFit.tight,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             AccountName(
                               account: account,
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: isCompact ? 13 : null,
+                              ),
                             ),
-                            Text('@${account.name}'),
+                            Text(
+                              '@${account.name}',
+                              style: isCompact
+                                  ? Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                        )
+                                  : null,
+                            ),
                           ],
                         ),
                       ),

@@ -115,6 +115,27 @@ abstract final class PulsarArtwork {
     return catalogUrls(item.catalogItem, serverUrl: serverUrl);
   }
 
+  /// Top-work artwork from media stats. Combines Steam app ids (from meta,
+  /// provider key, or resolved catalog item), direct artwork URLs, and catalog
+  /// artwork.
+  static List<String> topEntityUrls(
+    PulsarTopEntity entity, {
+    String? serverUrl,
+  }) {
+    final meta = entity.meta;
+    final catalog = entity.catalogItem;
+    return _dedupe([
+      ...steamUrls(
+        meta?['game_id'] ??
+            meta?['app_id'] ??
+            (entity.provider == 'steam' ? entity.providerKey : null) ??
+            (catalog?.provider == 'steam' ? catalog?.providerKey : null),
+      ),
+      ...resolve(entity.artworkUrl, serverUrl: serverUrl),
+      ...catalogUrls(catalog, serverUrl: serverUrl),
+    ]);
+  }
+
   /// The one URL to persist when a scrobble is turned into a favourite or a
   /// tracked work.
   ///
