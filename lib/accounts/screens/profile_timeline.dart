@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -179,12 +180,15 @@ class AccountTimelineList extends HookConsumerWidget {
               (item.activity?.type == 'workout' ||
                   item.activity?.type == 'fitness');
         case TimelineFilter.other:
-          return item.eventType == 1 &&
-              (item.activity == null ||
-                  (item.activity!.type != 'gaming' &&
-                      item.activity!.type != 'music' &&
-                      item.activity!.type != 'workout' &&
-                      item.activity!.type != 'fitness'));
+          // Service events (event type 2) have no filter of their own, so
+          // they surface under "other" next to uncategorised activities.
+          return item.eventType == 2 ||
+              (item.eventType == 1 &&
+                  (item.activity == null ||
+                      (item.activity!.type != 'gaming' &&
+                          item.activity!.type != 'music' &&
+                          item.activity!.type != 'workout' &&
+                          item.activity!.type != 'fitness')));
         default:
           return true;
       }
@@ -757,10 +761,82 @@ class AccountTimelineItem extends ConsumerWidget {
             ],
           ),
         );
+      case 2:
+        final event = item.event;
+        return ExploreCard(
+          child: Padding(
+            padding: const EdgeInsets.all(SolSpace.md),
+            child: Row(
+              spacing: SolSpace.md,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _getEventIcon(event?.eventType),
+                    size: 20,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _getEventLabel(event?.eventType),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const Gap(2),
+                      Text(
+                        '${createdAt.toLocal().formatRelative(context)} · ${createdAt.toLocal().formatSystem()}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       default:
         return Text('unknown').tr();
     }
   }
+
+  /// Labels the persisted service-event types the fleet timeline protocol
+  /// defines (Stargate `timeline.stargate.*`, Pulsar `timeline.pulsar.*`);
+  /// unknown future types degrade to a generic activity label.
+  String _getEventLabel(String? eventType) => switch (eventType) {
+    'profile.updated' => 'timelineEventProfileUpdated'.tr(),
+    'realm.created' => 'timelineEventRealmCreated'.tr(),
+    'realm.joined' => 'timelineEventRealmJoined'.tr(),
+    'name.changed' => 'timelineEventNameChanged'.tr(),
+    'scrobble.created' => 'timelineEventScrobbleCreated'.tr(),
+    'work.reviewed' => 'timelineEventWorkReviewed'.tr(),
+    'work.review_deleted' => 'timelineEventWorkReviewDeleted'.tr(),
+    _ => 'timelineEventGeneric'.tr(),
+  };
+
+  IconData _getEventIcon(String? eventType) => switch (eventType) {
+    'profile.updated' => Symbols.person_edit,
+    'realm.created' || 'realm.joined' => Symbols.group_add,
+    'name.changed' => Symbols.badge,
+    'scrobble.created' => Symbols.music_note,
+    'work.reviewed' || 'work.review_deleted' => Symbols.rate_review,
+    _ => Symbols.bolt,
+  };
 
   Color _getStatusColor(SnAccountStatus status) {
     switch (status.type) {
@@ -899,6 +975,9 @@ class AccountTimelineNotifier
     final response = await client.get(
       '/stargate/accounts/$arg/timeline',
       queryParameters: queryParams,
+      options: Options(
+        headers: {'X-Client-Capabilities': 'timeline.service-events'},
+      ),
     );
 
     totalCount = int.parse(response.headers.value('X-Total') ?? '0');
