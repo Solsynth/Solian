@@ -49,6 +49,14 @@ jobs:
         with:
           name: build-output-windows
           path: build/windows/x64/runner/Release
+      # Portable build: same Release folder as the installer, just zipped.
+      - name: Create portable archive
+        run: Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "Solian-windows-x86_64-portable.zip"
+      - name: Archive portable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output-windows-portable
+          path: Solian-windows-x86_64-portable.zip
       - name: Compile Installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
@@ -189,6 +197,12 @@ jobs:
         with:
           name: build-output-windows-installer
           path: ./artifacts/windows
+      - if: needs.build-exe.result == 'success'
+        name: Download Windows portable artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output-windows-portable
+          path: ./artifacts/windows-portable
       - if: needs.build-linux.result == 'success'
         name: Download AppImage artifact
         uses: actions/download-artifact@v4
@@ -206,6 +220,11 @@ jobs:
         run: |
           cd ./artifacts/windows
           zip -r ../build-output-windows-installer.zip .
+      - if: needs.build-exe.result == 'success'
+        name: Zip Windows portable build
+        run: |
+          cd ./artifacts/windows-portable
+          zip -r ../build-output-windows-portable.zip .
       - if: needs.build-linux.result == 'success'
         name: Zip Linux AppImage
         run: |
@@ -221,6 +240,19 @@ jobs:
           version: ${{ steps.distribution_version.outputs.version }}
           file: ./artifacts/build-output-windows-installer.zip
           platform: windows
+          architecture: amd64
+          mime-type: application/zip
+          channel: stable
+      - if: needs.build-exe.result == 'success'
+        name: Upload Windows portable build to Solsynth Express
+        uses: Solsynth/SolsynthExpressUpload@v2
+        with:
+          api-base-url: ${{ vars.DISTRIBUTION_API_BASE_URL }}
+          product-id: ${{ vars.DISTRIBUTION_PRODUCT_ID }}
+          api-key: ${{ secrets.DISTRIBUTION_UPLOAD_KEY }}
+          version: ${{ steps.distribution_version.outputs.version }}
+          file: ./artifacts/build-output-windows-portable.zip
+          platform: windows-portable
           architecture: amd64
           mime-type: application/zip
           channel: stable
