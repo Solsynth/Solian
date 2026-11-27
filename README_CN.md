@@ -21,7 +21,7 @@ Solian（又名 Solar Network）是一个社交平台，旨在帮助你自由表
 
 提示：中文版本的 README 信息可能更新不及时，请以英文版本的为准。
 
-> 中文文档：[Suki - Solar Network](https://kb.solsynth.dev/zh/solar-network) | [English README](./README.md)
+> 中文文档：[Suki - Solar Network](https://kb.solsynth.dev/zh/solar-network) | [English README](./README.md) | [Türkçe README](./README.tr.md)
 
 ---
 
