@@ -326,4 +326,4 @@ final class ChatroomInvitesProvider
   }
 }
 
-String _$chatroomInvitesHash() => r'fc23231d5f111b1c3796ffae2b471384b951861a';
+String _$chatroomInvitesHash() => r'7b5187ef16b296227d0b3a8c2635912660f70113';

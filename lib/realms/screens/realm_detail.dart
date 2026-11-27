@@ -1703,7 +1703,7 @@ class RealmDetailScreen extends HookConsumerWidget {
     }
 
     Widget realmIdentityWidget(SnRealm realm, SnRealmMember identity) {
-      final userInfo = ref.watch(userInfoProvider);
+      final account = ref.watch(userInfoProvider).value;
 
       return Card(
         margin: EdgeInsets.zero,
@@ -1762,11 +1762,16 @@ class RealmDetailScreen extends HookConsumerWidget {
             ),
             const Gap(12),
             if (identity.nick?.isNotEmpty ?? false)
-              AccountName(
-                textOverride: identity.nick,
-                account: userInfo.value!,
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
+              account != null
+                  ? AccountName(
+                      textOverride: identity.nick,
+                      account: account,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    )
+                  : Text(
+                      identity.nick ?? '',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
             if (identity.bio?.isNotEmpty ?? false)
               Text(
                 identity.bio!,
@@ -1780,7 +1785,7 @@ class RealmDetailScreen extends HookConsumerWidget {
                     : 'realmBoostFunction'.tr(),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-            if (identity.labelId != null) ...[
+            if (identity.label case final label?) ...[
               const Gap(12),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -1822,13 +1827,12 @@ class RealmDetailScreen extends HookConsumerWidget {
                       spacing: 8,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if ((identity.label?.icon ?? '').isNotEmpty)
-                          Text(identity.label!.icon!),
-                        RealmLabelWidget(label: identity.label!, fontSize: 11),
-                        if ((identity.label?.description ?? '').isNotEmpty)
+                        if (label.icon?.isNotEmpty ?? false) Text(label.icon!),
+                        RealmLabelWidget(label: label, fontSize: 11),
+                        if (label.description.isNotEmpty)
                           Expanded(
                             child: Text(
-                              identity.label!.description,
+                              label.description,
                               style: Theme.of(context).textTheme.bodySmall,
                             ).padding(top: 2),
                           ),
