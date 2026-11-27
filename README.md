@@ -19,7 +19,7 @@ Solian (also known as Solar Network) is a social networking platform, designed t
 
 Note: Fediverse support is currently experimental and limited.
 
-> If you read Chinese, visit our documentation: [Suki - Solar Network](https://kb.solsynth.dev/zh/solar-network) | [中文 README](./README_CN.md)
+> If you read Chinese, visit our documentation: [Suki - Solar Network](https://kb.solsynth.dev/zh/solar-network) | [中文 README](./README_CN.md) | [Türkçe README](./README.tr.md)
 
 ---
 
