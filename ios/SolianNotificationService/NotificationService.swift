@@ -89,17 +89,38 @@ class NotificationService: UNNotificationServiceExtension {
     }
     
     private func applyGrouping(to content: UNMutableNotificationContent) {
-        guard let meta = content.userInfo["meta"] as? [AnyHashable: Any] else { return }
-        
-        if let roomId = meta["room_id"] {
+        let meta = content.userInfo["meta"] as? [AnyHashable: Any]
+
+        if let roomId = roomId(from: content) {
             content.threadIdentifier = "room_\(roomId)"
-        } else if let userId = meta["user_id"] {
+        } else if let userId = stringValue(meta?["user_id"]) ?? stringValue(content.userInfo["user_id"]) {
             content.threadIdentifier = "user_\(userId)"
-        } else if let topic = meta["topic"] as? String {
+        } else if let topic = stringValue(meta?["topic"]) {
             content.threadIdentifier = "topic_\(topic)"
-        } else if let type = content.userInfo["type"] as? String {
+        } else if let type = stringValue(content.userInfo["type"]) {
             content.threadIdentifier = "type_\(type)"
         }
+    }
+
+    private func roomId(from content: UNNotificationContent) -> String? {
+        let meta = content.userInfo["meta"] as? [AnyHashable: Any]
+        return stringValue(meta?["room_id"])
+            ?? stringValue(meta?["chat_room_id"])
+            ?? stringValue(content.userInfo["room_id"])
+            ?? stringValue(content.userInfo["chat_room_id"])
+    }
+
+    private func stringValue(_ value: Any?) -> String? {
+        guard let value, !(value is NSNull) else { return nil }
+        if let str = value as? String {
+            let trimmed = str.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
+        }
+        if let num = value as? NSNumber {
+            return num.stringValue
+        }
+        let desc = String(describing: value).trimmingCharacters(in: .whitespacesAndNewlines)
+        return desc.isEmpty ? nil : desc
     }
     
     private func handleMessagingNotification(request: UNNotificationRequest, content: UNMutableNotificationContent) throws {
@@ -111,28 +132,35 @@ class NotificationService: UNNotificationServiceExtension {
         let metaCopy = meta as? [String: Any] ?? [:]
         let pfpUrl = pfpIdentifier != nil ? getAttachmentUrl(for: pfpIdentifier!) : nil
 
-        let handle = INPersonHandle(value: "@\(metaCopy["sender_name"] ?? "")", type: .unknown)
+        let senderName = stringValue(metaCopy["sender_name"]) ?? ""
+        let handle = INPersonHandle(value: "@\(senderName)", type: .unknown)
 
         let completeNotificationProcessing: (Data?) -> Void = { imageData in
             let sender = INPerson(
                 personHandle: handle,
-                nameComponents: PersonNameComponents(nickname: "\(metaCopy["sender_name"] ?? "")"),
+                nameComponents: PersonNameComponents(nickname: senderName),
                 displayName: content.title,
                 image: imageData == nil ? nil : INImage(imageData: imageData!),
                 contactIdentifier: nil,
                 customIdentifier: nil
             )
 
-            let intent = self.createMessageIntent(with: sender, meta: metaCopy, body: content.body)
+            let conversationId = self.roomId(from: content) ?? content.threadIdentifier
+            let intent = self.createMessageIntent(
+                with: sender,
+                meta: metaCopy,
+                conversationIdentifier: conversationId,
+                body: content.body
+            )
             self.donateInteraction(for: intent)
 
-            if let updatedContent = try? request.content.updating(from: intent) {
-                if let mutableContent = updatedContent.mutableCopy() as? UNMutableNotificationContent {
-                    mutableContent.categoryIdentifier = "CHAT_MESSAGE"
-                    self.attachNotificationMediaIfNeeded(to: mutableContent, meta: meta, includeProfilePicture: false)
-                } else {
-                    self.contentHandler?(updatedContent)
-                }
+            if let updatedContent = try? content.updating(from: intent),
+               let mutableContent = updatedContent.mutableCopy() as? UNMutableNotificationContent {
+                mutableContent.sound = content.sound
+                mutableContent.threadIdentifier = content.threadIdentifier
+                mutableContent.categoryIdentifier = "CHAT_MESSAGE"
+                mutableContent.userInfo = content.userInfo
+                self.attachNotificationMediaIfNeeded(to: mutableContent, meta: meta, includeProfilePicture: false)
             } else {
                 content.categoryIdentifier = "CHAT_MESSAGE"
                 self.attachNotificationMediaIfNeeded(to: content, meta: meta, includeProfilePicture: false)
@@ -249,13 +277,19 @@ class NotificationService: UNNotificationServiceExtension {
     
 
     
-    private func createMessageIntent(with sender: INPerson, meta: [AnyHashable: Any], body: String) -> INSendMessageIntent {
-        INSendMessageIntent(
+    private func createMessageIntent(
+        with sender: INPerson,
+        meta: [AnyHashable: Any],
+        conversationIdentifier: String,
+        body: String
+    ) -> INSendMessageIntent {
+        let speakableGroupName = stringValue(meta["room_name"]).map(INSpeakableString.init(spokenPhrase:))
+        return INSendMessageIntent(
             recipients: nil,
             outgoingMessageType: .outgoingMessageText,
             content: body,
-            speakableGroupName: meta["room_name"] != nil ? INSpeakableString(spokenPhrase: meta["room_name"] as! String) : nil,
-            conversationIdentifier: "\(meta["room_id"] ?? "")",
+            speakableGroupName: speakableGroupName,
+            conversationIdentifier: conversationIdentifier,
             serviceName: nil,
             sender: sender,
             attachments: nil
