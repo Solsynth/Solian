@@ -45,15 +45,30 @@ const kSplashImageTopInset = 32.0;
 /// it clear of the progress cluster; the bottom scrim fades its lower edge.
 const kSplashImageBottomInset = 200.0;
 
-const _kLandscapeLandingImages = <String>[
-  'assets/images/landing/landscape-01.webp',
-  'assets/images/landing/landscape-02.webp',
-  'assets/images/landing/landscape-03.webp',
+const _kLandscapeLandingAssets = <_LandingAsset>[
+  _LandingAsset(
+    path: 'assets/images/landing/landscape-01.webp',
+    backgroundColor: Color(0xFFF7EBCF),
+  ),
+  _LandingAsset(
+    path: 'assets/images/landing/landscape-02.webp',
+    backgroundColor: Color(0xFFF6E9CB),
+  ),
+  _LandingAsset(
+    path: 'assets/images/landing/landscape-03.webp',
+    backgroundColor: Color(0xFFF6EACC),
+  ),
 ];
 
-const _kVerticalLandingImages = <String>[
-  'assets/images/landing/vertical-01.webp',
-  'assets/images/landing/vertical-02.webp',
+const _kVerticalLandingAssets = <_LandingAsset>[
+  _LandingAsset(
+    path: 'assets/images/landing/vertical-01.webp',
+    backgroundColor: Color(0xFFF6E8CA),
+  ),
+  _LandingAsset(
+    path: 'assets/images/landing/vertical-02.webp',
+    backgroundColor: Color(0xFFF6E9CA),
+  ),
 ];
 
 class StartupSplashScreen extends HookConsumerWidget {
@@ -294,11 +309,11 @@ class StartupSplashScreen extends HookConsumerWidget {
     final percentage = (progress * 100).round();
     final screenSize = MediaQuery.sizeOf(context);
     final isLandscape = screenSize.width > screenSize.height;
-    final landingImage = useMemoized(
+    final landingAsset = useMemoized(
       () {
         final candidates = isLandscape
-            ? _kLandscapeLandingImages
-            : _kVerticalLandingImages;
+            ? _kLandscapeLandingAssets
+            : _kVerticalLandingAssets;
         return candidates[math.Random().nextInt(candidates.length)];
       },
       [isLandscape],
@@ -319,23 +334,21 @@ class StartupSplashScreen extends HookConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top section: future artwork
+            // Top section: landing artwork
             Expanded(
               child: ColoredBox(
-                color: colorScheme.surfaceContainer,
+                color: landingAsset.backgroundColor,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                  ClipRect(
-                    child: Image.asset(
-                      landingImage,
+                    Image.asset(
+                      landingAsset.path,
                       key: const Key('startup-portrait-image'),
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                       width: double.infinity,
                       height: double.infinity,
                       alignment: Alignment.center,
                     ),
-                  ),
                   // Progress indicator label (bottom-right above the divider)
                   Positioned(
                     right: 16,
@@ -583,6 +596,16 @@ class _StageInfo extends StatelessWidget {
       ),
     );
   }
+}
+
+class _LandingAsset {
+  final String path;
+  final Color backgroundColor;
+
+  const _LandingAsset({
+    required this.path,
+    required this.backgroundColor,
+  });
 }
 
 class _BootstrapStage {

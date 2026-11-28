@@ -10,6 +10,7 @@ import 'package:solar_network_foundation/solar_network_foundation.dart';
 import 'package:island/posts/widgets/compose/compose_link_attachments.dart';
 import 'package:island/shared/widgets/alert.dart';
 import 'package:island/core/widgets/content/attachment_preview.dart';
+import 'package:island_ui_foundation/island_ui_foundation.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:solar_network_sdk/solar_network_sdk.dart';
@@ -337,35 +338,33 @@ class CloudFilePicker extends HookConsumerWidget {
                         separatorBuilder: (_, _) => const Gap(8),
                       ),
                     ),
-                  Card(
-                    margin: EdgeInsets.zero,
-                    child: Column(
-                      children: [
+                  SegmentedListSection(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    children: [
+                      ListTile(
+                        leading: const Icon(Symbols.link),
+                        title: Text('addLinkAttachment'.tr()),
+                        onTap: () => pickLinkAttachment(),
+                      ),
+                      if (allowedTypes.contains(UniversalFileType.image))
                         ListTile(
-                          leading: const Icon(Symbols.link),
-                          title: Text('addLinkAttachment'.tr()),
-                          onTap: () => pickLinkAttachment(),
+                          leading: const Icon(Symbols.photo),
+                          title: Text('addPhoto'.tr()),
+                          onTap: () => pickImage(),
                         ),
-                        if (allowedTypes.contains(UniversalFileType.image))
-                          ListTile(
-                            leading: const Icon(Symbols.photo),
-                            title: Text('addPhoto'.tr()),
-                            onTap: () => pickImage(),
-                          ),
-                        if (allowedTypes.contains(UniversalFileType.video))
-                          ListTile(
-                            leading: const Icon(Symbols.video_call),
-                            title: Text('addVideo'.tr()),
-                            onTap: () => pickVideo(),
-                          ),
-                        if (allowedTypes.contains(UniversalFileType.file))
-                          ListTile(
-                            leading: const Icon(Symbols.draft),
-                            title: Text('addFile'.tr()),
-                            onTap: () => pickFile(),
-                          ),
-                      ],
-                    ),
+                      if (allowedTypes.contains(UniversalFileType.video))
+                        ListTile(
+                          leading: const Icon(Symbols.video_call),
+                          title: Text('addVideo'.tr()),
+                          onTap: () => pickVideo(),
+                        ),
+                      if (allowedTypes.contains(UniversalFileType.file))
+                        ListTile(
+                          leading: const Icon(Symbols.draft),
+                          title: Text('addFile'.tr()),
+                          onTap: () => pickFile(),
+                        ),
+                    ],
                   ),
                 ],
               ).padding(all: 20),
