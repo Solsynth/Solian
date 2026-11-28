@@ -102,9 +102,19 @@ void main() {
 
     // Version label is present next to wordmark (including build number).
     expect(find.text('v3.15.0+306'), findsOneWidget);
+
+    // Portrait screen picks a vertical landing image.
+    final image = tester.widget<Image>(
+      find.byKey(const Key('startup-portrait-image')),
+    );
+    final assetImage = image.image as AssetImage;
+    expect(
+      assetImage.assetName,
+      startsWith('assets/images/landing/vertical-'),
+    );
   });
 
-  testWidgets('desktop: artwork stays centered with 9:16 aspect ratio', (
+  testWidgets('desktop: artwork fills landscape area and picks landscape image', (
     tester,
   ) async {
     await _pump(tester, const Size(1440, 900));
@@ -119,11 +129,21 @@ void main() {
     final imageSize = tester.getSize(
       find.byKey(const Key('startup-portrait-image')),
     );
-    expect(imageSize.width / imageSize.height, closeTo(9 / 16, 0.01));
+    expect(imageSize.width, closeTo(1440, 1));
     // Centered horizontally.
     expect(portrait.dx, closeTo(1440 / 2, 1));
 
     final barBox = tester.getRect(find.byType(StartupProgressBar));
     expect(portrait.dy, lessThan(barBox.top));
+
+    // Landscape screen picks a landscape landing image.
+    final image = tester.widget<Image>(
+      find.byKey(const Key('startup-portrait-image')),
+    );
+    final assetImage = image.image as AssetImage;
+    expect(
+      assetImage.assetName,
+      startsWith('assets/images/landing/landscape-'),
+    );
   });
 }

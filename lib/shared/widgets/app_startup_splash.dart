@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -13,7 +14,6 @@ import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/audio.dart';
 import 'package:island/core/network.dart';
 import 'package:island/core/services/notify.dart';
-import 'package:island/core/services/responsive.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:island/shared/widgets/app_startup_progress.dart';
@@ -44,6 +44,17 @@ const kSplashImageTopInset = 32.0;
 /// size. The artwork is capped by its aspect ratio, so this only has to keep
 /// it clear of the progress cluster; the bottom scrim fades its lower edge.
 const kSplashImageBottomInset = 200.0;
+
+const _kLandscapeLandingImages = <String>[
+  'assets/images/landing/landscape-01.webp',
+  'assets/images/landing/landscape-02.webp',
+  'assets/images/landing/landscape-03.webp',
+];
+
+const _kVerticalLandingImages = <String>[
+  'assets/images/landing/vertical-01.webp',
+  'assets/images/landing/vertical-02.webp',
+];
 
 class StartupSplashScreen extends HookConsumerWidget {
   final bool runBootstrap;
@@ -281,7 +292,17 @@ class StartupSplashScreen extends HookConsumerWidget {
         ? 0.0
         : (periodCursor.value + (isBusy.value ? 0.5 : 1.0)) / stages.length;
     final percentage = (progress * 100).round();
-    final wide = isWideScreen(context);
+    final screenSize = MediaQuery.sizeOf(context);
+    final isLandscape = screenSize.width > screenSize.height;
+    final landingImage = useMemoized(
+      () {
+        final candidates = isLandscape
+            ? _kLandscapeLandingImages
+            : _kVerticalLandingImages;
+        return candidates[math.Random().nextInt(candidates.length)];
+      },
+      [isLandscape],
+    );
 
     return Material(
       color: colorScheme.surface,
@@ -306,27 +327,14 @@ class StartupSplashScreen extends HookConsumerWidget {
                   fit: StackFit.expand,
                   children: [
                   ClipRect(
-                    child: wide
-                        ? Center(
-                            child: AspectRatio(
-                              aspectRatio: 9 / 16,
-                              child: Image.asset(
-                                'assets/images/michan/landing.webp',
-                                key: const Key('startup-portrait-image'),
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                              ),
-                            ),
-                          )
-                        : Image.asset(
-                            'assets/images/michan/landing.webp',
-                            key: const Key('startup-portrait-image'),
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                            alignment: Alignment.center,
-                          ),
+                    child: Image.asset(
+                      landingImage,
+                      key: const Key('startup-portrait-image'),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      alignment: Alignment.center,
+                    ),
                   ),
                   // Progress indicator label (bottom-right above the divider)
                   Positioned(
