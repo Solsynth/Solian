@@ -33,6 +33,7 @@ import 'package:island/discovery/widgets/explore_config_sheet.dart';
 import 'package:island/discovery/widgets/pill_app_bar.dart';
 import 'package:island/discovery/widgets/friend_presence_strip.dart';
 import 'package:island/discovery/widgets/friend_presence_widgets.dart';
+import 'package:island/discovery/widgets/service_event_item.dart';
 import 'package:island/discovery/widgets/subscribed_publishers_strip.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:super_sliver_list/super_sliver_list.dart';
@@ -1510,6 +1511,14 @@ class _ActivityListView extends HookConsumerWidget {
             itemWidget = PostRowSurface(
               child: FriendStatusItem(
                 status: status,
+                createdAt: item.createdAt,
+              ),
+            );
+            break;
+          case 'service.event':
+            itemWidget = PostRowSurface(
+              child: ServiceEventItem(
+                data: asStringKeyedMap(item.data),
                 createdAt: item.createdAt,
               ),
             );

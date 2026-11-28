@@ -826,6 +826,7 @@ class AccountTimelineItem extends ConsumerWidget {
     'scrobble.created' => 'timelineEventScrobbleCreated'.tr(),
     'work.reviewed' => 'timelineEventWorkReviewed'.tr(),
     'work.review_deleted' => 'timelineEventWorkReviewDeleted'.tr(),
+    'work.status_updated' => 'timelineEventWorkStatusUpdated'.tr(),
     _ => 'timelineEventGeneric'.tr(),
   };
 
@@ -835,6 +836,7 @@ class AccountTimelineItem extends ConsumerWidget {
     'name.changed' => Symbols.badge,
     'scrobble.created' => Symbols.music_note,
     'work.reviewed' || 'work.review_deleted' => Symbols.rate_review,
+    'work.status_updated' => Symbols.bolt,
     _ => Symbols.bolt,
   };
 
