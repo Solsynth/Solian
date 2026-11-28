@@ -97,6 +97,30 @@ abstract final class PulsarCollectionKind {
   static const backlog = 'backlog';
   static const favorites = 'favorites';
   static const custom = 'custom';
+
+  /// Kinds a user may choose when creating a collection. Favourites are
+  /// created by the server on first heart, never picked by hand.
+  static const List<String> all = [playlist, watchlist, backlog, custom];
+
+  static IconData icon(String? kind) {
+    return switch (kind) {
+      playlist => Symbols.queue_music,
+      watchlist => Symbols.bookmark,
+      backlog => Symbols.inventory_2,
+      favorites => Symbols.favorite,
+      _ => Symbols.collections_bookmark,
+    };
+  }
+
+  static String label(String? kind) {
+    return switch (kind) {
+      playlist => 'pulsarCollectionKindPlaylist'.tr(),
+      watchlist => 'pulsarCollectionKindWatchlist'.tr(),
+      backlog => 'pulsarCollectionKindBacklog'.tr(),
+      favorites => 'pulsarCollectionKindFavorites'.tr(),
+      _ => 'pulsarCollectionKindCustom'.tr(),
+    };
+  }
 }
 
 /// Favourite entry kinds in Pulsar (`model.Favourite*` in LightHouse).

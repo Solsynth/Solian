@@ -159,6 +159,7 @@ class PulsarClient {
     String kind = PulsarCollectionKind.watchlist,
     String? description,
     bool isPublic = true,
+    String? artworkUrl,
   }) async {
     final resp = await _dio.post(
       '/pulsar/collections',
@@ -169,9 +170,36 @@ class PulsarClient {
         if (description != null && description.isNotEmpty)
           'description': description,
         'is_public': isPublic,
+        if (artworkUrl != null && artworkUrl.isNotEmpty)
+          'artwork_url': artworkUrl,
       },
     );
     return PulsarCollection.fromJson(Map<String, dynamic>.from(resp.data));
+  }
+
+  Future<PulsarCollection> updateCollection(
+    String id, {
+    required String name,
+    String? description,
+    required bool isPublic,
+    String? artworkUrl,
+  }) async {
+    final resp = await _dio.put(
+      '/pulsar/collections/${Uri.encodeComponent(id)}',
+      data: {
+        'name': name,
+        // The server treats an empty string as "clear this field"; omitting
+        // it would leave the old description or artwork in place.
+        'description': description ?? '',
+        'is_public': isPublic,
+        'artwork_url': artworkUrl ?? '',
+      },
+    );
+    return PulsarCollection.fromJson(Map<String, dynamic>.from(resp.data));
+  }
+
+  Future<void> deleteCollection(String id) async {
+    await _dio.delete('/pulsar/collections/${Uri.encodeComponent(id)}');
   }
 
   Future<PulsarCollectionItem> addCollectionItem(
@@ -224,6 +252,12 @@ class PulsarClient {
       },
     );
     return PulsarCollectionItem.fromJson(Map<String, dynamic>.from(resp.data));
+  }
+
+  Future<void> removeCollectionItem(String collectionId, String itemId) async {
+    await _dio.delete(
+      '/pulsar/collections/${Uri.encodeComponent(collectionId)}/items/${Uri.encodeComponent(itemId)}',
+    );
   }
 
   Future<List<PulsarCatalogItem>> searchCatalog(
@@ -412,10 +446,17 @@ final pulsarFavouritesProvider = FutureProvider.autoDispose
       return ref.watch(pulsarClientProvider).getFavourites(domain: domain);
     });
 
-/// Loads the current user's non-favourites collections together with their items
-/// so work statuses (`watching`, `plan_to_watch`, `completed`, `on_hold`,
-/// `dropped`) can be viewed and edited in place.
-final pulsarMyWorkCollectionsProvider =
+/// One collection with its items, used by the collection detail sheet so an
+/// edit or item removal can refresh just that collection.
+final pulsarCollectionProvider = FutureProvider.autoDispose
+    .family<PulsarCollection, String>((ref, id) async {
+      return ref.watch(pulsarClientProvider).getCollection(id);
+    });
+
+/// Loads the current user's non-favourites collections together with their
+/// items, so both the collection manager and the work-status views can edit
+/// them in place.
+final pulsarMyCollectionsProvider =
     FutureProvider.autoDispose<List<PulsarCollection>>((ref) async {
       final client = ref.watch(pulsarClientProvider);
       final summaries = await client.listMyCollections(take: 50);
@@ -425,3 +466,8 @@ final pulsarMyWorkCollectionsProvider =
       if (nonFav.isEmpty) return const [];
       return Future.wait(nonFav.map((c) => client.getCollection(c.id)));
     });
+
+/// Kept as an alias because profile and compose code ask for the collection
+/// list under the work-status name. Invalidating either name invalidates the
+/// same provider.
+final pulsarMyWorkCollectionsProvider = pulsarMyCollectionsProvider;
