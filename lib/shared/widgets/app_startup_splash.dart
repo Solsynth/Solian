@@ -12,12 +12,15 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:island/accounts/account_pod.dart';
 import 'package:island/core/audio.dart';
+import 'package:island/core/config.dart';
 import 'package:island/core/network.dart';
+import 'package:island/core/services/landing_splash_service.dart';
 import 'package:island/core/services/notify.dart';
 import 'package:island/core/websocket.dart';
 import 'package:island_plugin_foundation/island_plugin_foundation.dart';
 import 'package:island/shared/widgets/app_startup_progress.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Flip to `true` to keep the splash stuck on its final bootstrap stage
 /// (cannot be skipped), for previewing the startup UI.
@@ -309,7 +312,30 @@ class StartupSplashScreen extends HookConsumerWidget {
     final percentage = (progress * 100).round();
     final screenSize = MediaQuery.sizeOf(context);
     final isLandscape = screenSize.width > screenSize.height;
-    final landingAsset = useMemoized(
+
+    final prefs = useMemoized<SharedPreferences?>(() {
+      try {
+        return ref.read(sharedPreferencesProvider);
+      } catch (_) {
+        return null;
+      }
+    }, const []);
+
+    useEffect(() {
+      if (!runBootstrap || !hasConnectivity || kIsWeb || prefs == null) {
+        return null;
+      }
+      final apiClient = ref.read(apiClientProvider);
+      unawaited(
+        syncLandingSplashAssets(
+          apiClient: apiClient,
+          prefs: prefs,
+        ).catchError((_) {}),
+      );
+      return null;
+    }, [runBootstrap, hasConnectivity, prefs]);
+
+    final fallbackAsset = useMemoized(
       () {
         final candidates = isLandscape
             ? _kLandscapeLandingAssets
@@ -317,6 +343,24 @@ class StartupSplashScreen extends HookConsumerWidget {
         return candidates[math.Random().nextInt(candidates.length)];
       },
       [isLandscape],
+    );
+    final landingAsset = useMemoized(
+      () {
+        final cloudAsset = resolveLocalLandingAsset(
+          prefs: prefs,
+          isLandscape: isLandscape,
+        );
+        if (cloudAsset != null && cloudAsset.localPath != null) {
+          return _LandingAsset(
+            path: cloudAsset.localPath!,
+            backgroundColor:
+                cloudAsset.backgroundColor ?? fallbackAsset.backgroundColor,
+            isLocalFile: true,
+          );
+        }
+        return fallbackAsset;
+      },
+      [isLandscape, prefs, fallbackAsset],
     );
 
     return Material(
@@ -341,14 +385,31 @@ class StartupSplashScreen extends HookConsumerWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.asset(
-                      landingAsset.path,
-                      key: const Key('startup-portrait-image'),
-                      fit: BoxFit.contain,
-                      width: double.infinity,
-                      height: double.infinity,
-                      alignment: Alignment.center,
-                    ),
+                    if (landingAsset.isLocalFile && !kIsWeb)
+                      Image.file(
+                        File(landingAsset.path),
+                        key: const Key('startup-portrait-image'),
+                        fit: BoxFit.contain,
+                        width: double.infinity,
+                        height: double.infinity,
+                        alignment: Alignment.center,
+                        errorBuilder: (_, _, _) => Image.asset(
+                          fallbackAsset.path,
+                          fit: BoxFit.contain,
+                          width: double.infinity,
+                          height: double.infinity,
+                          alignment: Alignment.center,
+                        ),
+                      )
+                    else
+                      Image.asset(
+                        landingAsset.path,
+                        key: const Key('startup-portrait-image'),
+                        fit: BoxFit.contain,
+                        width: double.infinity,
+                        height: double.infinity,
+                        alignment: Alignment.center,
+                      ),
                   // Progress indicator label (bottom-right above the divider)
                   Positioned(
                     right: 16,
@@ -601,10 +662,12 @@ class _StageInfo extends StatelessWidget {
 class _LandingAsset {
   final String path;
   final Color backgroundColor;
+  final bool isLocalFile;
 
   const _LandingAsset({
     required this.path,
     required this.backgroundColor,
+    this.isLocalFile = false,
   });
 }
 
